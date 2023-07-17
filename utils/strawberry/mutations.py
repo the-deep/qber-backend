@@ -181,6 +181,7 @@ class MutationEmptyResponseType():
 
 def get_serializer_context(info: Info):
     return {
+        'graphql_info': info,
         'request': info.context.request,
         'active_project': info.context.active_project,
     }
@@ -242,6 +243,7 @@ class ModelMutation:
             return _CustomErrorType.generate_message(), None
         return None, instance
 
+    @staticmethod
     @sync_to_async
     def handle_delete(instance: models.Model) -> tuple[CustomErrorType | None, models.Model | None]:
         try:
@@ -312,29 +314,30 @@ class ModelMutation:
 
         errors = []
 
-        # Delete
+        # Delete - First
         deleted_instances = []
         delete_qs = base_queryset.filter(id__in=delete_ids)
-        for item in delete_qs or []:
+        async for item in delete_qs.all():
             _errors, _saved_instance = await self.handle_delete(item)
             if _errors:
                 errors.append(_errors)
             else:
                 deleted_instances.append(_saved_instance)
 
-        # Create/Update
+        # Create/Update - Then
         results = []
         for data in items or []:
-            _id = data.pop('id', None)
+            _data = data.__dict__
+            _id = _data.pop('id', None)
             instance = None
             if _id:
-                instance = base_queryset.filter(id=_id).first()
+                instance = await base_queryset.filter(id=_id).afirst()
             partial = False
             if instance:
                 partial = True
             _errors, _saved_instance = await self.handle_mutation(
                 self.serializer_class,
-                data.__dict__,
+                _data,
                 info,
                 instance=instance,
                 partial=partial,

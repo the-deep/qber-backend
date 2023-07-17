@@ -25,7 +25,7 @@ class ProjectScopeMutation(
     @strawberry.mutation
     async def update_project(
         self,
-        data: ProjectMutation.InputType,
+        data: ProjectMutation.PartialInputType,
         info: Info,
     ) -> MutationResponseType[ProjectType]:
         return await ProjectMutation.handle_update_mutation(
@@ -39,14 +39,14 @@ class ProjectScopeMutation(
     async def update_memberships(
         self,
         items: list[ProjectMembershipBulkMutation.PartialInputType] | None,
-        data_delete_ids: list[strawberry.ID] | None,
+        delete_ids: list[strawberry.ID] | None,
         info: Info,
     ) -> BulkMutationResponseType[ProjectMembershipType]:
         queryset = ProjectMembership.objects.filter(project=info.context.active_project.project)
         return await ProjectMembershipBulkMutation.handle_bulk_mutation(
             queryset,
             items,
-            data_delete_ids,
+            delete_ids,
             info,
             Project.Permission.UPDATE_MEMBERSHIPS,
         )
@@ -60,11 +60,14 @@ class PrivateMutation:
         data: ProjectMutation.InputType,
         info: Info,
     ) -> MutationResponseType[ProjectType]:
-        return await ProjectMutation.handle_create_mutation(
+        response = await ProjectMutation.handle_create_mutation(
             data,
             info,
-            Project.Permission.UPDATE_PROJECT,
+            None,
         )
+        if response.ok:
+            await info.context.set_active_project(response.result)
+        return response
 
     @strawberry.field
     async def project_scope(self, info: Info, pk: strawberry.ID) -> ProjectScopeMutation | None:

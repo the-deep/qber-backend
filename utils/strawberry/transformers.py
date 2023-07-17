@@ -282,6 +282,7 @@ class MonkeyPatch:
                     member_id gives value "Member object (1)" == str(obj.member)
                 New behaviour:
                     member_id gives value "1" == str(obj.member_id)
+        NOTE: This doesn't work with Mixin
         """
         field = cls.og_get_field(
             django_type,

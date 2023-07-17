@@ -209,6 +209,17 @@ USE_TZ = True
 STATIC_URL = env('DJANGO_STATIC_URL')
 MEDIA_URL = env('DJANGO_MEDIA_URL')
 
+# Default
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
+
+
 if env('DJANGO_USE_S3'):
     # AWS S3 Bucket Credentials
     AWS_S3_BUCKET_STATIC = env('AWS_S3_BUCKET_STATIC')
@@ -230,9 +241,9 @@ if env('DJANGO_USE_S3'):
         'application/json',
     ]
     # Static configuration
-    STATICFILES_STORAGE = 'main.storages.S3StaticStorage'
+    STORAGES['staticfiles']['BACKEND'] = 'main.storages.S3StaticStorage'
     # Media configuration
-    DEFAULT_FILE_STORAGE = 'main.storages.S3MediaStorage'
+    STORAGES['default']['BACKEND'] = 'main.storages.S3MediaStorage'
 else:  # File system storage
     STATIC_ROOT = env('DJANGO_STATIC_ROOT')
     MEDIA_ROOT = env('DJANGO_MEDIA_ROOT')

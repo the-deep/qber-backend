@@ -56,6 +56,11 @@ enum OptEmailNotificationTypeEnum {
   NEWS_AND_OFFERS
 }
 
+enum Ordering {
+  ASC
+  DESC
+}
+
 input PasswordChangeInput {
   oldPassword: String!
   newPassword: String!
@@ -83,7 +88,7 @@ type PrivateMutation {
 
 type PrivateQuery {
   user: UserType!
-  projects(filters: ProjectFilter, pagination: OffsetPaginationInput): ProjectTypeCountList!
+  projects(filters: ProjectFilter, order: ProjectOrder, pagination: OffsetPaginationInput): ProjectTypeCountList!
   projectScope(pk: ID!): ProjectScopeType
   id: ID!
 }
@@ -102,18 +107,23 @@ input ProjectMembershipFilter {
   search: String
 }
 
+input ProjectMembershipOrder {
+  id: Ordering
+  joinedAt: Ordering
+}
+
 enum ProjectMembershipRoleTypeEnum {
   ADMIN
   MEMBER
 }
 
 type ProjectMembershipType {
-  clientId: String!
   id: ID!
   role: ProjectMembershipRoleTypeEnum!
   joinedAt: DateTime!
   memberId: ID!
   addedById: ID
+  clientId: String!
 }
 
 type ProjectMembershipTypeBulkMutationResponseType {
@@ -134,13 +144,18 @@ input ProjectMembershipUpdateInput {
   role: ProjectMembershipRoleTypeEnum = null
 }
 
+input ProjectOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
 type ProjectScopeMutation {
   id: ID!
   createQuestionnaire(data: QuestionnaireCreateInput!): QuestionnaireTypeMutationResponseType!
   updateQuestionnaire(data: QuestionnaireUpdateInput!): QuestionnaireTypeMutationResponseType!
   deleteQuestionnaire(id: ID!): QuestionnaireTypeListMutationResponseType!
-  updateProject(data: ProjectCreateInput!): ProjectTypeMutationResponseType!
-  updateMemberships(items: [ProjectMembershipUpdateInput!], dataDeleteIds: [ID!]): ProjectMembershipTypeBulkMutationResponseType!
+  updateProject(data: ProjectUpdateInput!): ProjectTypeMutationResponseType!
+  updateMemberships(items: [ProjectMembershipUpdateInput!], deleteIds: [ID!]): ProjectMembershipTypeBulkMutationResponseType!
 }
 
 type ProjectScopeType {
@@ -151,14 +166,14 @@ type ProjectScopeType {
 }
 
 type ProjectType {
-  id: ID!
-  title: String!
   createdAt: DateTime!
   modifiedAt: DateTime!
-  createdBy: DjangoModelType!
-  modifiedBy: DjangoModelType!
-  members(filters: ProjectMembershipFilter, pagination: OffsetPaginationInput): ProjectMembershipTypeCountList!
+  id: ID!
+  title: String!
+  members(filters: ProjectMembershipFilter, order: ProjectMembershipOrder, pagination: OffsetPaginationInput): ProjectMembershipTypeCountList!
+  createdBy: UserType!
   currentUserRole: ProjectMembershipRoleTypeEnum
+  modifiedBy: UserType!
 }
 
 type ProjectTypeCountList {
@@ -170,6 +185,10 @@ type ProjectTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: ProjectType
+}
+
+input ProjectUpdateInput {
+  title: String = ""
 }
 
 type PublicMutation {
@@ -249,6 +268,7 @@ type UserMeType {
   id: ID!
   firstName: String!
   lastName: String!
+  displayName: String!
   email: String!
   emailOptOuts: [OptEmailNotificationTypeEnum!]!
 }
@@ -263,4 +283,5 @@ type UserType {
   id: ID!
   firstName: String!
   lastName: String!
+  displayName: String!
 }

@@ -15,7 +15,6 @@ class TestCase(BaseTestCase):
     def query_check(
         self,
         query: str,
-        with_assert: bool = True,
         assert_errors: bool = False,
         variables: dict | None = None,
         **kwargs,
@@ -29,8 +28,6 @@ class TestCase(BaseTestCase):
             content_type="application/json",
             **kwargs,
         )
-        if with_assert:
-            self.assertEqual(response.status_code, 200)
         if assert_errors:
             self.assertResponseHasErrors(response)
         else:

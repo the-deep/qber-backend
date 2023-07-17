@@ -35,10 +35,6 @@ class ProjectMembership(models.Model):
     def __str__(self):
         return '{} @ {}'.format(str(self.member), self.project.title)
 
-    @property
-    def member__id(self):
-        return self.member_id
-
 
 class Project(UserResource):
     title = models.CharField(max_length=255)
@@ -99,3 +95,21 @@ class Project(UserResource):
             # For using within query filters
             current_user_role=current_user_role_subquery,
         ).exclude(current_user_role__isnull=True)
+
+    def add_member(
+        self,
+        user,
+        role: ProjectMembership.Role | None = ProjectMembership.Role.MEMBER,
+        added_by: User | None = None,
+    ):
+        """
+        Add or update existing membership for given user and role
+        """
+        existing_membership, _ = ProjectMembership.objects.get_or_create(
+            project=self,
+            member=user,
+        )
+        existing_membership.role = role
+        existing_membership.added_by = added_by
+        existing_membership.save(update_fields=('role', 'added_by'))
+        return existing_membership

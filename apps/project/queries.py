@@ -7,7 +7,7 @@ from utils.strawberry.paginations import CountList, pagination_field
 from apps.questionnaire import queries as questionnaire_queries
 
 from .models import Project
-from .types import ProjectType
+from .types import ProjectType, ProjectOrder
 from .filters import ProjectFilter
 
 
@@ -28,6 +28,7 @@ class PrivateQuery:
     projects: CountList[ProjectType] = pagination_field(
         pagination=True,
         filters=ProjectFilter,
+        order=ProjectOrder,
     )
 
     @strawberry.field

@@ -1,9 +1,12 @@
 import sentry_sdk
 from django.conf import settings
+from strawberry.permission import BasePermission
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
-IGNORED_ERRORS = []
+IGNORED_ERRORS = [
+    BasePermission,
+]
 IGNORED_LOGGERS = [
     "graphql.execution.utils",
 ]

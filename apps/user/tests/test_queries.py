@@ -14,6 +14,7 @@ class TestUserQuery(TestCase):
                   email
                   firstName
                   lastName
+                  displayName
                   emailOptOuts
                 }
               }
@@ -40,6 +41,7 @@ class TestUserQuery(TestCase):
             email=user.email,
             firstName=user.first_name,
             lastName=user.last_name,
+            displayName=f'{user.first_name} {user.last_name}',
             emailOptOuts=[
                 self.genum(opt)
                 for opt in user.email_opt_outs
