@@ -38,6 +38,7 @@ class ProjectMembershipBulkSerializer(TempClientIdMixin, UserResourceSerializer)
         )
 
     def validate(self, data):
+        # Check if already exists
         if 'member' in data:
             qs = ProjectMembership.objects.filter(
                 project=self.project,

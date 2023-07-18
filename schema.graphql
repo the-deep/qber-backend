@@ -155,6 +155,7 @@ type ProjectScopeMutation {
   updateQuestionnaire(data: QuestionnaireUpdateInput!): QuestionnaireTypeMutationResponseType!
   deleteQuestionnaire(id: ID!): QuestionnaireTypeListMutationResponseType!
   updateProject(data: ProjectUpdateInput!): ProjectTypeMutationResponseType!
+  leaveProject(confirmPassword: String!): MutationEmptyResponseType!
   updateMemberships(items: [ProjectMembershipUpdateInput!], deleteIds: [ID!]): ProjectMembershipTypeBulkMutationResponseType!
 }
 

@@ -1,7 +1,13 @@
 import strawberry
 from strawberry.types import Info
 
-from utils.strawberry.mutations import MutationResponseType, BulkMutationResponseType, ModelMutation
+from utils.strawberry.mutations import (
+    MutationResponseType,
+    BulkMutationResponseType,
+    MutationEmptyResponseType,
+    ModelMutation,
+    _CustomErrorType,
+)
 
 from apps.questionnaire import mutations as questionnaire_mutations
 from .models import Project, ProjectMembership
@@ -36,13 +42,35 @@ class ProjectScopeMutation(
         )
 
     @strawberry.mutation
+    async def leave_project(
+        self,
+        confirm_password: str,
+        info: Info,
+    ) -> MutationEmptyResponseType:
+        user = info.context.request.user
+        if not user.check_password(confirm_password):
+            return MutationEmptyResponseType(
+                ok=False,
+                errors=_CustomErrorType.generate_message("Password didn't match"),
+            )
+        queryset = ProjectMembership.objects.filter(
+            project=info.context.active_project.project,
+            member=info.context.request.user,
+        )
+        # Delete membership
+        await queryset.adelete()
+        return MutationEmptyResponseType(ok=True)
+
+    @strawberry.mutation
     async def update_memberships(
         self,
         items: list[ProjectMembershipBulkMutation.PartialInputType] | None,
         delete_ids: list[strawberry.ID] | None,
         info: Info,
     ) -> BulkMutationResponseType[ProjectMembershipType]:
-        queryset = ProjectMembership.objects.filter(project=info.context.active_project.project)
+        queryset = ProjectMembership.objects.filter(
+            project=info.context.active_project.project,
+        ).exclude(member=info.context.request.user)
         return await ProjectMembershipBulkMutation.handle_bulk_mutation(
             queryset,
             items,

@@ -114,7 +114,7 @@ def serializer_error_to_error_types(errors: dict, initial_data: dict | None = No
                     error_types.append(_CustomErrorType(
                         client_id=node_client_id,
                         field=to_camel_case(field),
-                        messages=''.join(str(msg) for msg in value),
+                        messages=', '.join(str(msg) for msg in value),
                         object_errors=None,
                         array_errors=None,
                     ))

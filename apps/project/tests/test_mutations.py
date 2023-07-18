@@ -92,7 +92,19 @@ class TestProjectMutation(TestCase):
                 }
               }
             }
+        '''
 
+        ProjectMembershipLeave = '''
+            mutation MyMutation($project_id: ID!, $confirm_password: String!) {
+              private {
+                projectScope(pk: $project_id) {
+                  leaveProject(confirmPassword: $confirm_password) {
+                    ok
+                    errors
+                  }
+                }
+              }
+            }
         '''
 
     def test_create_project(self):
@@ -195,7 +207,7 @@ class TestProjectMutation(TestCase):
                     'member': str(to_be_member_user.id),
                     'role': self.genum(ProjectMembership.Role.MEMBER),
                 },
-                # Two existing
+                # Existing
                 *[
                     {
                         'id': str(membership.id),
@@ -281,3 +293,92 @@ class TestProjectMutation(TestCase):
                     for membership in to_be_deleted_memberships
                 ],
             }, content_response
+
+    def test_project_membership_leave(self):
+        user = UserFactory.create()
+        # NOTE: created_by/modified_by != membership
+        project = ProjectFactory.create(created_by=user, modified_by=user)
+        self_membership = project.add_member(user, role=ProjectMembership.Role.ADMIN)
+
+        variables = {
+            'project_id': project.id,
+            'items': [
+                {
+                    # With id
+                    'id': self_membership.id,
+                    'clientId': 'self-membership-with-id',
+                    'member': user.id,
+                    'role': self.genum(ProjectMembership.Role.MEMBER),
+                },
+                {
+                    # Without id
+                    'clientId': 'self-membership-without-id',
+                    'member': user.id,
+                    'role': self.genum(ProjectMembership.Role.MEMBER),
+                },
+            ],
+            'delete_ids': [str(self_membership.id)],
+        }
+
+        self.force_login(user)
+        # -- Make sure user can't mutate self membership
+        content = self.query_check(self.Mutation.ProjectMembershipBulkUpdate, variables=variables)
+        content_response = content['data']['private']['projectScope']['updateMemberships']
+        assert content_response == {
+            'errors': [
+                [
+                    {
+                        'array_errors': None,
+                        'client_id': 'self-membership-with-id',
+                        'field': 'nonFieldErrors',
+                        'messages': 'Membership already exists.',
+                        'object_errors': None
+                    },
+                ],
+                [
+                    {
+                        'array_errors': None,
+                        'client_id': 'self-membership-without-id',
+                        'field': 'nonFieldErrors',
+                        'messages': 'Membership already exists.',
+                        'object_errors': None
+                    }
+                ]
+            ],
+            'results': [],
+            'deleted': [],
+        }, content_response
+
+        # -- Using leave node to remove membership
+        variables = {
+            'project_id': project.id,
+            'confirm_password': 'wrong-password',
+            # 'confirm_password': user.password_text,
+        }
+        content = self.query_check(self.Mutation.ProjectMembershipLeave, variables=variables)
+        content_response = content['data']['private']['projectScope']['leaveProject']
+        assert content_response == {
+            'ok': False,
+            'errors': [{
+                'array_errors': None,
+                'field': 'nonFieldErrors',
+                'messages': "Password didn't match",
+                'object_errors': None
+            }],
+        }
+        self_membership.refresh_from_db()  # Shouldn't throw any error
+
+        # Now with correct password
+        variables['confirm_password'] = user.password_text
+        content = self.query_check(self.Mutation.ProjectMembershipLeave, variables=variables)
+        content_response = content['data']['private']['projectScope']['leaveProject']
+        assert content_response == {
+            'ok': True,
+            'errors': None,
+        }
+        with self.assertRaises(ProjectMembership.DoesNotExist):
+            self_membership.refresh_from_db()
+
+        # Again without membership
+        content = self.query_check(self.Mutation.ProjectMembershipLeave, variables=variables)
+        assert content['data']['private']['projectScope'] is None
