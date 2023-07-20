@@ -133,6 +133,8 @@ type ProjectMembershipTypeBulkMutationResponseType {
 }
 
 type ProjectMembershipTypeCountList {
+  limit: Int!
+  offset: Int!
   count: Int!
   items: [ProjectMembershipType!]!
 }
@@ -178,6 +180,8 @@ type ProjectType {
 }
 
 type ProjectTypeCountList {
+  limit: Int!
+  offset: Int!
   count: Int!
   items: [ProjectType!]!
 }
@@ -232,6 +236,8 @@ type QuestionnaireType {
 }
 
 type QuestionnaireTypeCountList {
+  limit: Int!
+  offset: Int!
   count: Int!
   items: [QuestionnaireType!]!
 }

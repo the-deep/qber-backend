@@ -17,19 +17,25 @@ from strawberry_django.pagination import (
 from strawberry_django.resolvers import django_resolver
 
 
-def apply_pagination(pagination, queryset):
-    # strawberry_django.pagination.apply
+def process_pagination(pagination):
+    """
+    Mutate pagination object to make sure limit are under given threshold
+    """
     if pagination is strawberry.UNSET or pagination is None:
-        pagination = OffsetPaginationInput
-        # return queryset
+        pagination = OffsetPaginationInput(
+            offset=0,
+            limit=settings.DEFAULT_PAGINATION_LIMIT,
+        )
+    if pagination.limit == -1:
+        pagination.limit = settings.DEFAULT_PAGINATION_LIMIT
+    pagination.limit = min(pagination.limit, settings.MAX_PAGINATION_LIMIT)
+    return pagination
 
-    limit = pagination.limit
-    if limit == -1:
-        limit = settings.DEFAULT_PAGINATION_LIMIT
 
-    limit = min(limit, settings.MAX_PAGINATION_LIMIT)
+def apply_pagination(pagination, queryset):
+    pagination = process_pagination(pagination)
     start = pagination.offset
-    stop = start + limit
+    stop = start + pagination.limit
     return queryset[start:stop]
 
 
@@ -57,6 +63,8 @@ DjangoModelTypeVar = TypeVar("DjangoModelTypeVar")
 
 @strawberry.type
 class CountList(Generic[DjangoModelTypeVar]):
+    limit: int
+    offset: int
     queryset: strawberry.Private[models.QuerySet | list[DjangoModelTypeVar]]
     get_count: strawberry.Private[Callable]
 
@@ -124,10 +132,14 @@ class StrawberryDjangoCountList(StrawberryDjangoField):
         def get_count():
             return _current_queryset.count()
 
+        pagination = process_pagination(pagination)
+
         queryset = self.apply_pagination(queryset, pagination)
         return CountList[self._base_type](
             get_count=get_count,
             queryset=queryset,
+            limit=pagination.limit,
+            offset=pagination.offset,
         )
 
 
