@@ -1,5 +1,4 @@
 __pycache__/
-.coverage
 .pytest_cache/
 .idea/
 *.tmp
@@ -9,3 +8,10 @@ __pycache__/
 
 !.env.sample
 .env*
+
+/coverage
+coverage.xml
+sitecustomize.py
+.coverage
+htmlcov/
+.pytest_cache/

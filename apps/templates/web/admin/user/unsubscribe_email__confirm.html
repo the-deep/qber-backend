@@ -1,0 +1,15 @@
+{% extends "web/admin/base.html" %}
+{% load i18n static %}
+
+{% block content %}
+
+    {% if success %}
+        <p>
+            Successfully unsubscribed
+        </p>
+    {% else %}
+        <p>
+            Unsubscribe link is invalid!  you must be already unsubscribed
+        </p>
+    {% endif %}
+{% endblock %}

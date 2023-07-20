@@ -1,0 +1,40 @@
+version: '3.2'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: qb
+
+  backend:
+    image: $DOCKER_IMAGE_BACKEND
+    environment:
+      CI: "true"
+      # https://github.com/pytest-dev/pytest/issues/7443
+      PYTEST_ADDOPTS: "--color=yes"
+      APP_ENVIRONMENT: test
+      APP_TYPE: web
+      DJANGO_SECRET_KEY: "XXXXXXXXXXXXXXXXXXXXXXXXXX"
+      # To overwrite this values. set the values in .env
+      DJANGO_DEBUG: "true"
+      APP_DOMAIN: localhost:8311
+      APP_HTTP_PROTOCOL: http
+      APP_FRONTEND_HOST: localhost:3111
+      SESSION_COOKIE_DOMAIN: localhost
+      CSRF_COOKIE_DOMAIN: localhost
+      DJANGO_ALLOWED_HOST: '*'
+      DJANGO_DB_NAME: qb
+      DJANGO_DB_USER: postgres
+      DJANGO_DB_PASSWORD: postgres
+      DJANGO_DB_PORT: 5432
+      DJANGO_DB_HOST: db
+      DJANGO_CORS_ORIGIN_REGEX_WHITELIST: localhost
+      # EMAIL
+      EMAIL_FROM: dev@example.com
+    volumes:
+      - ./coverage/:/code/coverage/
+      - ./ci-share/:/ci-share/
+    depends_on:
+      - db

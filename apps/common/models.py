@@ -1,0 +1,25 @@
+from django.db import models
+from apps.user.models import User
+
+
+class UserResource(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User,
+        related_name='%(class)s_created',
+        on_delete=models.PROTECT,
+    )
+    modified_by = models.ForeignKey(
+        User,
+        related_name='%(class)s_modified',
+        on_delete=models.PROTECT,
+    )
+
+    # Typing
+    id: int
+    pk: int
+
+    class Meta:
+        abstract = True
+        ordering = ['-id']

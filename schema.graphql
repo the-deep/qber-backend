@@ -1,0 +1,294 @@
+"""A generic type to return error messages"""
+scalar CustomErrorType
+
+"""Date with time (isoformat)"""
+scalar DateTime
+
+input DjangoModelFilterInput {
+  pk: ID!
+}
+
+type DjangoModelType {
+  pk: ID!
+}
+
+input IDFilterLookup {
+  exact: ID
+  iExact: ID
+  contains: ID
+  iContains: ID
+  inList: [ID!]
+  gt: ID
+  gte: ID
+  lt: ID
+  lte: ID
+  startsWith: ID
+  iStartsWith: ID
+  endsWith: ID
+  iEndsWith: ID
+  range: [ID!]
+  isNull: Boolean
+  regex: String
+  iRegex: String
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  public: PublicMutation!
+  private: PrivateMutation!
+}
+
+type MutationEmptyResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+}
+
+input OffsetPaginationInput {
+  offset: Int! = 0
+  limit: Int! = -1
+}
+
+enum OptEmailNotificationTypeEnum {
+  NEWS_AND_OFFERS
+}
+
+enum Ordering {
+  ASC
+  DESC
+}
+
+input PasswordChangeInput {
+  oldPassword: String!
+  newPassword: String!
+}
+
+input PasswordResetConfirmInput {
+  captcha: String!
+  uuid: String!
+  token: String!
+  newPassword: String!
+}
+
+input PasswordResetTriggerInput {
+  captcha: String!
+  email: String!
+}
+
+type PrivateMutation {
+  changeUserPassword(data: PasswordChangeInput!): MutationEmptyResponseType!
+  updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
+  createProject(data: ProjectCreateInput!): ProjectTypeMutationResponseType!
+  projectScope(pk: ID!): ProjectScopeMutation
+  id: ID!
+}
+
+type PrivateQuery {
+  user: UserType!
+  projects(filters: ProjectFilter, order: ProjectOrder, pagination: OffsetPaginationInput): ProjectTypeCountList!
+  projectScope(pk: ID!): ProjectScopeType
+  id: ID!
+}
+
+input ProjectCreateInput {
+  title: String!
+}
+
+input ProjectFilter {
+  id: IDFilterLookup
+  search: String
+}
+
+input ProjectMembershipFilter {
+  id: IDFilterLookup
+  search: String
+}
+
+input ProjectMembershipOrder {
+  id: Ordering
+  joinedAt: Ordering
+}
+
+enum ProjectMembershipRoleTypeEnum {
+  ADMIN
+  MEMBER
+}
+
+type ProjectMembershipType {
+  id: ID!
+  role: ProjectMembershipRoleTypeEnum!
+  joinedAt: DateTime!
+  memberId: ID!
+  addedById: ID
+  clientId: String!
+}
+
+type ProjectMembershipTypeBulkMutationResponseType {
+  errors: [CustomErrorType!]
+  results: [ProjectMembershipType!]
+  deleted: [ProjectMembershipType!]
+}
+
+type ProjectMembershipTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [ProjectMembershipType!]!
+}
+
+input ProjectMembershipUpdateInput {
+  id: ID = null
+  clientId: String = ""
+  member: ID = null
+  role: ProjectMembershipRoleTypeEnum = null
+}
+
+input ProjectOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type ProjectScopeMutation {
+  id: ID!
+  createQuestionnaire(data: QuestionnaireCreateInput!): QuestionnaireTypeMutationResponseType!
+  updateQuestionnaire(data: QuestionnaireUpdateInput!): QuestionnaireTypeMutationResponseType!
+  deleteQuestionnaire(id: ID!): QuestionnaireTypeListMutationResponseType!
+  updateProject(data: ProjectUpdateInput!): ProjectTypeMutationResponseType!
+  leaveProject(confirmPassword: String!): MutationEmptyResponseType!
+  updateMemberships(items: [ProjectMembershipUpdateInput!], deleteIds: [ID!]): ProjectMembershipTypeBulkMutationResponseType!
+}
+
+type ProjectScopeType {
+  questionnaires(filters: QuestionnaireFilter, pagination: OffsetPaginationInput): QuestionnaireTypeCountList!
+  questionnaire(pk: ID!): QuestionnaireType
+  id: ID!
+  project: ProjectType!
+}
+
+type ProjectType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  title: String!
+  members(filters: ProjectMembershipFilter, order: ProjectMembershipOrder, pagination: OffsetPaginationInput): ProjectMembershipTypeCountList!
+  createdBy: UserType!
+  currentUserRole: ProjectMembershipRoleTypeEnum
+  modifiedBy: UserType!
+}
+
+type ProjectTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [ProjectType!]!
+}
+
+type ProjectTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: ProjectType
+}
+
+input ProjectUpdateInput {
+  title: String = ""
+}
+
+type PublicMutation {
+  register(data: RegisterInput!): UserMeTypeMutationResponseType!
+  login(data: LoginInput!): UserMeTypeMutationResponseType!
+  logout: MutationEmptyResponseType!
+  passwordResetTrigger(data: PasswordResetTriggerInput!): MutationEmptyResponseType!
+  passwordResetConfirm(data: PasswordResetConfirmInput!): MutationEmptyResponseType!
+  id: ID!
+}
+
+type PublicQuery {
+  me: UserMeType
+  id: ID!
+}
+
+type Query {
+  public: PublicQuery!
+  private: PrivateQuery!
+}
+
+input QuestionnaireCreateInput {
+  title: String!
+}
+
+input QuestionnaireFilter {
+  id: IDFilterLookup
+  project: DjangoModelFilterInput
+  search: String
+}
+
+type QuestionnaireType {
+  id: ID!
+  title: String!
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  createdBy: DjangoModelType!
+  modifiedBy: DjangoModelType!
+  projectId: ID!
+}
+
+type QuestionnaireTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionnaireType!]!
+}
+
+type QuestionnaireTypeListMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: [QuestionnaireType!]
+}
+
+type QuestionnaireTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionnaireType
+}
+
+input QuestionnaireUpdateInput {
+  title: String = ""
+}
+
+input RegisterInput {
+  email: String!
+  captcha: String!
+  firstName: String = ""
+  lastName: String = ""
+}
+
+input UserMeInput {
+  firstName: String = ""
+  lastName: String = ""
+  emailOptOuts: [OptEmailNotificationTypeEnum!] = null
+}
+
+type UserMeType {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  displayName: String!
+  email: String!
+  emailOptOuts: [OptEmailNotificationTypeEnum!]!
+}
+
+type UserMeTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: UserMeType
+}
+
+type UserType {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  displayName: String!
+}

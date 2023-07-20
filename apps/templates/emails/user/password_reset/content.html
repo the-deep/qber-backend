@@ -1,0 +1,57 @@
+{% extends "emails/base.html" %}
+
+{% block head %}
+    <style>
+        .reset-link {
+            margin: 12px 0;
+        }
+    </style>
+{% endblock %}
+{% block title %}
+    Reset Password
+{% endblock %}
+{% block body %}
+    {% if welcome %}
+        <p>
+            Before you can start using your account, you'll first need to create a password.
+        </p>
+    {% else %}
+        <p>
+            It seems you've forgotten your QB password.
+        </p>
+    {% endif %}
+    <div class="actions-container">
+        {% if welcome %}
+            <p>
+                You can do this by clicking on the link below:
+            </p>
+        {% else %}
+            <p>
+                If you didn't request to reset your password, you may simply ignore this email.
+            </p>
+        {% endif %}
+        <a
+            class="button-like-link reset-link"
+            href="{{ client_reset_password }}"
+        >
+            {% if welcome %}Set your password{% else %}Reset your password{% endif %}
+        </a>
+    </div>
+    {% if location or device %}
+    <p>More detail on password reset trigger</p>
+    <table class="table">
+        <tr>
+            <th class="cell label">Time</th>
+            <th class="cell">{{time}}</th>
+        </tr>
+        <tr>
+            <th class="cell label">Location</th>
+            <th class="cell">{{location}}</th>
+        </tr>
+        <tr>
+            <th class="cell label">Device</th>
+            <th class="cell">{{device}}</th>
+        </tr>
+    </table>
+    {% endif %}
+{% endblock %}

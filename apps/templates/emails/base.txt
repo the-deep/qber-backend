@@ -1,0 +1,21 @@
+{% load qb_tags %}
+{% load static %}
+{% load premailer %}
+
+{% premailer %}
+
+{% block title %}{% endblock %}
+
+{% block body %}{% endblock %}
+
+Thank you for using Questioner Builder
+
+The Questioner Builder team
+
+{% if email_type in unsubscribe_email_types %}
+
+Would you prefer to not receive these kinds of emails anymore?
+Go here to unsubscribe {{ protocol }}://{{ domain }}{% url 'unsubscribe_email' uidb64=unsubscribe_email_id token=unsubscribe_email_token email_type=email_type %}
+
+{% endif %}
+{% endpremailer %}
