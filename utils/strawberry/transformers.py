@@ -193,10 +193,7 @@ def convert_serializer_field(field, convert_choices_to_enum=True, force_optional
 
     if not is_required:
         if 'default' not in kwargs or 'default_factory' not in kwargs:
-            if graphql_type == str:
-                kwargs['default'] = ''
-            else:
-                kwargs['default'] = None
+            kwargs['default'] = strawberry.UNSET
         graphql_type = typing.Optional[graphql_type]
 
     return graphql_type, StrawberryField(

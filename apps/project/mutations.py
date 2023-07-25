@@ -64,9 +64,9 @@ class ProjectScopeMutation(
     @strawberry.mutation
     async def update_memberships(
         self,
-        items: list[ProjectMembershipBulkMutation.PartialInputType] | None,
-        delete_ids: list[strawberry.ID] | None,
         info: Info,
+        items: list[ProjectMembershipBulkMutation.PartialInputType] | None = [],
+        delete_ids: list[strawberry.ID] | None = [],
     ) -> BulkMutationResponseType[ProjectMembershipType]:
         queryset = ProjectMembership.objects.filter(
             project=info.context.active_project.project,

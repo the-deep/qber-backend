@@ -5,7 +5,12 @@ from asgiref.sync import sync_to_async
 from django.contrib.auth import login, logout, update_session_auth_hash
 
 from utils.strawberry.transformers import generate_type_for_serializer
-from utils.strawberry.mutations import mutation_is_not_valid, MutationResponseType, MutationEmptyResponseType
+from utils.strawberry.mutations import (
+    process_input_data,
+    mutation_is_not_valid,
+    MutationResponseType,
+    MutationEmptyResponseType,
+)
 
 from .serializers import (
     LoginSerializer,
@@ -32,7 +37,7 @@ class PublicMutation:
     @strawberry.mutation
     @sync_to_async
     def register(self, data: RegisterInput, info: Info) -> MutationResponseType[UserMeType]:
-        serializer = RegisterSerializer(data=data.__dict__, context={'request': info.context.request})
+        serializer = RegisterSerializer(data=process_input_data(data), context={'request': info.context.request})
         if errors := mutation_is_not_valid(serializer):
             return MutationResponseType(
                 ok=False,
@@ -44,7 +49,7 @@ class PublicMutation:
     @strawberry.mutation
     @sync_to_async
     def login(self, data: LoginInput, info: Info) -> MutationResponseType[UserMeType]:
-        serializer = LoginSerializer(data=data.__dict__, context={'request': info.context.request})
+        serializer = LoginSerializer(data=process_input_data(data), context={'request': info.context.request})
         if errors := mutation_is_not_valid(serializer):
             return MutationResponseType(
                 ok=False,
@@ -67,7 +72,7 @@ class PublicMutation:
     @strawberry.mutation
     @sync_to_async
     def password_reset_trigger(self, data: PasswordResetTriggerInput, info: Info) -> MutationEmptyResponseType:
-        serializer = PasswordResetTriggerSerializer(data=data.__dict__, context={'request': info.context.request})
+        serializer = PasswordResetTriggerSerializer(data=process_input_data(data), context={'request': info.context.request})
         if errors := mutation_is_not_valid(serializer):
             return MutationEmptyResponseType(
                 ok=False,
@@ -79,7 +84,7 @@ class PublicMutation:
     @strawberry.mutation
     @sync_to_async
     def password_reset_confirm(self, data: PasswordResetConfirmInput, info: Info) -> MutationEmptyResponseType:
-        serializer = PasswordResetConfirmSerializer(data=data.__dict__, context={'request': info.context.request})
+        serializer = PasswordResetConfirmSerializer(data=process_input_data(data), context={'request': info.context.request})
         if errors := mutation_is_not_valid(serializer):
             return MutationEmptyResponseType(
                 ok=False,
@@ -95,7 +100,7 @@ class PrivateMutation:
     @strawberry.mutation
     @sync_to_async
     def change_user_password(self, data: PasswordChangeInput, info: Info) -> MutationEmptyResponseType:
-        serializer = PasswordChangeSerializer(data=data.__dict__, context={'request': info.context.request})
+        serializer = PasswordChangeSerializer(data=process_input_data(data), context={'request': info.context.request})
         if errors := mutation_is_not_valid(serializer):
             return MutationEmptyResponseType(
                 ok=False,
@@ -108,7 +113,7 @@ class PrivateMutation:
     @strawberry.mutation
     @sync_to_async
     def update_me(self, data: UserMeInput, info: Info) -> MutationResponseType[UserMeType]:
-        serializer = UserMeSerializer(data=data.__dict__, context={'request': info.context.request}, partial=True)
+        serializer = UserMeSerializer(data=process_input_data(data), context={'request': info.context.request}, partial=True)
         if errors := mutation_is_not_valid(serializer):
             return MutationResponseType(
                 ok=False,
