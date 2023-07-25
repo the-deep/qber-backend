@@ -88,6 +88,7 @@ type PrivateMutation {
 
 type PrivateQuery {
   user: UserType!
+  users(filters: UserFilter, pagination: OffsetPaginationInput): UserTypeCountList!
   projects(filters: ProjectFilter, order: ProjectOrder, pagination: OffsetPaginationInput): ProjectTypeCountList!
   projectScope(pk: ID!): ProjectScopeType
   id: ID!
@@ -267,6 +268,11 @@ input RegisterInput {
   lastName: String
 }
 
+input UserFilter {
+  id: IDFilterLookup
+  search: String
+}
+
 input UserMeInput {
   firstName: String
   lastName: String
@@ -293,4 +299,11 @@ type UserType {
   firstName: String!
   lastName: String!
   displayName: String!
+}
+
+type UserTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [UserType!]!
 }
