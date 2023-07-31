@@ -4,6 +4,11 @@ from .models import User
 from .enums import OptEmailNotificationTypeEnum
 
 
+@strawberry_django.ordering.order(User)
+class UserOrder:
+    id: strawberry.auto
+
+
 @strawberry_django.type(User)
 class UserType:
     id: strawberry.ID

@@ -26,7 +26,7 @@ class TestUserQuery(TestCase):
         USERS = '''
             query MyQuery($filters: UserFilter) {
               private {
-                users(pagination: {limit: 10, offset: 0}, filters: $filters) {
+                users(order: {id: ASC}, pagination: {limit: 10, offset: 0}, filters: $filters) {
                   limit
                   offset
                   count
@@ -94,7 +94,9 @@ class TestUserQuery(TestCase):
             ({'search': '@vil'}, [user2]),
             ({'search': 'sample'}, [user1, user2]),
             ({'search': 'sample@'}, [user1, user2]),
-            ({'membersExcludeProject': str(project.pk)}, [user2, user3]),
+            ({'membersExcludeProject': str(project.pk)}, [self.user, user2, user3]),
+            ({}, [self.user, *self.users]),
+            ({'excludeMe': True}, self.users),
         ]:
             content = self.query_check(self.Query.USERS, variables={'filters': filters})
             assert content['data']['private']['users'] == {

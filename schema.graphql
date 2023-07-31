@@ -88,7 +88,7 @@ type PrivateMutation {
 
 type PrivateQuery {
   user: UserType!
-  users(filters: UserFilter, pagination: OffsetPaginationInput): UserTypeCountList!
+  users(filters: UserFilter, order: UserOrder, pagination: OffsetPaginationInput): UserTypeCountList!
   projects(filters: ProjectFilter, order: ProjectOrder, pagination: OffsetPaginationInput): ProjectTypeCountList!
   projectScope(pk: ID!): ProjectScopeType
   id: ID!
@@ -272,6 +272,7 @@ input UserFilter {
   id: IDFilterLookup
   search: String
   membersExcludeProject: ID
+  excludeMe: Boolean = false
 }
 
 input UserMeInput {
@@ -293,6 +294,10 @@ type UserMeTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: UserMeType
+}
+
+input UserOrder {
+  id: Ordering
 }
 
 type UserType {

@@ -1,5 +1,6 @@
 import strawberry
 import strawberry_django
+from strawberry.types import Info
 from django.db import models
 from django.db.models.functions import Concat
 
@@ -11,6 +12,7 @@ class UserFilter:
     id: strawberry.auto
     search: str | None
     members_exclude_project: strawberry.ID | None
+    exclude_me: bool = False
 
     def filter_search(self, queryset):
         value = self.search
@@ -36,4 +38,10 @@ class UserFilter:
             queryset = queryset.filter(
                 ~models.Q(projectmembership__project_id=value)
             ).distinct()
+        return queryset
+
+    def filter_exclude_me(self, queryset, info: Info):
+        value = self.exclude_me
+        if value:
+            queryset = queryset.exclude(id=info.context.request.user.id)
         return queryset
