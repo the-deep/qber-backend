@@ -76,8 +76,8 @@ class TestUserQuery(TestCase):
         )
 
     def test_users(self):
-        project = ProjectFactory.create()
         user1, user2, user3 = self.users
+        project = ProjectFactory.create(created_by=user1, modified_by=user1)
         project.add_member(user1)
 
         # Without authentication -----
