@@ -1,7 +1,9 @@
 from main.tests import TestCase
 
 from apps.user.models import User
+
 from apps.user.factories import UserFactory
+from apps.project.factories import ProjectFactory
 
 
 class TestUserQuery(TestCase):
@@ -74,7 +76,9 @@ class TestUserQuery(TestCase):
         )
 
     def test_users(self):
+        project = ProjectFactory.create()
         user1, user2, user3 = self.users
+        project.add_member(user1)
 
         # Without authentication -----
         content = self.query_check(self.Query.USERS, assert_errors=True)
@@ -90,6 +94,7 @@ class TestUserQuery(TestCase):
             ({'search': '@vil'}, [user2]),
             ({'search': 'sample'}, [user1, user2]),
             ({'search': 'sample@'}, [user1, user2]),
+            ({'membersExcludeProject': str(project.pk)}, [user2, user3]),
         ]:
             content = self.query_check(self.Query.USERS, variables={'filters': filters})
             assert content['data']['private']['users'] == {

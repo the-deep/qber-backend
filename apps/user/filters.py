@@ -10,6 +10,7 @@ from .models import User
 class UserFilter:
     id: strawberry.auto
     search: str | None
+    members_exclude_project: strawberry.ID | None
 
     def filter_search(self, queryset):
         value = self.search
@@ -27,4 +28,12 @@ class UserFilter:
                 models.Q(last_name__icontains=value) |
                 models.Q(email__icontains=value)
             )
+        return queryset
+
+    def filter_members_exclude_project(self, queryset):
+        value = self.members_exclude_project
+        if value:
+            queryset = queryset.filter(
+                ~models.Q(projectmembership__project_id=value)
+            ).distinct()
         return queryset

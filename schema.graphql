@@ -271,6 +271,7 @@ input RegisterInput {
 input UserFilter {
   id: IDFilterLookup
   search: String
+  membersExcludeProject: ID
 }
 
 input UserMeInput {
