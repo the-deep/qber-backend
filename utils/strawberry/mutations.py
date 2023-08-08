@@ -28,6 +28,17 @@ CustomErrorType = strawberry.scalar(
 )
 
 
+def process_input_data(data) -> dict:
+    """
+    Return dict from Strawberry Input Object
+    """
+    return {
+        key: value
+        for key, value in data.__dict__.items()
+        if value != strawberry.UNSET
+    }
+
+
 @strawberry.type
 class ArrayNestedErrorType:
     client_id: str
@@ -261,7 +272,7 @@ class ModelMutation:
             return MutationResponseType(ok=False, errors=errors)
         errors, saved_instance = await self.handle_mutation(
             self.serializer_class,
-            data.__dict__,
+            process_input_data(data),
             info,
         )
         if errors:
@@ -279,7 +290,7 @@ class ModelMutation:
             return MutationResponseType(ok=False, errors=errors)
         errors, saved_instance = await self.handle_mutation(
             self.serializer_class,
-            data.__dict__,
+            process_input_data(data),
             info,
             instance=instance,
             partial=True,
@@ -327,7 +338,7 @@ class ModelMutation:
         # Create/Update - Then
         results = []
         for data in items or []:
-            _data = data.__dict__
+            _data = process_input_data(data)
             _id = _data.pop('id', None)
             instance = None
             if _id:

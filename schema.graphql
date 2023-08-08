@@ -88,6 +88,7 @@ type PrivateMutation {
 
 type PrivateQuery {
   user: UserType!
+  users(filters: UserFilter, order: UserOrder, pagination: OffsetPaginationInput): UserTypeCountList!
   projects(filters: ProjectFilter, order: ProjectOrder, pagination: OffsetPaginationInput): ProjectTypeCountList!
   projectScope(pk: ID!): ProjectScopeType
   id: ID!
@@ -123,7 +124,9 @@ type ProjectMembershipType {
   joinedAt: DateTime!
   memberId: ID!
   addedById: ID
+  addedBy: UserType
   clientId: String!
+  member: UserType!
 }
 
 type ProjectMembershipTypeBulkMutationResponseType {
@@ -140,10 +143,10 @@ type ProjectMembershipTypeCountList {
 }
 
 input ProjectMembershipUpdateInput {
-  id: ID = null
-  clientId: String = ""
-  member: ID = null
-  role: ProjectMembershipRoleTypeEnum = null
+  id: ID
+  clientId: String
+  member: ID
+  role: ProjectMembershipRoleTypeEnum
 }
 
 input ProjectOrder {
@@ -158,7 +161,7 @@ type ProjectScopeMutation {
   deleteQuestionnaire(id: ID!): QuestionnaireTypeListMutationResponseType!
   updateProject(data: ProjectUpdateInput!): ProjectTypeMutationResponseType!
   leaveProject(confirmPassword: String!): MutationEmptyResponseType!
-  updateMemberships(items: [ProjectMembershipUpdateInput!], deleteIds: [ID!]): ProjectMembershipTypeBulkMutationResponseType!
+  updateMemberships(items: [ProjectMembershipUpdateInput!] = [], deleteIds: [ID!] = []): ProjectMembershipTypeBulkMutationResponseType!
 }
 
 type ProjectScopeType {
@@ -193,7 +196,7 @@ type ProjectTypeMutationResponseType {
 }
 
 input ProjectUpdateInput {
-  title: String = ""
+  title: String
 }
 
 type PublicMutation {
@@ -255,20 +258,27 @@ type QuestionnaireTypeMutationResponseType {
 }
 
 input QuestionnaireUpdateInput {
-  title: String = ""
+  title: String
 }
 
 input RegisterInput {
   email: String!
   captcha: String!
-  firstName: String = ""
-  lastName: String = ""
+  firstName: String
+  lastName: String
+}
+
+input UserFilter {
+  id: IDFilterLookup
+  search: String
+  membersExcludeProject: ID
+  excludeMe: Boolean = false
 }
 
 input UserMeInput {
-  firstName: String = ""
-  lastName: String = ""
-  emailOptOuts: [OptEmailNotificationTypeEnum!] = null
+  firstName: String
+  lastName: String
+  emailOptOuts: [OptEmailNotificationTypeEnum!]
 }
 
 type UserMeType {
@@ -286,9 +296,20 @@ type UserMeTypeMutationResponseType {
   result: UserMeType
 }
 
+input UserOrder {
+  id: Ordering
+}
+
 type UserType {
   id: ID!
   firstName: String!
   lastName: String!
   displayName: String!
+}
+
+type UserTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [UserType!]!
 }

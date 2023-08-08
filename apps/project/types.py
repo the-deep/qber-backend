@@ -6,6 +6,7 @@ from strawberry.types import Info
 from utils.common import get_queryset_for_model
 from utils.strawberry.paginations import CountList, pagination_field
 from apps.common.types import ClientIdMixin, UserResourceTypeMixin
+from apps.user.types import UserType
 
 from .models import Project, ProjectMembership
 from .filters import ProjectMembershipFilter
@@ -34,6 +35,15 @@ class ProjectMembershipType(ClientIdMixin):
         return queryset.filter(
             project=info.context.active_project.project,
         )
+
+    @strawberry.field
+    def member(self, info: Info) -> UserType:
+        return info.context.dl.user.load_users.load(self.member_id)
+
+    @strawberry.field
+    def added_by(self, info: Info) -> UserType | None:
+        if self.added_by_id:
+            return info.context.dl.user.load_users.load(self.added_by_id)
 
 
 @strawberry_django.ordering.order(Project)
