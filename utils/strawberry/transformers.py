@@ -40,8 +40,8 @@ def get_strawberry_type_from_serializer_field(field):
 @get_strawberry_type_from_serializer_field.register(serializers.MultipleChoiceField)
 def convert_list_serializer_to_field(field):
     child_type = get_strawberry_type_from_serializer_field(field.child)
-    if not field.child.required:
-        return list[typing.Optional[child_type]]
+    # if not field.child.required:
+    #     return list[typing.Optional[child_type]]
     return list[child_type]
 
 
@@ -160,11 +160,6 @@ def convert_serializer_field(field, convert_choices_to_enum=True, force_optional
     and the field itself is required
     """
 
-    if isinstance(field, serializers.ChoiceField) and not convert_choices_to_enum:
-        graphql_type = str
-    else:
-        graphql_type = get_strawberry_type_from_serializer_field(field)
-
     kwargs = {
         "description": field.help_text,  # XXX: NOT WORKING
         "python_name": field.field_name,
@@ -178,6 +173,15 @@ def convert_serializer_field(field, convert_choices_to_enum=True, force_optional
             kwargs['default'] = field.default
     else:
         kwargs['default'] = dataclasses.MISSING
+
+    if isinstance(field, serializers.ChoiceField) and not convert_choices_to_enum:
+        graphql_type = str
+    else:
+        graphql_type = get_strawberry_type_from_serializer_field(field)
+        # if graphql_type == str:
+        #   is_required = not field.null and not field.blank
+        #   kwargs['parse_value'] -> null -> '' -- when not is_required
+        #   XXX: does UNSET has any issue here?
 
     # if it is a tuple or a list it means that we are returning
     # the graphql type and the child type

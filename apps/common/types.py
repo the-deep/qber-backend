@@ -10,10 +10,10 @@ from apps.user.types import UserType
 class ClientIdMixin:
 
     @strawberry.field
-    def client_id(self, info: Info) -> str:
+    def client_id(self, info: Info) -> strawberry.ID:
         self.id: int
         # NOTE: We should always provide non-null client_id
-        return (
+        return strawberry.ID(
             getattr(self, 'client_id', None) or
             local_cache.get(TempClientIdMixin.get_cache_key(self, info.context.request)) or
             str(self.id)

@@ -107,7 +107,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+
     # External apps
+    'admin_auto_filters',
     'django_premailer',
     'storages',
     'corsheaders',
@@ -161,7 +164,7 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'HOST': env('DJANGO_DB_HOST'),
         'PORT': env('DJANGO_DB_PORT'),
         'NAME': env('DJANGO_DB_NAME'),

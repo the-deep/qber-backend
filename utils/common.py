@@ -1,8 +1,11 @@
 import re
 import copy
 import typing
+from asgiref.sync import sync_to_async
 from user_agents import parse
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 
 
 # Adapted from this response in Stackoverflow
@@ -45,3 +48,26 @@ def get_queryset_for_model(
     if queryset is not None:
         return copy.deepcopy(queryset)
     return model.objects.all()
+
+
+def validate_xlsform_name(name):
+    """
+    Validate Name
+    Names can only contain letters, digits, hyphens, underscores, and periods.
+    Names are case-sensitive.
+    """
+    pattern = r'^[a-zA-Z0-9_\-\.]+$'
+    if not bool(re.match(pattern, name)):
+        raise ValidationError(
+            (
+                "%(name)s is not an valid name."
+                " Names can only contain letters, digits, hyphens, underscores, and periods."
+                " Names are case-sensitive."
+            ),
+            params={"name": name}
+        )
+
+
+@sync_to_async
+def get_object_or_404_async(queryset, **kwargs):
+    return get_object_or_404(queryset, **kwargs)

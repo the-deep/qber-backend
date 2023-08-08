@@ -59,3 +59,6 @@ class TestCase(BaseTestCase):
         Return appropriate enum value.
         """
         return _enum.name
+
+    def gql_datetime(self, _datetime):
+        return _datetime.isoformat()

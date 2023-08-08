@@ -102,7 +102,10 @@ class Query:
 @strawberry.type
 class Mutation:
     public: PublicMutation = strawberry.field(resolver=lambda: PublicMutation())
-    private: PrivateMutation = strawberry.field(permission_classes=[IsAuthenticated], resolver=lambda: PrivateMutation())
+    private: PrivateMutation = strawberry.field(
+        resolver=lambda: PrivateMutation(),
+        permission_classes=[IsAuthenticated],
+    )
 
 
 schema = strawberry.Schema(

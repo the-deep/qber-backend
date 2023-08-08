@@ -8,8 +8,9 @@ from apps.user.models import User
 
 class ProjectMembership(models.Model):
     class Role(models.IntegerChoices):
-        ADMIN = 0, 'Admin'
-        MEMBER = 1, 'Member'
+        ADMIN = 1, 'Admin'
+        MEMBER = 2, 'Member'
+        VIEWER = 3, 'Viewer'
 
     member = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey('project.Project', on_delete=models.CASCADE)
@@ -38,6 +39,8 @@ class ProjectMembership(models.Model):
 
 class Project(UserResource):
     title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
     members = models.ManyToManyField(
         User,
         blank=True,
@@ -55,6 +58,11 @@ class Project(UserResource):
         CREATE_QUESTIONNAIRE = auto()
         UPDATE_QUESTIONNAIRE = auto()
         DELETE_QUESTIONNAIRE = auto()
+        # Question
+        VIEW_QUESTION = auto()
+        CREATE_QUESTION = auto()
+        UPDATE_QUESTION = auto()
+        DELETE_QUESTION = auto()
 
     @property
     def get_permissions(cls) -> dict[ProjectMembership.Role, list[Permission]]:
@@ -68,8 +76,19 @@ class Project(UserResource):
                 cls.Permission.CREATE_QUESTIONNAIRE,
                 cls.Permission.UPDATE_QUESTIONNAIRE,
                 cls.Permission.DELETE_QUESTIONNAIRE,
+                cls.Permission.VIEW_QUESTION,
+                cls.Permission.CREATE_QUESTION,
+                cls.Permission.UPDATE_QUESTION,
+                cls.Permission.DELETE_QUESTION,
+            ],
+            ProjectMembership.Role.VIEWER: [
+                cls.Permission.VIEW_QUESTIONNAIRE,
+                cls.Permission.VIEW_QUESTION,
             ],
         }
+
+    def __str__(self):
+        return self.title
 
     def get_permissions_for_user(self, user: User):
         # XXX: N+1

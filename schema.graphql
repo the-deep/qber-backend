@@ -8,10 +8,6 @@ input DjangoModelFilterInput {
   pk: ID!
 }
 
-type DjangoModelType {
-  pk: ID!
-}
-
 input IDFilterLookup {
   exact: ID
   iExact: ID
@@ -116,6 +112,7 @@ input ProjectMembershipOrder {
 enum ProjectMembershipRoleTypeEnum {
   ADMIN
   MEMBER
+  VIEWER
 }
 
 type ProjectMembershipType {
@@ -125,7 +122,7 @@ type ProjectMembershipType {
   memberId: ID!
   addedById: ID
   addedBy: UserType
-  clientId: String!
+  clientId: ID!
   member: UserType!
 }
 
@@ -144,7 +141,7 @@ type ProjectMembershipTypeCountList {
 
 input ProjectMembershipUpdateInput {
   id: ID
-  clientId: String
+  clientId: ID
   member: ID
   role: ProjectMembershipRoleTypeEnum
 }
@@ -157,16 +154,21 @@ input ProjectOrder {
 type ProjectScopeMutation {
   id: ID!
   createQuestionnaire(data: QuestionnaireCreateInput!): QuestionnaireTypeMutationResponseType!
-  updateQuestionnaire(data: QuestionnaireUpdateInput!): QuestionnaireTypeMutationResponseType!
-  deleteQuestionnaire(id: ID!): QuestionnaireTypeListMutationResponseType!
+  updateQuestionnaire(id: ID!, data: QuestionnaireUpdateInput!): QuestionnaireTypeMutationResponseType!
+  deleteQuestionnaire(id: ID!): QuestionnaireTypeMutationResponseType!
+  createQuestion(data: QuestionCreateInput!): QuestionTypeMutationResponseType!
+  updateQuestion(id: ID!, data: QuestionUpdateInput!): QuestionTypeMutationResponseType!
+  deleteQuestion(id: ID!): QuestionTypeMutationResponseType!
   updateProject(data: ProjectUpdateInput!): ProjectTypeMutationResponseType!
   leaveProject(confirmPassword: String!): MutationEmptyResponseType!
   updateMemberships(items: [ProjectMembershipUpdateInput!] = [], deleteIds: [ID!] = []): ProjectMembershipTypeBulkMutationResponseType!
 }
 
 type ProjectScopeType {
-  questionnaires(filters: QuestionnaireFilter, pagination: OffsetPaginationInput): QuestionnaireTypeCountList!
+  questionnaires(filters: QuestionnaireFilter, order: QuestionnaireOrder, pagination: OffsetPaginationInput): QuestionnaireTypeCountList!
+  questions(filters: QuestionFilter, order: QuestionOrder, pagination: OffsetPaginationInput): QuestionTypeCountList!
   questionnaire(pk: ID!): QuestionnaireType
+  question(pk: ID!): QuestionType
   id: ID!
   project: ProjectType!
 }
@@ -218,6 +220,82 @@ type Query {
   private: PrivateQuery!
 }
 
+input QuestionCreateInput {
+  questionnaire: ID!
+  type: QuestionTypeEnum!
+  name: String!
+  label: String!
+  group: ID
+  hint: String
+}
+
+input QuestionFilter {
+  id: IDFilterLookup
+  questionnaire: DjangoModelFilterInput
+  name: StrFilterLookup
+  search: String
+}
+
+input QuestionOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type QuestionType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  name: String!
+  label: String!
+  hint: String!
+  type: QuestionTypeEnum!
+  createdBy: UserType!
+  modifiedBy: UserType!
+  questionnaireId: ID!
+}
+
+type QuestionTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionType!]!
+}
+
+enum QuestionTypeEnum {
+  INTEGER
+  DECIMAL
+  TEXT
+  SELECT_ONE
+  SELECT_MULTIPLE
+  RANK
+  RANGE
+  NOTE
+  DATE
+  TIME
+  DATETIME
+  IMAGE
+  AUDIO
+  VIDEO
+  FILE
+  BARCODE
+  ACKNOWLEDGE
+}
+
+type QuestionTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionType
+}
+
+input QuestionUpdateInput {
+  questionnaire: ID
+  group: ID
+  type: QuestionTypeEnum
+  name: String
+  label: String
+  hint: String
+}
+
 input QuestionnaireCreateInput {
   title: String!
 }
@@ -228,13 +306,18 @@ input QuestionnaireFilter {
   search: String
 }
 
+input QuestionnaireOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
 type QuestionnaireType {
-  id: ID!
-  title: String!
   createdAt: DateTime!
   modifiedAt: DateTime!
-  createdBy: DjangoModelType!
-  modifiedBy: DjangoModelType!
+  id: ID!
+  title: String!
+  createdBy: UserType!
+  modifiedBy: UserType!
   projectId: ID!
 }
 
@@ -243,12 +326,6 @@ type QuestionnaireTypeCountList {
   offset: Int!
   count: Int!
   items: [QuestionnaireType!]!
-}
-
-type QuestionnaireTypeListMutationResponseType {
-  ok: Boolean!
-  errors: CustomErrorType
-  result: [QuestionnaireType!]
 }
 
 type QuestionnaireTypeMutationResponseType {
@@ -266,6 +343,26 @@ input RegisterInput {
   captcha: String!
   firstName: String
   lastName: String
+}
+
+input StrFilterLookup {
+  exact: String
+  iExact: String
+  contains: String
+  iContains: String
+  inList: [String!]
+  gt: String
+  gte: String
+  lt: String
+  lte: String
+  startsWith: String
+  iStartsWith: String
+  endsWith: String
+  iEndsWith: String
+  range: [String!]
+  isNull: Boolean
+  regex: String
+  iRegex: String
 }
 
 input UserFilter {
