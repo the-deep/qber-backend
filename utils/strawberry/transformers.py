@@ -40,8 +40,6 @@ def get_strawberry_type_from_serializer_field(field):
 @get_strawberry_type_from_serializer_field.register(serializers.MultipleChoiceField)
 def convert_list_serializer_to_field(field):
     child_type = get_strawberry_type_from_serializer_field(field.child)
-    # if not field.child.required:
-    #     return list[typing.Optional[child_type]]
     return list[child_type]
 
 
@@ -70,7 +68,7 @@ def convert_serializer_field_to_generic_scalar(_):
 
 
 @get_strawberry_type_from_serializer_field.register(serializers.Field)
-def convert_serializer_field_to_string(_):
+def convert_serializer_field_to_string(field):
     return str
 
 
@@ -121,32 +119,25 @@ def convert_serializer_field_to_enum(field):
     return ENUM_TO_STRAWBERRY_ENUM_MAP[custom_name]
 
 
-def convert_serializer_to_type(serializer_class):
+def convert_serializer_to_type(serializer_class, name=None, partial=False):
     """
     graphene_django.rest_framework.serializer_converter.convert_serializer_to_type
     """
-    cached_type = convert_serializer_to_type.cache.get(
-        serializer_class.__name__, None
-    )
+    # Generate naming
+    ref_name = name
+    if ref_name is None:
+        serializer_name = serializer_class.__name__
+        serializer_name = ''.join(''.join(serializer_name.split('ModelSerializer')).split('Serializer'))
+        ref_name = f'{serializer_name}NestInputType'
+        if partial:
+            ref_name = f'{serializer_name}NestUpdateInputType'
+
+    cached_type = convert_serializer_to_type.cache.get(ref_name, None)
     if cached_type:
         return cached_type
-    serializer = serializer_class()
 
-    items = {
-        name: convert_serializer_field(field)
-        for name, field in serializer.fields.items()
-    }
-    # Alter naming
-    serializer_name = serializer.__class__.__name__
-    serializer_name = ''.join(''.join(serializer_name.split('ModelSerializer')).split('Serializer'))
-    ref_name = f'{serializer_name}Type'
-
-    ret_type = type(
-        ref_name,
-        (),
-        items,
-    )
-    convert_serializer_to_type.cache[serializer_class.__name__] = ret_type
+    ret_type = generate_type_for_serializer(ref_name, serializer_class, partial=partial)
+    convert_serializer_to_type.cache[ref_name] = ret_type
     return ret_type
 
 
@@ -193,7 +184,8 @@ def convert_serializer_field(field, convert_choices_to_enum=True, force_optional
         pass
     elif isinstance(field, serializers.ListSerializer):
         field = field.child
-        kwargs["of_type"] = convert_serializer_to_type(field.__class__)
+        of_type = convert_serializer_to_type(field.__class__, partial=force_optional)
+        graphql_type = list[of_type]
 
     if not is_required:
         if 'default' not in kwargs or 'default_factory' not in kwargs:
@@ -238,6 +230,9 @@ def generate_type_for_serializer(
     serializer_class,
     partial=False,
 ) -> type:
+    """
+    Don't use this directly, use convert_serializer_to_type instead
+    """
     data_members = fields_for_serializer(
         serializer_class(),
         only_fields=[],

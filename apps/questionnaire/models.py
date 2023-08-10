@@ -62,10 +62,15 @@ class Questionnaire(UserResource):
         return get_queryset_for_model(cls, queryset=queryset).filter(project__in=project_qs)
 
 
-class ChoiceCollection(models.Model):
+class ChoiceCollection(UserResource):
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
+
+    choice_set: models.QuerySet['Choice']
+
+    class Meta:
+        unique_together = ('questionnaire', 'name')
 
 
 class Choice(models.Model):
@@ -74,16 +79,22 @@ class Choice(models.Model):
     label = models.CharField(max_length=255)
     geometry = gid_models.GeometryField(null=True, blank=True)
 
+    class Meta:
+        unique_together = ('collection', 'name')
+
 
 class QuestionGroup(UserResource):
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)  # Unique
-    label = models.CharField(max_length=255)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+    name = models.CharField(max_length=255)
+    label = models.CharField(max_length=255)
     relevant = models.CharField(max_length=255)  # ${has_child} = 'yes'
     # # Repeat attributes
     # is_repeat = models.BooleanField(default=False)
     # repeat_count = models.CharField(max_length=255)  # Eg: static: 3, formula: ${num_hh_members}
+
+    class Meta:
+        unique_together = ('questionnaire', 'name')
 
 
 class Question(UserResource):

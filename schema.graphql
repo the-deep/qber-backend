@@ -151,6 +151,27 @@ input ProjectOrder {
   createdAt: Ordering
 }
 
+enum ProjectPermissionTypeEnum {
+  UPDATE_PROJECT
+  UPDATE_MEMBERSHIPS
+  VIEW_QUESTIONNAIRE
+  CREATE_QUESTIONNAIRE
+  UPDATE_QUESTIONNAIRE
+  DELETE_QUESTIONNAIRE
+  VIEW_QUESTION
+  CREATE_QUESTION
+  UPDATE_QUESTION
+  DELETE_QUESTION
+  VIEW_QUESTION_GROUP
+  CREATE_QUESTION_GROUP
+  UPDATE_QUESTION_GROUP
+  DELETE_QUESTION_GROUP
+  VIEW_QUESTION_CHOICE
+  CREATE_QUESTION_CHOICE
+  UPDATE_QUESTION_CHOICE
+  DELETE_QUESTION_CHOICE
+}
+
 type ProjectScopeMutation {
   id: ID!
   createQuestionnaire(data: QuestionnaireCreateInput!): QuestionnaireTypeMutationResponseType!
@@ -159,6 +180,12 @@ type ProjectScopeMutation {
   createQuestion(data: QuestionCreateInput!): QuestionTypeMutationResponseType!
   updateQuestion(id: ID!, data: QuestionUpdateInput!): QuestionTypeMutationResponseType!
   deleteQuestion(id: ID!): QuestionTypeMutationResponseType!
+  createQuestionGroup(data: QuestionGroupCreateInput!): QuestionGroupTypeMutationResponseType!
+  updateQuestionGroup(id: ID!, data: QuestionGroupUpdateInput!): QuestionGroupTypeMutationResponseType!
+  deleteQuestionGroup(id: ID!): QuestionGroupTypeMutationResponseType!
+  createQuestionChoiceCollection(data: QuestionChoiceCollectionCreateInput!): QuestionChoiceCollectionTypeMutationResponseType!
+  updateQuestionChoiceCollection(id: ID!, data: QuestionChoiceCollectionUpdateInput!): QuestionChoiceCollectionTypeMutationResponseType!
+  deleteQuestionChoiceCollection(id: ID!): QuestionChoiceCollectionTypeMutationResponseType!
   updateProject(data: ProjectUpdateInput!): ProjectTypeMutationResponseType!
   leaveProject(confirmPassword: String!): MutationEmptyResponseType!
   updateMemberships(items: [ProjectMembershipUpdateInput!] = [], deleteIds: [ID!] = []): ProjectMembershipTypeBulkMutationResponseType!
@@ -166,8 +193,12 @@ type ProjectScopeMutation {
 
 type ProjectScopeType {
   questionnaires(filters: QuestionnaireFilter, order: QuestionnaireOrder, pagination: OffsetPaginationInput): QuestionnaireTypeCountList!
+  groups(filters: QuestionGroupFilter, order: QuestionGroupOrder, pagination: OffsetPaginationInput): QuestionGroupTypeCountList!
+  choiceCollections(filters: QuestionChoiceCollectionFilter, order: QuestionChoiceCollectionOrder, pagination: OffsetPaginationInput): QuestionChoiceCollectionTypeCountList!
   questions(filters: QuestionFilter, order: QuestionOrder, pagination: OffsetPaginationInput): QuestionTypeCountList!
   questionnaire(pk: ID!): QuestionnaireType
+  group(pk: ID!): QuestionGroupType
+  choiceCollection(pk: ID!): QuestionChoiceCollectionType
   question(pk: ID!): QuestionType
   id: ID!
   project: ProjectType!
@@ -179,6 +210,7 @@ type ProjectType {
   id: ID!
   title: String!
   members(filters: ProjectMembershipFilter, order: ProjectMembershipOrder, pagination: OffsetPaginationInput): ProjectMembershipTypeCountList!
+  allowedPermissions: [ProjectPermissionTypeEnum!]!
   createdBy: UserType!
   currentUserRole: ProjectMembershipRoleTypeEnum
   modifiedBy: UserType!
@@ -220,6 +252,79 @@ type Query {
   private: PrivateQuery!
 }
 
+input QuestionChoiceCollectionCreateInput {
+  questionnaire: ID!
+  name: String!
+  label: String!
+  choices: [QuestionChoiceNestInputType!]!
+}
+
+input QuestionChoiceCollectionFilter {
+  id: IDFilterLookup
+  questionnaire: DjangoModelFilterInput
+  name: StrFilterLookup
+  label: StrFilterLookup
+}
+
+input QuestionChoiceCollectionOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type QuestionChoiceCollectionType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  name: String!
+  label: String!
+  choices: [QuestionChoiceType!]!
+  createdBy: UserType!
+  modifiedBy: UserType!
+  questionnaireId: ID!
+}
+
+type QuestionChoiceCollectionTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionChoiceCollectionType!]!
+}
+
+type QuestionChoiceCollectionTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionChoiceCollectionType
+}
+
+input QuestionChoiceCollectionUpdateInput {
+  questionnaire: ID
+  name: String
+  label: String
+  choices: [QuestionChoiceNestUpdateInputType!]
+}
+
+input QuestionChoiceNestInputType {
+  name: String!
+  label: String!
+  id: ID
+  clientId: ID
+}
+
+input QuestionChoiceNestUpdateInputType {
+  id: ID
+  clientId: ID
+  name: String
+  label: String
+}
+
+type QuestionChoiceType {
+  id: ID!
+  name: String!
+  label: String!
+  clientId: ID!
+  collectionId: ID!
+}
+
 input QuestionCreateInput {
   questionnaire: ID!
   type: QuestionTypeEnum!
@@ -233,7 +338,61 @@ input QuestionFilter {
   id: IDFilterLookup
   questionnaire: DjangoModelFilterInput
   name: StrFilterLookup
-  search: String
+  label: StrFilterLookup
+}
+
+input QuestionGroupCreateInput {
+  questionnaire: ID!
+  name: String!
+  label: String!
+  relevant: String!
+  parent: ID
+}
+
+input QuestionGroupFilter {
+  id: IDFilterLookup
+  questionnaire: DjangoModelFilterInput
+  name: StrFilterLookup
+  label: StrFilterLookup
+}
+
+input QuestionGroupOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type QuestionGroupType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  name: String!
+  label: String!
+  relevant: String!
+  createdBy: UserType!
+  modifiedBy: UserType!
+  parentId: ID
+  questionnaireId: ID!
+}
+
+type QuestionGroupTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionGroupType!]!
+}
+
+type QuestionGroupTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionGroupType
+}
+
+input QuestionGroupUpdateInput {
+  questionnaire: ID
+  parent: ID
+  name: String
+  label: String
+  relevant: String
 }
 
 input QuestionOrder {
@@ -303,7 +462,7 @@ input QuestionnaireCreateInput {
 input QuestionnaireFilter {
   id: IDFilterLookup
   project: DjangoModelFilterInput
-  search: String
+  title: StrFilterLookup
 }
 
 input QuestionnaireOrder {

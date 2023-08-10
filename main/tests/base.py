@@ -58,7 +58,50 @@ class TestCase(BaseTestCase):
         """
         Return appropriate enum value.
         """
-        return _enum.name
+        if _enum:
+            return _enum.name
 
-    def gql_datetime(self, _datetime):
-        return _datetime.isoformat()
+    def gdatetime(self, _datetime):
+        if _datetime:
+            return _datetime.isoformat()
+
+    def gID(self, pk):
+        if pk:
+            return str(pk)
+
+    def _dict_with_keys(
+        self,
+        data: dict,
+        include_keys=None,
+        ignore_keys=None,
+    ):
+        if all([ignore_keys, include_keys]):
+            raise Exception('Please use one of the options among include_keys, ignore_keys')
+        return {
+            key: value
+            for key, value in data.items()
+            if (
+                (ignore_keys is not None and key not in ignore_keys) or
+                (include_keys is not None and key in include_keys)
+            )
+        }
+
+    def assertDictEqual(self, left, right, messages, ignore_keys=None, include_keys=None):
+        self.assertEqual(
+            self._dict_with_keys(left, ignore_keys=ignore_keys, include_keys=include_keys),
+            self._dict_with_keys(right, ignore_keys=ignore_keys, include_keys=include_keys),
+            messages,
+        )
+
+    def assertListDictEqual(self, left, right, messages, ignore_keys=None, include_keys=None):
+        self.assertEqual(
+            [
+                self._dict_with_keys(item, ignore_keys=ignore_keys, include_keys=include_keys)
+                for item in left
+            ],
+            [
+                self._dict_with_keys(item, ignore_keys=ignore_keys, include_keys=include_keys)
+                for item in right
+            ],
+            messages,
+        )

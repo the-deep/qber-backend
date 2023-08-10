@@ -64,7 +64,7 @@ class TestUserQuery(TestCase):
         self.force_login(user)
         content = self.query_check(self.Query.ME)
         assert content['data']['public']['me'] == dict(
-            id=str(user.id),
+            id=self.gID(user.id),
             email=user.email,
             firstName=user.first_name,
             lastName=user.last_name,
@@ -87,14 +87,14 @@ class TestUserQuery(TestCase):
         # With authentication -----
         self.force_login(self.user)
         for filters, expected_users in [
-            ({'id': {'exact': str(user1.id)}}, [user1]),
+            ({'id': {'exact': self.gID(user1.id)}}, [user1]),
             # Free text search tests
             ({'search': 'hero'}, [user1, user3]),
             ({'search': 'test'}, [user1, user3]),
             ({'search': '@vil'}, [user2]),
             ({'search': 'sample'}, [user1, user2]),
             ({'search': 'sample@'}, [user1, user2]),
-            ({'membersExcludeProject': str(project.pk)}, [self.user, user2, user3]),
+            ({'membersExcludeProject': self.gID(project.pk)}, [self.user, user2, user3]),
             ({}, [self.user, *self.users]),
             ({'excludeMe': True}, self.users),
         ]:
@@ -105,7 +105,7 @@ class TestUserQuery(TestCase):
                 'offset': 0,
                 'items': [
                     {
-                        'id': str(user.id),
+                        'id': self.gID(user.id),
                         'firstName': user.first_name,
                         'lastName': user.last_name,
                         'displayName': f'{user.first_name} {user.last_name}',

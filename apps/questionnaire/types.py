@@ -1,29 +1,108 @@
+import typing
 import strawberry
 import strawberry_django
 from strawberry.types import Info
 from django.db import models
 
 from utils.common import get_queryset_for_model
-from apps.common.types import UserResourceTypeMixin
+from apps.common.types import UserResourceTypeMixin, ClientIdMixin
 from apps.project.models import Project
 
 from .enums import QuestionTypeEnum
 from .models import (
     Questionnaire,
     Question,
+    QuestionGroup,
+    ChoiceCollection,
+    Choice,
 )
 
 
-@strawberry_django.ordering.order(Question)
-class QuestionOrder:
-    id: strawberry.auto
-    created_at: strawberry.auto
+@strawberry_django.type(Questionnaire)
+class QuestionnaireType(UserResourceTypeMixin):
+    id: strawberry.ID
+    title: strawberry.auto
+
+    @staticmethod
+    def get_queryset(_, queryset: models.QuerySet | None, info: Info):
+        qs = get_queryset_for_model(Questionnaire, queryset)
+        if (
+            info.context.active_project and
+            info.context.has_perm(Project.Permission.VIEW_QUESTIONNAIRE)
+        ):
+            return qs.filter(project=info.context.active_project.project)
+        return qs.none()
+
+    @strawberry.field
+    def project_id(self) -> strawberry.ID:
+        return strawberry.ID(str(self.project_id))
 
 
-@strawberry_django.ordering.order(Questionnaire)
-class QuestionnaireOrder:
-    id: strawberry.auto
-    created_at: strawberry.auto
+@strawberry_django.type(QuestionGroup)
+class QuestionGroupType(UserResourceTypeMixin):
+    id: strawberry.ID
+    name: strawberry.auto
+    label: strawberry.auto
+    relevant: strawberry.auto
+
+    @strawberry.field
+    def questionnaire_id(self) -> strawberry.ID:
+        return strawberry.ID(str(self.questionnaire_id))
+
+    @strawberry.field
+    def parent_id(self) -> typing.Optional[strawberry.ID]:
+        return self.parent_id and strawberry.ID(str(self.parent_id))
+
+    @staticmethod
+    def get_queryset(_, queryset: models.QuerySet | None, info: Info):
+        qs = get_queryset_for_model(QuestionGroup, queryset)
+        if (
+            info.context.active_project and
+            info.context.has_perm(Project.Permission.VIEW_QUESTION_GROUP)
+        ):
+            return qs.filter(questionnaire__project=info.context.active_project.project)
+        return qs.none()
+
+
+@strawberry_django.type(Choice)
+class QuestionChoiceType(ClientIdMixin):
+    id: strawberry.ID
+    name: strawberry.auto
+    label: strawberry.auto
+    # geometry: strawberry.auto
+
+    @strawberry.field
+    def collection_id(self) -> strawberry.ID:
+        return strawberry.ID(str(self.collection_id))
+
+
+@strawberry_django.type(ChoiceCollection)
+class QuestionChoiceCollectionType(UserResourceTypeMixin):
+    id: strawberry.ID
+    name: strawberry.auto
+    label: strawberry.auto
+
+    @strawberry.field
+    def questionnaire_id(self) -> strawberry.ID:
+        return strawberry.ID(str(self.questionnaire_id))
+
+    @strawberry.field
+    async def choices(self) -> list[QuestionChoiceType]:
+        # TODO: Use Dataloaders
+        return [
+            choice
+            async for choice in self.choice_set.order_by('id')
+        ]
+
+    @staticmethod
+    def get_queryset(_, queryset: models.QuerySet | None, info: Info):
+        qs = get_queryset_for_model(ChoiceCollection, queryset)
+        if (
+            info.context.active_project and
+            info.context.has_perm(Project.Permission.VIEW_QUESTION_CHOICE)
+        ):
+            return qs.filter(questionnaire__project=info.context.active_project.project)
+        return qs.none()
 
 
 @strawberry_django.type(Question)
@@ -48,23 +127,3 @@ class QuestionType(UserResourceTypeMixin):
     @strawberry.field
     def questionnaire_id(self) -> strawberry.ID:
         return strawberry.ID(str(self.questionnaire_id))
-
-
-@strawberry_django.type(Questionnaire)
-class QuestionnaireType(UserResourceTypeMixin):
-    id: strawberry.ID
-    title: strawberry.auto
-
-    @staticmethod
-    def get_queryset(_, queryset: models.QuerySet | None, info: Info):
-        qs = get_queryset_for_model(Questionnaire, queryset)
-        if (
-            info.context.active_project and
-            info.context.has_perm(Project.Permission.VIEW_QUESTIONNAIRE)
-        ):
-            return qs.filter(project=info.context.active_project.project)
-        return qs.none()
-
-    @strawberry.field
-    def project_id(self) -> strawberry.ID:
-        return strawberry.ID(str(self.project_id))

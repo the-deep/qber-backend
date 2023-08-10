@@ -1,5 +1,6 @@
 from enum import Enum, auto, unique
 from django.db import models
+from django.utils.functional import cached_property
 
 from utils.common import get_queryset_for_model
 from apps.common.models import UserResource
@@ -63,8 +64,18 @@ class Project(UserResource):
         CREATE_QUESTION = auto()
         UPDATE_QUESTION = auto()
         DELETE_QUESTION = auto()
+        # Question Group
+        VIEW_QUESTION_GROUP = auto()
+        CREATE_QUESTION_GROUP = auto()
+        UPDATE_QUESTION_GROUP = auto()
+        DELETE_QUESTION_GROUP = auto()
+        # Question Choice
+        VIEW_QUESTION_CHOICE = auto()
+        CREATE_QUESTION_CHOICE = auto()
+        UPDATE_QUESTION_CHOICE = auto()
+        DELETE_QUESTION_CHOICE = auto()
 
-    @property
+    @cached_property
     def get_permissions(cls) -> dict[ProjectMembership.Role, list[Permission]]:
         return {
             ProjectMembership.Role.ADMIN: [
@@ -72,18 +83,18 @@ class Project(UserResource):
                 for permission in cls.Permission
             ],
             ProjectMembership.Role.MEMBER: [
-                cls.Permission.VIEW_QUESTIONNAIRE,
-                cls.Permission.CREATE_QUESTIONNAIRE,
-                cls.Permission.UPDATE_QUESTIONNAIRE,
-                cls.Permission.DELETE_QUESTIONNAIRE,
-                cls.Permission.VIEW_QUESTION,
-                cls.Permission.CREATE_QUESTION,
-                cls.Permission.UPDATE_QUESTION,
-                cls.Permission.DELETE_QUESTION,
+                permission
+                for permission in cls.Permission
+                if permission not in [
+                    cls.Permission.UPDATE_PROJECT,
+                    cls.Permission.UPDATE_MEMBERSHIPS,
+                ]
             ],
             ProjectMembership.Role.VIEWER: [
                 cls.Permission.VIEW_QUESTIONNAIRE,
                 cls.Permission.VIEW_QUESTION,
+                cls.Permission.VIEW_QUESTION_GROUP,
+                cls.Permission.VIEW_QUESTION_CHOICE,
             ],
         }
 

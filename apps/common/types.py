@@ -8,7 +8,6 @@ from apps.user.types import UserType
 
 
 class ClientIdMixin:
-
     @strawberry.field
     def client_id(self, info: Info) -> strawberry.ID:
         self.id: int

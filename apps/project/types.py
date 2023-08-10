@@ -2,6 +2,7 @@ import typing
 import strawberry
 import strawberry_django
 from strawberry.types import Info
+from asgiref.sync import sync_to_async
 
 from utils.common import get_queryset_for_model
 from utils.strawberry.paginations import CountList, pagination_field
@@ -10,7 +11,7 @@ from apps.user.types import UserType
 
 from .models import Project, ProjectMembership
 from .filters import ProjectMembershipFilter
-from .enums import ProjectMembershipRoleTypeEnum
+from .enums import ProjectMembershipRoleTypeEnum, ProjectPermissionTypeEnum
 
 
 @strawberry_django.ordering.order(ProjectMembership)
@@ -67,6 +68,12 @@ class ProjectType(UserResourceTypeMixin):
     def current_user_role(self) -> typing.Optional[ProjectMembershipRoleTypeEnum]:
         # Annotated by Project.get_for
         return getattr(self, 'current_user_role', None)
+
+    @strawberry.field
+    @sync_to_async
+    def allowed_permissions(self, info: Info) -> list[ProjectPermissionTypeEnum]:
+        # TODO: Use dataloader
+        return self.get_permissions_for_user(info.context.request.user)
 
     def get_queryset(self, queryset, info: Info):
         return Project.get_for(
