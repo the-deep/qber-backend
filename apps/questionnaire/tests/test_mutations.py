@@ -496,6 +496,56 @@ class TestQuestionMutation(TestCase):
         )
 
 
+class TestQuestionTypeMutation(TestCase):
+    class Mutation:
+        QuestionCreate = TestQuestionMutation.Mutation.QuestionCreate
+        QuestionUpdate = TestQuestionMutation.Mutation.QuestionUpdate
+        QuestionDelete = TestQuestionMutation.Mutation.QuestionDelete
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = UserFactory.create()
+        cls.ur_params = dict(created_by=cls.user, modified_by=cls.user)
+        # Create some projects
+        cls.project = ProjectFactory.create(**cls.ur_params)
+        cls.q1 = QuestionnaireFactory.create(**cls.ur_params, project=cls.project)
+        cls.project.add_member(cls.user, role=ProjectMembership.Role.MEMBER)
+        cls.choice_collection = ChoiceCollectionFactory.create(**cls.ur_params, questionnaire=cls.q1)
+
+    def test_question_choices_types(self):
+        # Without login
+        variables = {
+            'projectID': self.gID(self.project.pk),
+            'data': {
+                'name': 'question_01',
+                'label': 'Question 1',
+                'questionnaire': self.gID(self.q1.pk),
+                'type': self.genum(Question.Type.SELECT_ONE),
+            },
+        }
+
+        self.force_login(self.user)
+
+        def _query_check():
+            return self.query_check(
+                self.Mutation.QuestionCreate,
+                variables=variables,
+            )['data']['private']['projectScope']['createQuestion']
+
+        # -- Without choices
+        content = _query_check()
+        assert content['ok'] is False, content
+        assert content['errors'] is not None, content
+        # -- With choices
+        variables['data']['choiceCollection'] = self.gID(self.choice_collection.pk)
+        content = _query_check()
+        assert content['ok'] is True, content
+        assert content['errors'] is None, content
+        assert content['result']['name'] == variables['data']['name'], content
+        assert content['result']['label'] == variables['data']['label'], content
+
+
 class TestQuestionGroupMutation(TestCase):
     class Mutation:
         QuestionGroupCreate = '''

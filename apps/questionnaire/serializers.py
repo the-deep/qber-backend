@@ -54,7 +54,7 @@ class QuestionGroupSerializer(UserResourceSerializer):
         )
         parent = data.get('parent')
 
-        if parent and parent.questionnaire_id != questionnaire:
+        if parent and parent.questionnaire_id != questionnaire.id:
             raise serializers.ValidationError('Invalid parent question group')
         return data
 
@@ -73,7 +73,6 @@ class QuestionChoiceSerializer(TempClientIdMixin, ProjectScopeSerializerMixin, s
             # 'geometry',
         )
 
-    # TODO: For `id` make sure it is empty for create and for update it belongs to the choiceCollection
     instance: ChoiceCollection
 
     def validate_collection(self, choice_collection):
@@ -116,6 +115,7 @@ class QuestionSerializer(UserResourceSerializer):
             'name',
             'label',
             'hint',
+            'choice_collection',
         )
 
     instance: Question
@@ -130,8 +130,18 @@ class QuestionSerializer(UserResourceSerializer):
             'questionnaire',
             self.instance and self.instance.questionnaire
         )
-        group = data.get('group')
+        _type = data.get('type', self.instance and self.instance.type)
+        choice_collection = data.get('choice_collection', self.instance and self.instance.choice_collection)
+        group = data.get('group', self.instance and self.instance.group)
 
-        if group and group.questionnaire_id != questionnaire:
-            raise serializers.ValidationError('Invalid group')
+        errors = []
+        if 'group' in data and group and group.questionnaire_id != questionnaire.id:
+            errors.append('Invalid group')
+        if 'choice_collection' in data and choice_collection and choice_collection.questionnaire_id != questionnaire.id:
+            errors.append('Invalid choices')
+        if 'type' in data and _type in Question.FIELDS_WITH_CHOICE_COLLECTION and choice_collection is None:
+            errors.append(f'Choices are required for {_type}')
+
+        if errors:
+            raise serializers.ValidationError(errors)
         return data
