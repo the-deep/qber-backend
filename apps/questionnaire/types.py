@@ -1,6 +1,7 @@
 import typing
 import strawberry
 import strawberry_django
+from asgiref.sync import sync_to_async
 from strawberry.types import Info
 from django.db import models
 
@@ -127,3 +128,9 @@ class QuestionType(UserResourceTypeMixin):
     @strawberry.field
     def questionnaire_id(self) -> strawberry.ID:
         return strawberry.ID(str(self.questionnaire_id))
+
+    @strawberry.field
+    @sync_to_async
+    def choice_collection(self) -> typing.Optional[QuestionChoiceCollectionType]:
+        # TODO: Dataloader
+        return self.choice_collection

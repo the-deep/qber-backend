@@ -332,6 +332,7 @@ input QuestionCreateInput {
   label: String!
   group: ID
   hint: String
+  choiceCollection: ID
 }
 
 input QuestionFilter {
@@ -408,6 +409,7 @@ type QuestionType {
   label: String!
   hint: String!
   type: QuestionTypeEnum!
+  choiceCollection: QuestionChoiceCollectionType
   createdBy: UserType!
   modifiedBy: UserType!
   questionnaireId: ID!
@@ -453,6 +455,7 @@ input QuestionUpdateInput {
   name: String
   label: String
   hint: String
+  choiceCollection: ID
 }
 
 input QuestionnaireCreateInput {

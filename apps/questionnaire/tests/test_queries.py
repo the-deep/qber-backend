@@ -622,6 +622,16 @@ class TestQuestionQuery(TestCase):
                     modifiedBy {
                       id
                     }
+                    choiceCollection {
+                      id
+                      name
+                      label
+                      choices {
+                        id
+                        name
+                        label
+                      }
+                    }
                     type
                     name
                     label
@@ -707,8 +717,30 @@ class TestQuestionQuery(TestCase):
         question_params = {**user_resource_params, 'type': Question.Type.DATE}
         q1 = QuestionnaireFactory.create(project=project, **user_resource_params)
         q2 = QuestionnaireFactory.create(project=project2, **user_resource_params)
-        question, *_ = QuestionFactory.create_batch(4, **question_params, questionnaire=q1)
+
+        q1_choice_collection = ChoiceCollectionFactory.create(**user_resource_params, questionnaire=q1)
+
+        question, *_ = QuestionFactory.create_batch(
+            4,
+            **question_params,
+            questionnaire=q1,
+            choice_collection=q1_choice_collection,
+        )
         question2 = QuestionFactory.create(**question_params, questionnaire=q2)
+
+        choice_collection_response = {
+            'id': self.gID(q1_choice_collection.pk),
+            'name': self.gID(q1_choice_collection.name),
+            'label': self.gID(q1_choice_collection.label),
+            'choices': [
+                {
+                    'id': self.gID(choice.pk),
+                    'name': self.gID(choice.name),
+                    'label': self.gID(choice.label),
+                }
+                for choice in q1_choice_collection.choice_set.all()
+            ],
+        }
 
         variables = {
             'projectID': self.gID(project.id),
@@ -746,6 +778,7 @@ class TestQuestionQuery(TestCase):
             'type': self.genum(question.type),
             'label': question.label,
             'hint': question.hint,
+            'choiceCollection': choice_collection_response,
         }, content
 
         # Another project question
