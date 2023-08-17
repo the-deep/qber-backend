@@ -333,26 +333,47 @@ input QuestionCreateInput {
   group: ID
   hint: String
   choiceCollection: ID
+  default: String
+  guidanceHint: String
+  trigger: String
+  readonly: String
+  required: Boolean
+  requiredMessage: String
+  relevant: String
+  constraint: String
+  appearance: String
+  calculation: String
+  parameters: String
+  choiceFilter: String
+  image: String
+  video: String
+  isOrOther: Boolean
+  orOtherLabel: String
 }
 
 input QuestionFilter {
   id: IDFilterLookup
   questionnaire: DjangoModelFilterInput
+  choiceCollection: DjangoModelFilterInput
+  type: QuestionTypeEnum
   name: StrFilterLookup
   label: StrFilterLookup
+  group: DjangoModelFilterInput
+  includeChildGroup: Boolean = false
 }
 
 input QuestionGroupCreateInput {
   questionnaire: ID!
   name: String!
   label: String!
-  relevant: String!
   parent: ID
+  relevant: String
 }
 
 input QuestionGroupFilter {
   id: IDFilterLookup
   questionnaire: DjangoModelFilterInput
+  parent: DjangoModelFilterInput
   name: StrFilterLookup
   label: StrFilterLookup
 }
@@ -408,9 +429,26 @@ type QuestionType {
   name: String!
   label: String!
   hint: String!
+  default: String!
+  guidanceHint: String!
+  trigger: String!
+  readonly: String!
+  required: Boolean!
+  requiredMessage: String!
+  relevant: String!
+  constraint: String!
+  appearance: String!
+  calculation: String!
+  parameters: String!
+  choiceFilter: String!
+  image: String!
+  video: String!
+  isOrOther: Boolean!
+  orOtherLabel: String!
   type: QuestionTypeEnum!
   choiceCollection: QuestionChoiceCollectionType
   createdBy: UserType!
+  groupId: ID
   modifiedBy: UserType!
   questionnaireId: ID!
 }
@@ -456,6 +494,22 @@ input QuestionUpdateInput {
   label: String
   hint: String
   choiceCollection: ID
+  default: String
+  guidanceHint: String
+  trigger: String
+  readonly: String
+  required: Boolean
+  requiredMessage: String
+  relevant: String
+  constraint: String
+  appearance: String
+  calculation: String
+  parameters: String
+  choiceFilter: String
+  image: String
+  video: String
+  isOrOther: Boolean
+  orOtherLabel: String
 }
 
 input QuestionnaireCreateInput {

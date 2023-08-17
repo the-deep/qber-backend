@@ -1,6 +1,7 @@
 import strawberry
 import strawberry_django
 
+from .enums import QuestionTypeEnum
 from .models import (
     Questionnaire,
     Question,
@@ -20,6 +21,7 @@ class QuestionnaireFilter:
 class QuestionGroupFilter:
     id: strawberry.auto
     questionnaire: strawberry.auto
+    parent: strawberry.auto
     name: strawberry.auto
     label: strawberry.auto
 
@@ -36,5 +38,25 @@ class QuestionChoiceCollectionFilter:
 class QuestionFilter:
     id: strawberry.auto
     questionnaire: strawberry.auto
+    choice_collection: strawberry.auto
+    type: QuestionTypeEnum
     name: strawberry.auto
     label: strawberry.auto
+    group: strawberry.auto
+    include_child_group: bool | None = False
+
+    def filter_group(self, queryset):
+        # NOTE: logic is in filter_include_child_group
+        return queryset
+
+    def filter_include_child_group(self, queryset):
+        if self.group is strawberry.UNSET:
+            # Nothing to do here
+            return queryset
+        if not self.include_child_group:
+            return queryset.filter(group=self.group.pk)
+        all_groups = [
+            self.group.pk,
+            # TODO: *get_child_groups_id(self.group.pk),
+        ]
+        return queryset.filter(group__in=all_groups)

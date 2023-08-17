@@ -88,7 +88,7 @@ class QuestionGroup(UserResource):
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
-    relevant = models.CharField(max_length=255)  # ${has_child} = 'yes'
+    relevant = models.CharField(max_length=255, blank=True)  # ${has_child} = 'yes'
     # # Repeat attributes
     # is_repeat = models.BooleanField(default=False)
     # repeat_count = models.CharField(max_length=255)  # Eg: static: 3, formula: ${num_hh_members}
@@ -151,23 +151,23 @@ class Question(UserResource):
     hint = models.TextField(blank=True)
 
     # NOTE: Need to check if TextField or CharField should be used
-    # default = models.TextField(blank=True)
-    # guidance_hint = models.TextField(blank=True)
-    # trigger = models.CharField(max_length=255, blank=True)
-    # readonly = models.CharField(max_length=255, blank=True)
-    # required = models.BooleanField(default=False)
-    # required_message = models.CharField(max_length=255, blank=True)
-    # relevant = models.CharField(max_length=255, blank=True)
-    # constraint = models.CharField(max_length=255, blank=True)
-    # appearance = models.CharField(max_length=255, blank=True)
-    # calculation = models.CharField(max_length=255, blank=True)
-    # parameters = models.CharField(max_length=255, blank=True)
-    # choice_filter = models.CharField(max_length=255, blank=True)
-    # image = models.CharField(max_length=255, blank=True)
-    # video = models.CharField(max_length=255, blank=True)
-    # -- Or Other
-    # is_or_other = models.BooleanField(default=False)
-    # or_other_label = models.TextField(blank=True)
+    default = models.TextField(blank=True)
+    guidance_hint = models.TextField(blank=True)
+    trigger = models.CharField(max_length=255, blank=True)
+    readonly = models.CharField(max_length=255, blank=True)
+    required = models.BooleanField(default=False)
+    required_message = models.CharField(max_length=255, blank=True)
+    relevant = models.CharField(max_length=255, blank=True)
+    constraint = models.CharField(max_length=255, blank=True)
+    appearance = models.CharField(max_length=255, blank=True)
+    calculation = models.CharField(max_length=255, blank=True)
+    parameters = models.CharField(max_length=255, blank=True)
+    choice_filter = models.CharField(max_length=255, blank=True)
+    image = models.CharField(max_length=255, blank=True)
+    video = models.CharField(max_length=255, blank=True)
+    # -- Or Other: https://xlsform.org/en/#specify-other
+    is_or_other = models.BooleanField(default=False)
+    or_other_label = models.TextField(blank=True)
 
     class Meta:
         unique_together = ('questionnaire', 'name')

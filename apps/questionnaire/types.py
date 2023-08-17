@@ -113,6 +113,23 @@ class QuestionType(UserResourceTypeMixin):
     label: strawberry.auto
     hint: strawberry.auto
 
+    default: strawberry.auto
+    guidance_hint: strawberry.auto
+    trigger: strawberry.auto
+    readonly: strawberry.auto
+    required: strawberry.auto
+    required_message: strawberry.auto
+    relevant: strawberry.auto
+    constraint: strawberry.auto
+    appearance: strawberry.auto
+    calculation: strawberry.auto
+    parameters: strawberry.auto
+    choice_filter: strawberry.auto
+    image: strawberry.auto
+    video: strawberry.auto
+    is_or_other: strawberry.auto
+    or_other_label: strawberry.auto
+
     type: QuestionTypeEnum
 
     @staticmethod
@@ -128,6 +145,11 @@ class QuestionType(UserResourceTypeMixin):
     @strawberry.field
     def questionnaire_id(self) -> strawberry.ID:
         return strawberry.ID(str(self.questionnaire_id))
+
+    @strawberry.field
+    def group_id(self) -> typing.Optional[strawberry.ID]:
+        if self.group_id:
+            return strawberry.ID(str(self.group_id))
 
     @strawberry.field
     @sync_to_async

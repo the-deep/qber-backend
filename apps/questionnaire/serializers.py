@@ -116,6 +116,23 @@ class QuestionSerializer(UserResourceSerializer):
             'label',
             'hint',
             'choice_collection',
+            # XLSForm fields
+            'default',
+            'guidance_hint',
+            'trigger',
+            'readonly',
+            'required',
+            'required_message',
+            'relevant',
+            'constraint',
+            'appearance',
+            'calculation',
+            'parameters',
+            'choice_filter',
+            'image',
+            'video',
+            'is_or_other',
+            'or_other_label',
         )
 
     instance: Question
