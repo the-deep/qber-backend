@@ -191,21 +191,19 @@ class TestQuestionnaireQuery(TestCase):
 class TestQuestionGroupQuery(TestCase):
     class Query:
         QuestionGroupList = '''
-            query MyQuery($projectId: ID!, $filterData: QuestionLeafGroupFilter) {
+            query MyQuery($projectId: ID!, $questionnaireId: ID!) {
               private {
+                id
                 projectScope(pk: $projectId) {
-                  leafGroups(order: {id: ASC}, filters: $filterData) {
-                    count
-                    items {
+                  questionnaire(pk: $questionnaireId) {
+                    leafGroups {
                       id
                       questionnaireId
                       name
+                      order
+                      isHidden
                       type
-                      category1
-                      category2
-                      category3
-                      category4
-                      relevant
+                      typeDisplay
                       createdAt
                       createdBy {
                         id
@@ -214,6 +212,15 @@ class TestQuestionGroupQuery(TestCase):
                       modifiedBy {
                         id
                       }
+                      category1
+                      category2
+                      category3
+                      category4
+                      category1Display
+                      category2Display
+                      category3Display
+                      category4Display
+                      relevant
                     }
                   }
                 }
@@ -229,12 +236,10 @@ class TestQuestionGroupQuery(TestCase):
                     id
                     questionnaireId
                     name
-                    relevant
+                    order
+                    isHidden
                     type
-                    category1
-                    category2
-                    category3
-                    category4
+                    typeDisplay
                     createdAt
                     createdBy {
                       id
@@ -243,6 +248,15 @@ class TestQuestionGroupQuery(TestCase):
                     modifiedBy {
                       id
                     }
+                    category1
+                    category2
+                    category3
+                    category4
+                    category1Display
+                    category2Display
+                    category3Display
+                    category4Display
+                    relevant
                   }
                 }
               }
@@ -261,8 +275,6 @@ class TestQuestionGroupQuery(TestCase):
         q1_groups = QuestionLeafGroupFactory.static_generator(2, **user_resource_params, questionnaire=q1)
         q2_groups = QuestionLeafGroupFactory.static_generator(3, **user_resource_params, questionnaire=q2)
         q3_groups = QuestionLeafGroupFactory.static_generator(5, **user_resource_params, questionnaire=q3)
-        q3_groups[0].name = 'question-group-unique-0001'
-        q3_groups[0].save(update_fields=('name',))
 
         variables = {'projectId': self.gID(project.id)}
         # Without authentication -----
@@ -275,46 +287,47 @@ class TestQuestionGroupQuery(TestCase):
 
         # With authentication -----
         self.force_login(user)
-        for filter_data, question_leaf_groups in [
-            ({'questionnaire': {'pk': self.gID(q1.id)}}, q1_groups),
-            ({'questionnaire': {'pk': self.gID(q2.id)}}, q2_groups),
-            ({'questionnaire': {'pk': self.gID(q3.id)}}, q3_groups),
-            ({'name': {'exact': 'question-group-unique-0001'}}, [q3_groups[0]]),
+        for questionnaire_id, question_leaf_groups in [
+            (q1, q1_groups),
+            (q2, q2_groups),
+            (q3, q3_groups),
         ]:
+            variables['questionnaireId'] = self.gID(questionnaire_id.id)
             content = self.query_check(
                 self.Query.QuestionGroupList,
-                variables={
-                    **variables,
-                    'filterData': filter_data,
-                },
+                variables=variables,
             )
-            assert_msg = (content, user, filter_data, question_leaf_groups)
-            assert content['data']['private']['projectScope'] is not None, assert_msg
-            assert content['data']['private']['projectScope']['leafGroups'] == {
-                'count': len(question_leaf_groups),
-                'items': [
-                    {
-                        'id': self.gID(question_leaf_group.pk),
-                        'questionnaireId': self.gID(question_leaf_group.questionnaire_id),
-                        'createdAt': self.gdatetime(question_leaf_group.created_at),
-                        'createdBy': {
-                            'id': self.gID(question_leaf_group.created_by_id),
-                        },
-                        'modifiedAt': self.gdatetime(question_leaf_group.modified_at),
-                        'modifiedBy': {
-                            'id': self.gID(question_leaf_group.modified_by_id),
-                        },
-                        'name': question_leaf_group.name,
-                        'relevant': question_leaf_group.relevant,
-                        'type': self.genum(question_leaf_group.type),
-                        'category1': self.genum(question_leaf_group.category_1),
-                        'category2': self.genum(question_leaf_group.category_2),
-                        'category3': self.genum(question_leaf_group.category_3),
-                        'category4': self.genum(question_leaf_group.category_4),
-                    }
-                    for question_leaf_group in question_leaf_groups
-                ]
-            }, assert_msg
+            assert_msg = (content, user, questionnaire_id, question_leaf_groups)
+            assert content['data']['private']['projectScope']['questionnaire'] is not None, assert_msg
+            assert content['data']['private']['projectScope']['questionnaire']['leafGroups'] == [
+                {
+                    'id': self.gID(question_leaf_group.pk),
+                    'questionnaireId': self.gID(question_leaf_group.questionnaire_id),
+                    'name': question_leaf_group.name,
+                    'order': question_leaf_group.order,
+                    'isHidden': question_leaf_group.is_hidden,
+                    'type': self.genum(question_leaf_group.type),
+                    'typeDisplay': question_leaf_group.get_type_display(),
+                    'createdAt': self.gdatetime(question_leaf_group.created_at),
+                    'createdBy': {
+                        'id': self.gID(question_leaf_group.created_by_id),
+                    },
+                    'modifiedAt': self.gdatetime(question_leaf_group.modified_at),
+                    'modifiedBy': {
+                        'id': self.gID(question_leaf_group.modified_by_id),
+                    },
+                    'category1': self.genum(question_leaf_group.category_1),
+                    'category2': self.genum(question_leaf_group.category_2),
+                    'category3': self.genum(question_leaf_group.category_3),
+                    'category4': self.genum(question_leaf_group.category_4),
+                    'category1Display': question_leaf_group.get_category_1_display(),
+                    'category2Display': question_leaf_group.get_category_2_display(),
+                    'category3Display': question_leaf_group.get_category_3_display(),
+                    'category4Display': question_leaf_group.get_category_4_display(),
+                    'relevant': question_leaf_group.relevant,
+                }
+                for question_leaf_group in question_leaf_groups
+            ], assert_msg
 
     def test_leaf_group(self):
         # Create some users
@@ -351,6 +364,11 @@ class TestQuestionGroupQuery(TestCase):
         assert content['data']['private']['projectScope']['leafGroup'] == {
             'id': self.gID(q1_group.pk),
             'questionnaireId': self.gID(q1_group.questionnaire_id),
+            'name': q1_group.name,
+            'order': q1_group.order,
+            'isHidden': q1_group.is_hidden,
+            'type': self.genum(q1_group.type),
+            'typeDisplay': q1_group.get_type_display(),
             'createdAt': self.gdatetime(q1_group.created_at),
             'createdBy': {
                 'id': self.gID(q1_group.created_by_id),
@@ -359,13 +377,15 @@ class TestQuestionGroupQuery(TestCase):
             'modifiedBy': {
                 'id': self.gID(q1_group.modified_by_id),
             },
-            'name': q1_group.name,
-            'relevant': q1_group.relevant,
-            'type': self.genum(q1_group.type),
             'category1': self.genum(q1_group.category_1),
             'category2': self.genum(q1_group.category_2),
             'category3': self.genum(q1_group.category_3),
             'category4': self.genum(q1_group.category_4),
+            'category1Display': q1_group.get_category_1_display(),
+            'category2Display': q1_group.get_category_2_display(),
+            'category3Display': q1_group.get_category_3_display(),
+            'category4Display': q1_group.get_category_4_display(),
+            'relevant': q1_group.relevant,
         }, content
 
         # Another project question group

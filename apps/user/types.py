@@ -1,7 +1,9 @@
 import strawberry
 import strawberry_django
+
+from utils.strawberry.enums import enum_field, enum_display_field
+
 from .models import User
-from .enums import OptEmailNotificationTypeEnum
 
 
 @strawberry_django.ordering.order(User)
@@ -23,4 +25,5 @@ class UserType:
 @strawberry_django.type(User)
 class UserMeType(UserType):
     email: strawberry.auto
-    email_opt_outs: list[OptEmailNotificationTypeEnum]
+    email_opt_outs = enum_field(User.email_opt_outs)
+    email_opt_outs_display = enum_display_field(User.email_opt_outs)

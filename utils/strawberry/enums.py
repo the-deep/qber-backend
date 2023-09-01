@@ -1,4 +1,9 @@
+import typing
+import strawberry
+
 from django.db import models
+from django.utils.hashable import make_hashable
+from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
 from rest_framework import serializers
 
@@ -68,3 +73,94 @@ def get_enum_name_from_django_field(
     if serializer_name:
         return f'{serializer_name}{to_camel_case(field_name.title())}'
     raise Exception(f'{serializer_name=} should have a value')
+
+
+EnumDescription = strawberry.scalar(
+    typing.NewType("EnumDescription", str),
+    description="Provide label for enum values",
+    serialize=lambda v: v,
+    parse_value=lambda v: v,
+)
+
+
+def enum_display_field(field: models.query_utils.DeferredAttribute) -> typing.Callable[..., EnumDescription]:
+    _field = field.field
+
+    if is_array := isinstance(_field, ArrayField):
+        _field = _field.base_field
+
+    def _get_value(root) -> None | str | list[str]:
+        # https://github.com/django/django/blob/stable/4.2.x/django/db/models/base.py#L1144-L1150
+        value = getattr(root, _field.attname)
+        if value is None:
+            return
+        choices_dict = dict(make_hashable(_field.flatchoices))
+        # force_str() to coerce lazy strings.
+        if is_array:
+            return [
+                force_str(
+                    choices_dict.get(make_hashable(v), v), strings_only=True
+                )
+                for v in value or []
+            ]
+        return force_str(
+            choices_dict.get(make_hashable(value), value), strings_only=True
+        )
+
+    @strawberry.field
+    def array_field_(root) -> list[EnumDescription]:
+        return _get_value(root)
+
+    if is_array:
+        return array_field_
+
+    @strawberry.field
+    def field_(root) -> EnumDescription:
+        return _get_value(root)
+
+    @strawberry.field
+    def nullable_field_(root) -> typing.Optional[EnumDescription]:
+        return _get_value(root)
+
+    if _field.null:
+        return nullable_field_
+    return field_
+
+
+def enum_field(field: models.query_utils.DeferredAttribute):
+    # NOTE: To avoid circular import
+    from main.enums import ENUM_TO_STRAWBERRY_ENUM_MAP
+    _field = field.field
+    FieldEnum = ENUM_TO_STRAWBERRY_ENUM_MAP[get_enum_name_from_django_field(field)]
+
+    if is_array := isinstance(_field, ArrayField):
+        _field = _field.base_field
+
+    def _get_value(root) -> None | FieldEnum | list[FieldEnum]:
+        value = getattr(root, _field.attname)
+        if value is None:
+            return
+        if is_array:
+            return [
+                FieldEnum(v) for v in value or []
+            ]
+        return FieldEnum(value)
+
+    @strawberry.field
+    def array_field_(root) -> list[FieldEnum]:
+        return _get_value(root)
+
+    if is_array:
+        return array_field_
+
+    @strawberry.field
+    def field_(root) -> FieldEnum:
+        return _get_value(root)
+
+    @strawberry.field
+    def nullable_field_(root) -> typing.Optional[FieldEnum]:
+        return _get_value(root)
+
+    if _field.null:
+        return nullable_field_
+    return field_

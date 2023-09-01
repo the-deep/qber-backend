@@ -6,17 +6,10 @@ from strawberry.types import Info
 from django.db import models
 
 from utils.common import get_queryset_for_model
+from utils.strawberry.enums import enum_display_field, enum_field
 from apps.common.types import UserResourceTypeMixin, ClientIdMixin
 from apps.project.models import Project
 
-from .enums import (
-    QuestionTypeEnum,
-    QuestionLeafGroupTypeEnum,
-    QuestionLeafGroupCategory1TypeEnum,
-    QuestionLeafGroupCategory2TypeEnum,
-    QuestionLeafGroupCategory3TypeEnum,
-    QuestionLeafGroupCategory4TypeEnum,
-)
 from .models import (
     Questionnaire,
     Question,
@@ -24,6 +17,43 @@ from .models import (
     ChoiceCollection,
     Choice,
 )
+
+
+@strawberry_django.type(QuestionLeafGroup)
+class QuestionLeafGroupType(UserResourceTypeMixin):
+    id: strawberry.ID
+    name: strawberry.auto
+    type = enum_field(QuestionLeafGroup.type)
+    type_display = enum_display_field(QuestionLeafGroup.type)
+    order: strawberry.auto
+    is_hidden: strawberry.auto
+    # Categories
+    # -- For Matrix1D/Matrix2D
+    category_1 = enum_field(QuestionLeafGroup.category_1)
+    category_1_display = enum_display_field(QuestionLeafGroup.category_1)
+    category_2 = enum_field(QuestionLeafGroup.category_2)
+    category_2_display = enum_display_field(QuestionLeafGroup.category_2)
+    # -- For Matrix2D
+    category_3 = enum_field(QuestionLeafGroup.category_3)
+    category_3_display = enum_display_field(QuestionLeafGroup.category_3)
+    category_4 = enum_field(QuestionLeafGroup.category_4)
+    category_4_display = enum_display_field(QuestionLeafGroup.category_4)
+    # Misc
+    relevant: strawberry.auto
+
+    @strawberry.field
+    def questionnaire_id(self) -> strawberry.ID:
+        return strawberry.ID(str(self.questionnaire_id))
+
+    @staticmethod
+    def get_queryset(_, queryset: models.QuerySet | None, info: Info):
+        qs = get_queryset_for_model(QuestionLeafGroup, queryset)
+        if (
+            info.context.active_project and
+            info.context.has_perm(Project.Permission.VIEW_QUESTION_GROUP)
+        ):
+            return qs.filter(questionnaire__project=info.context.active_project.project)
+        return qs.none()
 
 
 @strawberry_django.type(Questionnaire)
@@ -45,37 +75,10 @@ class QuestionnaireType(UserResourceTypeMixin):
     def project_id(self) -> strawberry.ID:
         return strawberry.ID(str(self.project_id))
 
-
-@strawberry_django.type(QuestionLeafGroup)
-class QuestionLeafGroupType(UserResourceTypeMixin):
-    id: strawberry.ID
-    name: strawberry.auto
-    type: QuestionLeafGroupTypeEnum
-    order: strawberry.auto
-    is_hidden: strawberry.auto
-    # Categories
-    # -- For Matrix1D/Matrix2D
-    category_1: QuestionLeafGroupCategory1TypeEnum
-    category_2: QuestionLeafGroupCategory2TypeEnum
-    # -- For Matrix2D
-    category_3: typing.Optional[QuestionLeafGroupCategory3TypeEnum]
-    category_4: typing.Optional[QuestionLeafGroupCategory4TypeEnum]
-    # Misc
-    relevant: strawberry.auto
-
-    @strawberry.field
-    def questionnaire_id(self) -> strawberry.ID:
-        return strawberry.ID(str(self.questionnaire_id))
-
-    @staticmethod
-    def get_queryset(_, queryset: models.QuerySet | None, info: Info):
-        qs = get_queryset_for_model(QuestionLeafGroup, queryset)
-        if (
-            info.context.active_project and
-            info.context.has_perm(Project.Permission.VIEW_QUESTION_GROUP)
-        ):
-            return qs.filter(questionnaire__project=info.context.active_project.project)
-        return qs.none()
+    @strawberry_django.field
+    async def leaf_groups(self, info: Info) -> list[QuestionLeafGroupType]:
+        queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(questionnaire=self.pk)
+        return [q async for q in queryset]
 
 
 @strawberry_django.type(Choice)
@@ -143,7 +146,8 @@ class QuestionType(UserResourceTypeMixin):
     is_or_other: strawberry.auto
     or_other_label: strawberry.auto
 
-    type: QuestionTypeEnum
+    type = enum_field(Question.type)
+    type_display = enum_display_field(Question.type)
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):

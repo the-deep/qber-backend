@@ -4,7 +4,6 @@ import strawberry_django
 from .models import (
     Questionnaire,
     Question,
-    QuestionLeafGroup,
     ChoiceCollection,
 )
 
@@ -12,13 +11,6 @@ from .models import (
 @strawberry_django.ordering.order(Questionnaire)
 class QuestionnaireOrder:
     id: strawberry.auto
-    created_at: strawberry.auto
-
-
-@strawberry_django.ordering.order(QuestionLeafGroup)
-class QuestionLeafGroupOrder:
-    id: strawberry.auto
-    order: strawberry.auto
     created_at: strawberry.auto
 
 

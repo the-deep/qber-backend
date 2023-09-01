@@ -8,6 +8,9 @@ input DjangoModelFilterInput {
   pk: ID!
 }
 
+"""Provide label for enum values"""
+scalar EnumDescription
+
 input IDFilterLookup {
   exact: ID
   iExact: ID
@@ -192,7 +195,6 @@ type ProjectScopeMutation {
 
 type ProjectScopeType {
   questionnaires(filters: QuestionnaireFilter, order: QuestionnaireOrder, pagination: OffsetPaginationInput): QuestionnaireTypeCountList!
-  leafGroups(filters: QuestionLeafGroupFilter, order: QuestionLeafGroupOrder, pagination: OffsetPaginationInput): QuestionLeafGroupTypeCountList!
   choiceCollections(filters: QuestionChoiceCollectionFilter, order: QuestionChoiceCollectionOrder, pagination: OffsetPaginationInput): QuestionChoiceCollectionTypeCountList!
   questions(filters: QuestionFilter, order: QuestionOrder, pagination: OffsetPaginationInput): QuestionTypeCountList!
   questionnaire(pk: ID!): QuestionnaireType
@@ -468,20 +470,6 @@ enum QuestionLeafGroupCategory4TypeEnum {
   INTERIOR_DOMENSTIC_LIFE
 }
 
-input QuestionLeafGroupFilter {
-  id: IDFilterLookup
-  questionnaire: DjangoModelFilterInput
-  name: StrFilterLookup
-  isHidden: Boolean
-  type: QuestionLeafGroupTypeEnum
-}
-
-input QuestionLeafGroupOrder {
-  id: Ordering
-  order: Ordering
-  createdAt: Ordering
-}
-
 input QuestionLeafGroupOrderInputType {
   id: ID!
   order: Int!
@@ -492,29 +480,27 @@ type QuestionLeafGroupType {
   modifiedAt: DateTime!
   id: ID!
   name: String!
-  type: QuestionLeafGroupTypeEnum!
   order: Int!
   isHidden: Boolean!
-  category1: QuestionLeafGroupCategory1TypeEnum!
-  category2: QuestionLeafGroupCategory2TypeEnum!
-  category3: QuestionLeafGroupCategory3TypeEnum
-  category4: QuestionLeafGroupCategory4TypeEnum
   relevant: String!
+  category1: QuestionLeafGroupCategory1TypeEnum!
+  category1Display: EnumDescription!
+  category2: QuestionLeafGroupCategory2TypeEnum!
+  category2Display: EnumDescription!
+  category3: QuestionLeafGroupCategory3TypeEnum
+  category3Display: EnumDescription
+  category4: QuestionLeafGroupCategory4TypeEnum
+  category4Display: EnumDescription
   createdBy: UserType!
   modifiedBy: UserType!
   questionnaireId: ID!
+  type: QuestionLeafGroupTypeEnum!
+  typeDisplay: EnumDescription!
 }
 
 type QuestionLeafGroupTypeBulkBasicMutationResponseType {
   errors: [CustomErrorType!]
   results: [QuestionLeafGroupType!]
-}
-
-type QuestionLeafGroupTypeCountList {
-  limit: Int!
-  offset: Int!
-  count: Int!
-  items: [QuestionLeafGroupType!]!
 }
 
 enum QuestionLeafGroupTypeEnum {
@@ -561,12 +547,13 @@ type QuestionType {
   video: String!
   isOrOther: Boolean!
   orOtherLabel: String!
-  type: QuestionTypeEnum!
   choiceCollection: QuestionChoiceCollectionType
   createdBy: UserType!
   leafGroupId: ID
   modifiedBy: UserType!
   questionnaireId: ID!
+  type: QuestionTypeEnum!
+  typeDisplay: EnumDescription!
 }
 
 type QuestionTypeCountList {
@@ -649,6 +636,7 @@ type QuestionnaireType {
   id: ID!
   title: String!
   createdBy: UserType!
+  leafGroups: [QuestionLeafGroupType!]!
   modifiedBy: UserType!
   projectId: ID!
 }
@@ -717,6 +705,7 @@ type UserMeType {
   displayName: String!
   email: String!
   emailOptOuts: [OptEmailNotificationTypeEnum!]!
+  emailOptOutsDisplay: [EnumDescription!]!
 }
 
 type UserMeTypeMutationResponseType {

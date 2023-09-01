@@ -3,12 +3,10 @@ import strawberry_django
 
 from .enums import (
     QuestionTypeEnum,
-    QuestionLeafGroupTypeEnum,
 )
 from .models import (
     Questionnaire,
     Question,
-    QuestionLeafGroup,
     ChoiceCollection,
 )
 
@@ -18,15 +16,6 @@ class QuestionnaireFilter:
     id: strawberry.auto
     project: strawberry.auto
     title: strawberry.auto
-
-
-@strawberry_django.filters.filter(QuestionLeafGroup, lookups=True)
-class QuestionLeafGroupFilter:
-    id: strawberry.auto
-    questionnaire: strawberry.auto
-    name: strawberry.auto
-    is_hidden: strawberry.auto
-    type: QuestionLeafGroupTypeEnum
 
 
 @strawberry_django.filters.filter(ChoiceCollection, lookups=True)

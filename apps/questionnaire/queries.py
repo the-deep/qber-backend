@@ -8,13 +8,11 @@ from utils.strawberry.paginations import CountList, pagination_field
 from .filters import (
     QuestionnaireFilter,
     QuestionFilter,
-    QuestionLeafGroupFilter,
     QuestionChoiceCollectionFilter,
 )
 from .orders import (
     QuestionnaireOrder,
     QuestionOrder,
-    QuestionLeafGroupOrder,
     QuestionChoiceCollectionOrder,
 )
 from .types import (
@@ -31,12 +29,6 @@ class PrivateProjectQuery:
         pagination=True,
         filters=QuestionnaireFilter,
         order=QuestionnaireOrder,
-    )
-
-    leafGroups: CountList[QuestionLeafGroupType] = pagination_field(
-        pagination=True,
-        filters=QuestionLeafGroupFilter,
-        order=QuestionLeafGroupOrder,
     )
 
     choice_collections: CountList[QuestionChoiceCollectionType] = pagination_field(
