@@ -386,7 +386,7 @@ class QuestionLeafGroup(UserResource):
     class Meta:
         unique_together = [
             ('questionnaire', 'name'),
-            ('category_1', 'category_2', 'category_3', 'category_4'),
+            ('questionnaire', 'category_1', 'category_2', 'category_3', 'category_4'),
         ]
         indexes = [
             models.Index(fields=['name']),
