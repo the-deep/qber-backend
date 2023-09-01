@@ -1,5 +1,7 @@
+import typing
 from django.db import models
 from django.contrib.gis.db import models as gid_models
+from django.core.exceptions import ValidationError
 # from django.contrib.postgres.fields import ArrayField
 
 from utils.common import get_queryset_for_model, validate_xlsform_name
@@ -21,6 +23,7 @@ class Questionnaire(UserResource):
     title = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     description = models.TextField(blank=True)
+    # qbank = models.ForeignKey('qbank.QuestionBank', on_delete=models.PROTECT)
 
     # Metadata
     # https://xlsform.org/en/#metadata
@@ -52,6 +55,7 @@ class Questionnaire(UserResource):
     # - style: For web forms, specify the form style. Learn more.
     # - name: XForms root node name. This is rarely needed, learn more.
     project_id: int
+    question_set: models.QuerySet['Question']
 
     def __str__(self):
         return self.title
@@ -60,6 +64,11 @@ class Questionnaire(UserResource):
     def get_for(cls, user, queryset=None):
         project_qs = Project.get_for(user)
         return get_queryset_for_model(cls, queryset=queryset).filter(project__in=project_qs)
+
+    def delete(self):
+        # Delete questions first as question depends on other attributes which will through PROTECT error
+        self.question_set.all().delete()
+        return super().delete()
 
 
 class ChoiceCollection(UserResource):
@@ -83,24 +92,382 @@ class Choice(models.Model):
         unique_together = ('collection', 'name')
 
 
-class QuestionGroup(UserResource):
+class QuestionLeafGroup(UserResource):
+    # NOTE: Only created by system right now
+
+    class Type(models.IntegerChoices):
+        MATRIX_1D = 1, 'Matrix 1D'
+        MATRIX_2D = 2, 'Matrix 2D'
+
+    class Category1(models.IntegerChoices):
+        # MATRIX 1D (ROWS)
+        CONTEXT = 101, '1. Context'
+        EVENT_SHOCK = 102, '2. Event/Shock'
+        DISPLACEMENT = 103, '3. Displacement'
+        CASUALTIES = 104, '4. Casualties'
+        INFORMATION_AND_COMMUNICATION = 105, '5. Information And Communication'
+        HUMANITARIAN_ACCESS = 106, '6. Humanitarian Access'
+        # Matrix 2D (ROWS)
+        IMPACT = 201, '7. Impact'
+        HUMANITARIAN_CONDITIONS = 202, '8. Humanitarian Conditions'
+        AT_RISK = 203, '9. At Risk'
+        PRIORITIES = 204, '10. Priorities'
+        CAPACITIES_RESPONSE = 205, '11. Capacities Response'
+
+    class Category2(models.IntegerChoices):
+        # MATRIX 1D (SUB-ROWS)
+        # -- CONTEXT
+        POLITICS = 1001, 'Politics'
+        DEMOGRAPHY = 1002, 'Demography'
+        SOCIO_CULTURAL = 1003, 'Socio Cultural'
+        ENVIRONMENT = 1004, 'Environment'
+        SECURITY_AND_STABILITY = 1005, 'Security And Stability'
+        ECONOMICS = 1006, 'Economics'
+        # -- EVENT_SHOCK
+        EVENT_SHOCK_CHARACTERISTICS = 1101, 'Characteristics'
+        DRIVERS_AND_AGGRAVATING_FACTORS = 1102, 'Drivers And Aggravating Factors'
+        MITIGATING_FACTORS = 1103, 'Mitigating Factors'
+        HAZARDS_AND_THREATS = 1104, 'Hazards And Threats'
+        # -- DISPLACEMENT
+        DISPLACEMENT_CHARACTERISTICS = 1201, 'Characteristics'
+        PUSH_FACTORS = 1202, 'Push Factors'
+        PULL_FACTORS = 1203, 'Pull Factors'
+        INTENTIONS = 1204, 'Intentions'
+        LOCAL_INTEGRATION = 1205, 'Local Integration'
+        # -- CASUALTIES
+        DEAD = 1301, 'Dead'
+        INJURED = 1302, 'Injured'
+        MISSING = 1303, 'Missing'
+        # -- INFORMATION_AND_COMMUNICATION
+        SOURCE_AND_MEANS = 1401, 'Source And Means'
+        CHALLENDGES_AND_BARRIERS = 1402, 'Challendges And Barriers'
+        KNOWLEDGE_AND_INFO_GAPS_HUMANITARIAN = 1403, 'Knowledge And Info Gaps (Humanitarian)'
+        KNOWLEDGE_AND_INFO_GAPS_POPULATION = 1404, 'Knowledge And Info Gaps POPULATION)'
+        # -- HUMANITARIAN_ACCESS
+        POPULATION_TO_RELIEF = 1501, 'Population To Relief'
+        RELIEF_TO_POPULATION = 1502, 'Relief To Population'
+        PHYSICAL_AND_SECURITY = 1503, 'Physical And Security'
+        NUMBER_OF_PEOPLE_FACING_HUMANITARIN_ACCESS_CONSTRAINTS = 1504, 'Number Of People Facing Hum. Access Constraints'
+        # Matrix 2D (Sub-ROWS)
+        # -- IMPACT
+        DRIVERS = 2001, 'Drivers'
+        IMPACT_ON_PEOPLE = 2002, 'Impact On People'
+        IMPACT_ON_SYSTEMS_SERVICES_NETWORK = 2003, 'Impact On Systems Services Network'
+        # -- HUMANITARIAN_CONDITIONS
+        LIVING_STANDARDS = 2101, 'Living Standards'
+        COPING_MECHANISMS = 2102, 'Coping Mechanisms'
+        PHYSICAL_AND_MENTAL_WELLBEING = 2103, 'Physical And Mental Wellbeing'
+        # -- AT_RISK
+        PEOPLE_AT_RISK = 2201, 'People At risk'
+        # -- PRIORITIES
+        PRIOTIY_ISSUES_POP = 2301, 'Priotiy Issues (Pop)'
+        PRIOTIY_ISSUES_HUM = 2302, 'Priotiy Issues (Hum)'
+        PRIOTIY_INTERVENTIONS_POP = 2303, 'Priotiy Interventions (Pop)'
+        PRIOTIY_INTERVENTIONS_HUM = 2304, 'Priotiy Interventions (Hum)'
+        # -- CAPACITIES_RESPONSE
+        GOVERNMENT_LOCAL_AUTHORITIES = 2401, 'Government Local Authorities'
+        INTERNATIONAL_ORGANISATIONS = 2402, 'International Organisations'
+        NATION_AND_LOCAL_ORGANISATIONS = 2403, 'Nation And Local Organisations'
+        RED_CROSS_RED_CRESCENT = 2404, 'Red Cross Red Crescent'
+        HUMANITARIAN_COORDINATION = 2405, 'Humanitarian Coordination'
+
+    class Category3(models.IntegerChoices):
+        # MATRIX 2D (SUB-COLUMNS)
+        CROSS = 1001, 'Cross'
+        FOOD = 1002, 'Food'
+        WASH = 1003, 'Wash'
+        HEALTH = 1004, 'Health'
+        PROTECTION = 1005, 'Protection'
+        EDUCATION = 1006, 'Education'
+        LIVELIHOOD = 1007, 'Livelihood'
+        NUTRITION = 1008, 'Nutrition'
+        AGRICULTURE = 1009, 'Agriculture'
+        LOGISTICS = 1010, 'Logistics'
+        SHELTER = 1011, 'Shelter'
+        ANALYTICAL_OUTPUTS = 1012, 'Analytical Outputs'
+
+    class Category4(models.IntegerChoices):
+        # MATRIX 2D (COLUMNS)
+        # -- CROSS
+        # -- FOOD
+        # -- WASH
+        WATER = 3001, 'Water'
+        SANITATION = 3002, 'Sanitation'
+        HYGIENE = 3003, 'Hygiene'
+        WASTE_MANAGEMENT = 3004, 'Waste Management'
+        VECTOR_CONTROL = 3005, 'Vector Control'
+        # -- HEALTH
+        HEALTH_CARE = 4001, 'Health Care'
+        HEALTH_STATUS = 4002, 'Health Status'
+        # -- PROTECTION
+        DOCUMENTATION = 5001, 'Documentation'
+        CIVIL_AND_POLITICAL_RIGHTS = 5002, 'Civil And Political Rights'
+        PHYSICAL_SAFETY_AND_SECURITY = 5003, 'Physical Safety And Security'
+        FREEDOM_OF_MOVEMENT = 5004, 'Freedom Of Movement'
+        LIBERTY = 5005, 'Liberty'
+        CHILD_PROTECTION = 5006, 'Child Protection'
+        SGBV = 5007, 'SGBV'
+        HOUSING_LAND_AND_PROPERTY = 5008, 'housing Land And Property'
+        JUSTICE_AND_RULE_OF_LAW = 5009, 'Justice And Rule Of Law'
+        MINES = 5010, 'MINES'
+        HUMAN_TRAFFICKING = 5011, 'Human Trafficking'
+        # -- EDUCATION
+        LEARNING_ENVIRONMENT = 6001, 'Learning Environment'
+        FACILITIES_AND_AMENITIES = 6002, 'Facilities And Amenities'
+        TEACHER_AND_LEARNING = 6003, 'Teacher And Learning'
+        TEACHERS_AND_EDUCATION_PERSONNEL = 6004, 'Teachers And Education Personnel'
+        # -- LIVELIHOOD
+        INCOME = 7001, 'Income'
+        EXPENDITURES = 7002, 'Expenditures'
+        PRODUCTIVE_ASSETS = 7003, 'Productive Assets'
+        SKILLS_AND_QUALIFICATIONS = 7004, 'Skills And Qualifications'
+        # -- NUTRITION
+        NUTRITION_GOODS_AND_SERVICES = 8001, 'Nutrition Goods And Services'
+        NUTRITION_STATUS = 8002, 'Nutrition Status'
+        # -- AGRICULTURE
+        # -- LOGISTICS
+        # -- SHELTER
+        DWELLING_ENVELOPPE = 12001, 'Dwelling Enveloppe'
+        INTERIOR_DOMENSTIC_LIFE = 12002, 'Interior Domenstic Life'
+        # -- ANALYTICAL_OUTPUTS
+
+    TYPE_CATEGORY_MAP = {
+        Type.MATRIX_1D: {
+            Category1.CONTEXT: {
+                Category2.POLITICS,
+                Category2.DEMOGRAPHY,
+                Category2.SOCIO_CULTURAL,
+                Category2.ENVIRONMENT,
+                Category2.SECURITY_AND_STABILITY,
+                Category2.ECONOMICS,
+            },
+            Category1.EVENT_SHOCK: {
+                Category2.EVENT_SHOCK_CHARACTERISTICS,
+                Category2.DRIVERS_AND_AGGRAVATING_FACTORS,
+                Category2.MITIGATING_FACTORS,
+                Category2.HAZARDS_AND_THREATS,
+            },
+            Category1.DISPLACEMENT: {
+                Category2.DISPLACEMENT_CHARACTERISTICS,
+                Category2.PUSH_FACTORS,
+                Category2.PULL_FACTORS,
+                Category2.INTENTIONS,
+                Category2.LOCAL_INTEGRATION,
+            },
+            Category1.CASUALTIES: {
+                Category2.DEAD,
+                Category2.INJURED,
+                Category2.MISSING,
+            },
+            Category1.INFORMATION_AND_COMMUNICATION: {
+                Category2.SOURCE_AND_MEANS,
+                Category2.CHALLENDGES_AND_BARRIERS,
+                Category2.KNOWLEDGE_AND_INFO_GAPS_HUMANITARIAN,
+                Category2.KNOWLEDGE_AND_INFO_GAPS_POPULATION,
+            },
+            Category1.HUMANITARIAN_ACCESS: {
+                Category2.POPULATION_TO_RELIEF,
+                Category2.RELIEF_TO_POPULATION,
+                Category2.PHYSICAL_AND_SECURITY,
+                Category2.NUMBER_OF_PEOPLE_FACING_HUMANITARIN_ACCESS_CONSTRAINTS,
+            },
+        },
+        Type.MATRIX_2D: {
+            # rows: sub-rows
+            'rows': {
+                Category1.IMPACT: {
+                    Category2.DRIVERS,
+                    Category2.IMPACT_ON_PEOPLE,
+                    Category2.IMPACT_ON_SYSTEMS_SERVICES_NETWORK,
+                },
+                Category1.HUMANITARIAN_CONDITIONS: {
+                    Category2.LIVING_STANDARDS,
+                    Category2.COPING_MECHANISMS,
+                    Category2.PHYSICAL_AND_MENTAL_WELLBEING,
+                },
+                Category1.AT_RISK: {
+                    Category2.PEOPLE_AT_RISK,
+                },
+                Category1.PRIORITIES: {
+                    Category2.PRIOTIY_ISSUES_POP,
+                    Category2.PRIOTIY_ISSUES_HUM,
+                    Category2.PRIOTIY_INTERVENTIONS_POP,
+                    Category2.PRIOTIY_INTERVENTIONS_HUM,
+                },
+                Category1.CAPACITIES_RESPONSE: {
+                    Category2.GOVERNMENT_LOCAL_AUTHORITIES,
+                    Category2.INTERNATIONAL_ORGANISATIONS,
+                    Category2.NATION_AND_LOCAL_ORGANISATIONS,
+                    Category2.RED_CROSS_RED_CRESCENT,
+                    Category2.HUMANITARIAN_COORDINATION,
+                },
+            },
+            # columns: sub-columns
+            'columns': {
+                Category3.CROSS: {},
+                Category3.FOOD: {},
+                Category3.WASH: {
+                    Category4.WATER,
+                    Category4.SANITATION,
+                    Category4.HYGIENE,
+                    Category4.WASTE_MANAGEMENT,
+                    Category4.VECTOR_CONTROL,
+                },
+                Category3.HEALTH: {
+                    Category4.HEALTH_CARE,
+                    Category4.HEALTH_STATUS,
+                },
+                Category3.PROTECTION: {
+                    Category4.DOCUMENTATION,
+                    Category4.CIVIL_AND_POLITICAL_RIGHTS,
+                    Category4.PHYSICAL_SAFETY_AND_SECURITY,
+                    Category4.FREEDOM_OF_MOVEMENT,
+                    Category4.LIBERTY,
+                    Category4.CHILD_PROTECTION,
+                    Category4.SGBV,
+                    Category4.HOUSING_LAND_AND_PROPERTY,
+                    Category4.JUSTICE_AND_RULE_OF_LAW,
+                    Category4.MINES,
+                    Category4.HUMAN_TRAFFICKING,
+                },
+                Category3.EDUCATION: {
+                    Category4.LEARNING_ENVIRONMENT,
+                    Category4.FACILITIES_AND_AMENITIES,
+                    Category4.TEACHER_AND_LEARNING,
+                    Category4.TEACHERS_AND_EDUCATION_PERSONNEL,
+                },
+                Category3.LIVELIHOOD: {
+                    Category4.INCOME,
+                    Category4.EXPENDITURES,
+                    Category4.PRODUCTIVE_ASSETS,
+                    Category4.SKILLS_AND_QUALIFICATIONS,
+                },
+                Category3.NUTRITION: {
+                    Category4.NUTRITION_GOODS_AND_SERVICES,
+                    Category4.NUTRITION_STATUS,
+                },
+                Category3.AGRICULTURE: {},
+                Category3.LOGISTICS: {},
+                Category3.SHELTER: {
+                    Category4.DWELLING_ENVELOPPE,
+                    Category4.INTERIOR_DOMENSTIC_LIFE,
+                },
+                Category3.ANALYTICAL_OUTPUTS: {},
+            },
+        }
+    }
+
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+    # TODO: Make sure this is unique within questions and groups
     name = models.CharField(max_length=255)
-    label = models.CharField(max_length=255)
+    type = models.PositiveSmallIntegerField(choices=Type.choices)
+    order = models.PositiveSmallIntegerField(default=0)
+    is_hidden = models.BooleanField(default=False)
+
+    # Categories
+    # TODO: UNIQUE CHECK
+    # -- For Matrix1D/Matrix2D
+    category_1 = models.PositiveSmallIntegerField(choices=Category1.choices)
+    category_2 = models.PositiveSmallIntegerField(choices=Category2.choices)
+    # -- For Matrix2D
+    category_3 = models.PositiveSmallIntegerField(choices=Category3.choices, null=True, blank=True)
+    category_4 = models.PositiveSmallIntegerField(choices=Category4.choices, null=True, blank=True)
+
+    # Misc
     relevant = models.CharField(max_length=255, blank=True)  # ${has_child} = 'yes'
-    # # Repeat attributes
-    # is_repeat = models.BooleanField(default=False)
-    # repeat_count = models.CharField(max_length=255)  # Eg: static: 3, formula: ${num_hh_members}
+
+    # Dynamic Types
+    get_type_display: typing.Callable[[], str]
+    get_category_1_display: typing.Callable[[], str]
+    get_category_2_display: typing.Callable[[], str]
+    get_category_3_display: typing.Callable[[], typing.Optional[str]]
+    get_category_4_display: typing.Callable[[], typing.Optional[str]]
 
     class Meta:
-        unique_together = ('questionnaire', 'name')
+        unique_together = [
+            ('questionnaire', 'name'),
+            ('category_1', 'category_2', 'category_3', 'category_4'),
+        ]
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['order']),
+        ]
+        ordering = ('order',)
+
+    def __str__(self):
+        if self.type == self.Type.MATRIX_1D:
+            return '::'.join([
+                self.get_category_1_display(),
+                self.get_category_2_display(),
+            ])
+        return '::'.join([
+            self.get_category_1_display(),
+            self.get_category_2_display(),
+            self.get_category_3_display() or '-',
+            self.get_category_4_display() or '-',
+        ])
+
+    def clean(self):
+        # NOTE: For now this is generated from system, so validating here
+        # Matrix 1D
+        if self.type == QuestionLeafGroup.Type.MATRIX_1D:
+            if self.category_1 not in QuestionLeafGroup.TYPE_CATEGORY_MAP[self.type]:
+                raise ValidationError('Wrong category 1 provided for Matrix 1D')
+            if self.category_2 not in QuestionLeafGroup.TYPE_CATEGORY_MAP[self.type][self.category_1]:
+                raise ValidationError('Wrong category 2 provided for Matrix 1D')
+            if self.category_3 is not None or self.category_4 is not None:
+                raise ValidationError('Category 3/4 are only for Matrix 2D')
+        # Matrix 2D
+        elif self.type == QuestionLeafGroup.Type.MATRIX_2D:
+            if self.category_1 not in QuestionLeafGroup.TYPE_CATEGORY_MAP[self.type]['rows']:
+                raise ValidationError('Wrong category 1 provided for Matrix 2D')
+            if self.category_2 not in QuestionLeafGroup.TYPE_CATEGORY_MAP[self.type]['rows'][self.category_1]:
+                raise ValidationError('Wrong category 2 provided for Matrix 2D')
+            if self.category_3 is None or self.category_4 is None:
+                raise ValidationError('Category 3/4 needs to be defined for Matrix 2D')
+            if self.category_3 not in QuestionLeafGroup.TYPE_CATEGORY_MAP[self.type]['columns']:
+                raise ValidationError('Wrong category 3 provided for Matrix 2D')
+            if self.category_4 not in QuestionLeafGroup.TYPE_CATEGORY_MAP[self.type]['columns'][self.category_3]:
+                # TODO: Add support for nullable category 4
+                raise ValidationError('Wrong category 4 provided for Matrix 2D')
+        else:
+            raise ValidationError('Not implemented type')
+
+    def save(self, *args, **kwargs):
+        # NOTE: For now this is generated from system, so validating here
+        self.clean()
+        existing_leaf_groups_qs = QuestionLeafGroup.objects.filter(
+            # Scope by questionnaire
+            questionnaire=self.questionnaire,
+        )
+        if self.pk:
+            existing_leaf_groups_qs = existing_leaf_groups_qs.exclude(pk=self.pk)
+        # Matrix 1D
+        if self.type == QuestionLeafGroup.Type.MATRIX_1D:
+            qs = existing_leaf_groups_qs.filter(
+                category_1=self.category_1,
+                category_2=self.category_2,
+            )
+            if qs.exists():
+                raise ValidationError('Already exists')
+        # Matrix 2D
+        elif self.type == QuestionLeafGroup.Type.MATRIX_2D:
+            qs = existing_leaf_groups_qs.filter(
+                category_1=self.category_1,
+                category_2=self.category_2,
+                category_3=self.category_3,
+                category_4=self.category_4,
+            )
+            if qs.exists():
+                raise ValidationError('Already exists')
+        else:
+            raise ValidationError('Not implemented type')
+        return super().save(*args, **kwargs)
 
 
 class Question(UserResource):
     class Type(models.IntegerChoices):
         # https://xlsform.org/en/#question-types
-
         INTEGER = 1, 'Integer (i.e., whole number) input.'
         DECIMAL = 2, 'Decimal input.'
         TEXT = 3, 'Free text response.'
@@ -135,10 +502,12 @@ class Question(UserResource):
     }
 
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    group = models.ForeignKey(QuestionGroup, on_delete=models.CASCADE, null=True, blank=True)
+    leaf_group = models.ForeignKey(QuestionLeafGroup, on_delete=models.CASCADE)
     type = models.PositiveSmallIntegerField(choices=Type.choices)
+    order = models.PositiveSmallIntegerField(default=0)
 
     # XXX: This needs to be also unique within Questionnaire & Question Bank
+    # TODO: Make sure this is also unique within questions and groups
     name = models.CharField(max_length=255, validators=[validate_xlsform_name])
     label = models.TextField()
     choice_collection = models.ForeignKey(
@@ -171,3 +540,8 @@ class Question(UserResource):
 
     class Meta:
         unique_together = ('questionnaire', 'name')
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['order']),
+        ]
+        ordering = ('leaf_group__order', 'order',)

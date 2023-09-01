@@ -11,7 +11,6 @@ from apps.common.serializers import (
 from .models import (
     Questionnaire,
     Question,
-    QuestionGroup,
     Choice,
     ChoiceCollection,
 )
@@ -25,38 +24,6 @@ class QuestionnaireSerializer(UserResourceSerializer):
         )
 
     instance: Questionnaire
-
-
-class QuestionGroupSerializer(UserResourceSerializer):
-    class Meta:
-        model = QuestionGroup
-        fields = (
-            # Parents
-            'questionnaire',
-            'parent',
-            # Question Group metadata
-            'name',
-            'label',
-            'relevant',
-        )
-
-    instance: QuestionGroup
-
-    def validate_questionnaire(self, questionnaire):
-        if questionnaire.project_id != self.project.id:
-            raise serializers.ValidationError('Invalid questionnaire')
-        return questionnaire
-
-    def validate(self, data):
-        questionnaire = data.get(  # Required field
-            'questionnaire',
-            self.instance and self.instance.questionnaire
-        )
-        parent = data.get('parent')
-
-        if parent and parent.questionnaire_id != questionnaire.id:
-            raise serializers.ValidationError('Invalid parent question group')
-        return data
 
 
 class QuestionChoiceSerializer(TempClientIdMixin, ProjectScopeSerializerMixin, serializers.ModelSerializer):
@@ -103,13 +70,18 @@ class QuestionChoiceCollectionSerializer(UserResourceSerializer, WritableNestedM
         return questionnaire
 
 
+class QuestionLeafGroupOrderSerializer(serializers.Serializer):
+    id = IntegerIDField(required=True)
+    order = serializers.IntegerField(required=True)
+
+
 class QuestionSerializer(UserResourceSerializer):
     class Meta:
         model = Question
         fields = (
             # Parents
             'questionnaire',
-            'group',
+            'leaf_group',
             # Question metadata
             'type',
             'name',
@@ -149,14 +121,25 @@ class QuestionSerializer(UserResourceSerializer):
         )
         _type = data.get('type', self.instance and self.instance.type)
         choice_collection = data.get('choice_collection', self.instance and self.instance.choice_collection)
-        group = data.get('group', self.instance and self.instance.group)
+        leaf_group = data.get('leaf_group', self.instance and self.instance.leaf_group)
 
         errors = []
-        if 'group' in data and group and group.questionnaire_id != questionnaire.id:
+        if (
+            'leaf_group' in data and
+            leaf_group.questionnaire_id != questionnaire.id
+        ):
             errors.append('Invalid group')
-        if 'choice_collection' in data and choice_collection and choice_collection.questionnaire_id != questionnaire.id:
+        if (
+            'choice_collection' in data and
+            choice_collection and
+            choice_collection.questionnaire_id != questionnaire.id
+        ):
             errors.append('Invalid choices')
-        if 'type' in data and _type in Question.FIELDS_WITH_CHOICE_COLLECTION and choice_collection is None:
+        if (
+            'type' in data and
+            _type in Question.FIELDS_WITH_CHOICE_COLLECTION and
+            choice_collection is None
+        ):
             errors.append(f'Choices are required for {_type}')
 
         if errors:

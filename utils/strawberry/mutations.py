@@ -29,11 +29,16 @@ CustomErrorType = strawberry.scalar(
 )
 
 
-def process_input_data(data) -> dict:
+def process_input_data(data) -> dict | list:
     """
     Return dict from Strawberry Input Object
     """
     # TODO: Write test
+    if type(data) in [tuple, list]:
+        return [
+            process_input_data(datum)
+            for datum in data
+        ]
     native_dict = {}
     for key, value in data.__dict__.items():
         if value == strawberry.UNSET:
@@ -193,6 +198,12 @@ class MutationResponseType(typing.Generic[ResultTypeVar]):
 
 
 @strawberry.type
+class BulkBasicMutationResponseType(typing.Generic[ResultTypeVar]):
+    errors: typing.Optional[list[CustomErrorType]] = None
+    results: typing.Optional[list[ResultTypeVar]] = None
+
+
+@strawberry.type
 class BulkMutationResponseType(typing.Generic[ResultTypeVar]):
     errors: typing.Optional[list[CustomErrorType]] = None
     results: typing.Optional[list[ResultTypeVar]] = None
@@ -234,7 +245,8 @@ class ModelMutation:
             partial=True,
         )
 
-    def check_permissions(self, info, permission) -> CustomErrorType | None:
+    @staticmethod
+    def check_permissions(info, permission) -> CustomErrorType | None:
         if permission and not info.context.has_perm(permission):
             errors = CustomErrorType([
                 dict(

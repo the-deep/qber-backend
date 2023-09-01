@@ -2,17 +2,18 @@ from main.tests import TestCase
 
 from apps.project.models import ProjectMembership
 from apps.project.factories import ProjectFactory
+from apps.questionnaire.enums import QuestionLeafGroupVisibilityActionEnum
 from apps.questionnaire.models import (
     Questionnaire,
     Question,
-    QuestionGroup,
+    QuestionLeafGroup,
     ChoiceCollection,
 )
 from apps.user.factories import UserFactory
 from apps.questionnaire.factories import (
     QuestionnaireFactory,
     QuestionFactory,
-    QuestionGroupFactory,
+    QuestionLeafGroupFactory,
     ChoiceCollectionFactory,
 )
 
@@ -20,10 +21,10 @@ from apps.questionnaire.factories import (
 class TestQuestionnaireMutation(TestCase):
     class Mutation:
         QuestionnaireCreate = '''
-            mutation MyMutation($projectID: ID!, $data: QuestionnaireCreateInput!) {
+            mutation MyMutation($projectId: ID!, $data: QuestionnaireCreateInput!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   createQuestionnaire(data: $data) {
                     ok
@@ -39,12 +40,12 @@ class TestQuestionnaireMutation(TestCase):
         '''
 
         QuestionnaireUpdate = '''
-            mutation MyMutation($projectID: ID!, $questionnaireID: ID!, $data: QuestionnaireUpdateInput!) {
+            mutation MyMutation($projectId: ID!, $questionnaireId: ID!, $data: QuestionnaireUpdateInput!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
-                  updateQuestionnaire(id: $questionnaireID, data: $data) {
+                  updateQuestionnaire(id: $questionnaireId, data: $data) {
                     ok
                     errors
                     result {
@@ -58,12 +59,12 @@ class TestQuestionnaireMutation(TestCase):
         '''
 
         QuestionnaireDelete = '''
-            mutation MyMutation($projectID: ID!, $questionnaireID: ID!) {
+            mutation MyMutation($projectId: ID!, $questionnaireId: ID!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
-                  deleteQuestionnaire(id: $questionnaireID) {
+                  deleteQuestionnaire(id: $questionnaireId) {
                     ok
                     errors
                     result {
@@ -85,7 +86,7 @@ class TestQuestionnaireMutation(TestCase):
         questionnaire_count = Questionnaire.objects.count()
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
+            'projectId': self.gID(project.pk),
             'data': {'title': 'Questionnaire 1'},
         }
         content = self.query_check(self.Mutation.QuestionnaireCreate, variables=variables, assert_errors=True)
@@ -134,8 +135,8 @@ class TestQuestionnaireMutation(TestCase):
 
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
-            'questionnaireID': self.gID(q1.pk),
+            'projectId': self.gID(project.pk),
+            'questionnaireId': self.gID(q1.pk),
             'data': {'title': 'Questionnaire 1'},
         }
         content = self.query_check(self.Mutation.QuestionnaireUpdate, variables=variables, assert_errors=True)
@@ -168,7 +169,7 @@ class TestQuestionnaireMutation(TestCase):
 
         # -- Another project questionnaire
         project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        variables['questionnaireID'] = self.gID(q2.id)
+        variables['questionnaireId'] = self.gID(q2.id)
         content = self.query_check(
             self.Mutation.QuestionnaireUpdate,
             variables=variables,
@@ -180,22 +181,64 @@ class TestQuestionnaireMutation(TestCase):
         ur_params = dict(created_by=user, modified_by=user)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
+        q1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project)
         q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        # Create some questions, groups and choice collections
+        group1 = QuestionLeafGroupFactory.create(
+            **ur_params,
+            questionnaire=q1,
+            type=QuestionLeafGroup.Type.MATRIX_1D,
+            category_1=QuestionLeafGroup.Category1.CONTEXT,
+            category_2=QuestionLeafGroup.Category2.POLITICS,
+        )
+        group1_2 = QuestionLeafGroupFactory.create(
+            **ur_params,
+            questionnaire=q1_2,
+            type=QuestionLeafGroup.Type.MATRIX_1D,
+            category_1=QuestionLeafGroup.Category1.CONTEXT,
+            category_2=QuestionLeafGroup.Category2.DEMOGRAPHY,
+        )
+        group2 = QuestionLeafGroupFactory.create(
+            **ur_params,
+            questionnaire=q2,
+            type=QuestionLeafGroup.Type.MATRIX_1D,
+            category_1=QuestionLeafGroup.Category1.CONTEXT,
+            category_2=QuestionLeafGroup.Category2.POLITICS,
+        )
+        # -- q1
+        choice_collections = ChoiceCollectionFactory.create_batch(3, **ur_params, questionnaire=q1)
+        QuestionFactory.create_batch(
+            2, **ur_params, questionnaire=q1, leaf_group=group1, choice_collection=choice_collections[0])
+        QuestionFactory.create_batch(
+            3, **ur_params, questionnaire=q1, leaf_group=group1, choice_collection=choice_collections[1])
+        QuestionFactory.create_batch(3, **ur_params, questionnaire=q1, leaf_group=group1)
+        QuestionFactory.create_batch(3, **ur_params, questionnaire=q1_2, leaf_group=group1_2)
+        # -- q2
+        QuestionFactory.create_batch(3, **ur_params, questionnaire=q1, leaf_group=group2)
 
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
-            'questionnaireID': self.gID(q1.pk),
+            'projectId': self.gID(project.pk),
+            'questionnaireId': self.gID(q1.pk),
         }
         content = self.query_check(self.Mutation.QuestionnaireDelete, variables=variables, assert_errors=True)
         assert content['data'] is None
 
+        # Current entities counts
+        def _get_counts():
+            return {
+                'questions': Question.objects.count(),
+                'choice_collections': ChoiceCollection.objects.count(),
+                'groups': QuestionLeafGroup.objects.count(),
+                'questionnair': Questionnaire.objects.count(),
+            }
+        counts = _get_counts()
         # With login
         # -- Without membership
         self.force_login(user)
         content = self.query_check(self.Mutation.QuestionnaireDelete, variables=variables)
         assert content['data']['private']['projectScope'] is None
+        assert counts == _get_counts()
 
         # -- With membership - But read access only
         project.add_member(user, role=ProjectMembership.Role.VIEWER)
@@ -205,6 +248,7 @@ class TestQuestionnaireMutation(TestCase):
         )['data']['private']['projectScope']['deleteQuestionnaire']
         assert content['ok'] is False, content
         assert content['errors'] is not None, content
+        assert counts == _get_counts()
 
         # -- With membership - With write access
         project.add_member(user, role=ProjectMembership.Role.MEMBER)
@@ -214,24 +258,43 @@ class TestQuestionnaireMutation(TestCase):
         )['data']['private']['projectScope']['deleteQuestionnaire']
         assert content['ok'] is True, content
         assert content['errors'] is None, content
+        counts['questions'] -= 11
+        counts['choice_collections'] -= 3
+        counts['questionnair'] -= 1
+        counts['groups'] -= 1
+        assert counts == _get_counts()
+
+        # -- Another questionnaire
+        variables['questionnaireId'] = self.gID(q1_2.id)
+        content = self.query_check(
+            self.Mutation.QuestionnaireDelete,
+            variables=variables,
+        )['data']['private']['projectScope']['deleteQuestionnaire']
+        assert content['ok'] is True, content
+        assert content['errors'] is None, content
+        counts['questions'] -= 3
+        counts['questionnair'] -= 1
+        counts['groups'] -= 1
+        assert counts == _get_counts()
 
         # -- Another project questionnaire
         project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        variables['questionnaireID'] = self.gID(q2.id)
+        variables['questionnaireId'] = self.gID(q2.id)
         content = self.query_check(
             self.Mutation.QuestionnaireDelete,
             variables=variables,
             assert_errors=True,
         )
+        assert counts == _get_counts()
 
 
 class TestQuestionMutation(TestCase):
     class Mutation:
         QuestionCreate = '''
-            mutation MyMutation($projectID: ID!, $data: QuestionCreateInput!) {
+            mutation MyMutation($projectId: ID!, $data: QuestionCreateInput!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   createQuestion(data: $data) {
                     ok
@@ -248,10 +311,10 @@ class TestQuestionMutation(TestCase):
         '''
 
         QuestionUpdate = '''
-            mutation MyMutation($projectID: ID!, $questionID: ID!, $data: QuestionUpdateInput!) {
+            mutation MyMutation($projectId: ID!, $questionID: ID!, $data: QuestionUpdateInput!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   updateQuestion(id: $questionID, data: $data) {
                     ok
@@ -268,10 +331,10 @@ class TestQuestionMutation(TestCase):
         '''
 
         QuestionDelete = '''
-            mutation MyMutation($projectID: ID!, $questionID: ID!) {
+            mutation MyMutation($projectId: ID!, $questionID: ID!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   deleteQuestion(id: $questionID) {
                     ok
@@ -295,14 +358,18 @@ class TestQuestionMutation(TestCase):
         q1 = QuestionnaireFactory.create(**ur_params, project=project)
         q2 = QuestionnaireFactory.create(**ur_params, project=project2)
 
+        [q1_group] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
+        [q2_group] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
+
         question_count = Question.objects.count()
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
+            'projectId': self.gID(project.pk),
             'data': {
                 'name': 'question_01',
                 'label': 'Question 1',
                 'questionnaire': self.gID(q2.pk),
+                'leafGroup': self.gID(q2_group.pk),
                 'type': self.genum(Question.Type.INTEGER),
             },
         }
@@ -339,7 +406,16 @@ class TestQuestionMutation(TestCase):
         )['data']['private']['projectScope']['createQuestion']
         assert content['ok'] is False, content
         assert content['errors'] is not None, content
-        # -- Valid questionnaire id
+        # -- Invalid leaf group
+        project.add_member(user, role=ProjectMembership.Role.MEMBER)
+        content = self.query_check(
+            self.Mutation.QuestionCreate,
+            variables=variables,
+        )['data']['private']['projectScope']['createQuestion']
+        assert content['ok'] is False, content
+        assert content['errors'] is not None, content
+        # -- Valid questionnaire id & leaf group
+        variables['data']['leafGroup'] = self.gID(q1_group.pk)
         variables['data']['questionnaire'] = self.gID(q1.pk)
         content = self.query_check(
             self.Mutation.QuestionCreate,
@@ -369,14 +445,17 @@ class TestQuestionMutation(TestCase):
         q1 = QuestionnaireFactory.create(**ur_params, project=project)
         q2 = QuestionnaireFactory.create(**ur_params, project=project2)
 
+        [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
+        [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
+
         question_params = {**ur_params, 'type': Question.Type.INTEGER}
-        QuestionFactory.create(**question_params, questionnaire=q1, name='question_01')
-        question12 = QuestionFactory.create(**question_params, questionnaire=q1, name='question_02')
-        question2 = QuestionFactory.create(**question_params, questionnaire=q2, name='question_01')
+        QuestionFactory.create(**question_params, questionnaire=q1, name='question_01', leaf_group=group1)
+        question12 = QuestionFactory.create(**question_params, questionnaire=q1, leaf_group=group1, name='question_02')
+        question2 = QuestionFactory.create(**question_params, questionnaire=q2, leaf_group=group2, name='question_01')
 
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
+            'projectId': self.gID(project.pk),
             'questionID': self.gID(question12.pk),
             'data': {
                 'name': 'question_002',
@@ -450,13 +529,16 @@ class TestQuestionMutation(TestCase):
         q1 = QuestionnaireFactory.create(**ur_params, project=project)
         q2 = QuestionnaireFactory.create(**ur_params, project=project2)
 
+        [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
+        [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
+
         question_params = {**ur_params, 'type': Question.Type.INTEGER}
-        question1 = QuestionFactory.create(**question_params, questionnaire=q1, name='question_0101')
-        question2 = QuestionFactory.create(**question_params, questionnaire=q2, name='question_0201')
+        question1 = QuestionFactory.create(**question_params, questionnaire=q1, name='question_0101', leaf_group=group1)
+        question2 = QuestionFactory.create(**question_params, questionnaire=q2, name='question_0201', leaf_group=group2)
 
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
+            'projectId': self.gID(project.pk),
             'questionID': self.gID(question1.pk),
         }
         content = self.query_check(self.Mutation.QuestionDelete, variables=variables, assert_errors=True)
@@ -514,14 +596,17 @@ class TestQuestionTypeMutation(TestCase):
         cls.choice_collection = ChoiceCollectionFactory.create(**cls.ur_params, questionnaire=cls.q1)
 
     def test_question_choices_types(self):
+        [group1] = QuestionLeafGroupFactory.static_generator(1, **self.ur_params, questionnaire=self.q1)
+
         # Without login
         variables = {
-            'projectID': self.gID(self.project.pk),
+            'projectId': self.gID(self.project.pk),
             'data': {
                 'name': 'question_01',
                 'label': 'Question 1',
                 'questionnaire': self.gID(self.q1.pk),
                 'type': self.genum(Question.Type.SELECT_ONE),
+                'leafGroup': self.gID(group1.pk),
             },
         }
 
@@ -548,19 +633,23 @@ class TestQuestionTypeMutation(TestCase):
 
 class TestQuestionGroupMutation(TestCase):
     class Mutation:
-        QuestionGroupCreate = '''
-            mutation MyMutation($projectID: ID!, $data: QuestionGroupCreateInput!) {
+        QuestionLeafGroupVisiblityUpdate = '''
+            mutation MyMutation(
+                $projectId: ID!,
+                $questionLeafGroupID: ID!,
+                $visibility: QuestionLeafGroupVisibilityActionEnum!
+            ) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
-                  createQuestionGroup(data: $data) {
+                  updateQuestionGroupLeafVisibility(id: $questionLeafGroupID, visibility: $visibility) {
                     ok
                     errors
                     result {
                       id
                       name
-                      label
+                      isHidden
                     }
                   }
                 }
@@ -568,19 +657,22 @@ class TestQuestionGroupMutation(TestCase):
             }
         '''
 
-        QuestionGroupUpdate = '''
-            mutation MyMutation($projectID: ID!, $questionGroupID: ID!, $data: QuestionGroupUpdateInput!) {
+        QuestionLeafGroupOrderBulkUpdate = '''
+            mutation MyMutation(
+                $projectId: ID!,
+                $questionnairId: ID!,
+                $data: [QuestionLeafGroupOrderInputType!]!
+            ) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
-                  updateQuestionGroup(id: $questionGroupID, data: $data) {
-                    ok
+                  bulkUpdateQuestionnairQuestionGroupsLeafOrder(questionnaireId: $questionnairId, data: $data) {
                     errors
-                    result {
+                    results {
                       id
                       name
-                      label
+                      order
                     }
                   }
                 }
@@ -588,240 +680,151 @@ class TestQuestionGroupMutation(TestCase):
             }
         '''
 
-        QuestionGroupDelete = '''
-            mutation MyMutation($projectID: ID!, $questionGroupID: ID!) {
-              private {
-                id
-                projectScope(pk: $projectID) {
-                  id
-                  deleteQuestionGroup(id: $questionGroupID) {
-                    ok
-                    errors
-                    result {
-                      id
-                      name
-                      label
-                    }
-                  }
+    def test_question_leaf_group_visibility(self):
+        user = UserFactory.create()
+        ur_params = dict(created_by=user, modified_by=user)
+        # Create some projects
+        project, project2 = ProjectFactory.create_batch(2, **ur_params)
+        q1 = QuestionnaireFactory.create(**ur_params, project=project)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+
+        [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
+        [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
+
+        # Without login
+        variables = {
+            'projectId': self.gID(project.pk),
+            'questionLeafGroupID': self.gID(group2.pk),
+            'visibility': self.genum(QuestionLeafGroupVisibilityActionEnum.HIDE),
+        }
+        content = self.query_check(self.Mutation.QuestionLeafGroupVisiblityUpdate, variables=variables, assert_errors=True)
+        assert content['data'] is None
+
+        # With login
+        # -- Without membership
+        self.force_login(user)
+        content = self.query_check(self.Mutation.QuestionLeafGroupVisiblityUpdate, variables=variables)
+        assert content['data']['private']['projectScope'] is None
+
+        # -- With membership - But read access only
+        project.add_member(user, role=ProjectMembership.Role.VIEWER)
+        content = self.query_check(
+            self.Mutation.QuestionLeafGroupVisiblityUpdate,
+            variables=variables,
+        )['data']['private']['projectScope']['updateQuestionGroupLeafVisibility']
+        assert content['ok'] is False, content
+        assert content['errors'] is not None, content
+
+        # -- With membership - With write access
+        # -- Invalid question leaf group id
+        project.add_member(user, role=ProjectMembership.Role.MEMBER)
+        content = self.query_check(self.Mutation.QuestionLeafGroupVisiblityUpdate, variables=variables, assert_errors=True)
+
+        # -- Valid question leaf group id
+        variables['questionLeafGroupID'] = self.gID(group1.pk)
+        for visibility, is_hidden_value in [
+            (self.genum(QuestionLeafGroupVisibilityActionEnum.HIDE), True),
+            (self.genum(QuestionLeafGroupVisibilityActionEnum.SHOW), False),
+        ]:
+            variables['visibility'] = visibility
+            content = self.query_check(
+                self.Mutation.QuestionLeafGroupVisiblityUpdate,
+                variables=variables,
+            )['data']['private']['projectScope']['updateQuestionGroupLeafVisibility']
+            group1.refresh_from_db()
+            assert content['ok'] is True, content
+            assert content['errors'] is None, content
+            assert content['result']['id'] == variables['questionLeafGroupID'], content
+            assert content['result']['isHidden'] == is_hidden_value, content
+            assert group1.is_hidden == is_hidden_value
+
+    def test_question_leaf_group_order_update(self):
+        user = UserFactory.create()
+        ur_params = dict(created_by=user, modified_by=user)
+        # Create some projects
+        project, project2 = ProjectFactory.create_batch(2, **ur_params)
+        q1_1 = QuestionnaireFactory.create(**ur_params, project=project)
+        q1_2 = QuestionnaireFactory.create(**ur_params, project=project)
+        q2_1 = QuestionnaireFactory.create(**ur_params, project=project2)
+
+        [
+            group1_1_1,
+            group1_1_2,
+            group1_1_3,
+            group1_1_4
+        ] = QuestionLeafGroupFactory.static_generator(4, **ur_params, questionnaire=q1_1)
+        [group1_2_1, group1_2_2] = QuestionLeafGroupFactory.static_generator(2, **ur_params, questionnaire=q1_2)
+        [group2_1_1, group2_1_2] = QuestionLeafGroupFactory.static_generator(2, **ur_params, questionnaire=q2_1)
+
+        valid_group_order_set = [
+            (group1_1_1, 1001),
+            (group1_1_2, 1001),
+            (group1_1_3, 1001),
+            (group1_1_4, 1001),
+        ]
+        # Without login
+        variables = {
+            'projectId': self.gID(project.pk),
+            'questionnairId': self.gID(q1_1.pk),
+            'data': [
+                {
+                    'id': self.gID(group.pk),
+                    'order': order,
                 }
-              }
+                for group, order in (
+                    # Valid groups
+                    *valid_group_order_set,
+                    # Invalid groups
+                    # -- Another questionnair
+                    (group1_2_1, 1001),
+                    (group1_2_2, 1001),
+                    # -- Another questionnair another project
+                    (group2_1_1, 1001),
+                    (group2_1_2, 1001),
+                )
+            ]
+        }
+        content = self.query_check(self.Mutation.QuestionLeafGroupOrderBulkUpdate, variables=variables, assert_errors=True)
+        assert content['data'] is None
+
+        # With login
+        # -- Without membership
+        self.force_login(user)
+        content = self.query_check(self.Mutation.QuestionLeafGroupOrderBulkUpdate, variables=variables)
+        assert content['data']['private']['projectScope'] is None
+
+        # -- With membership - But read access only
+        project.add_member(user, role=ProjectMembership.Role.VIEWER)
+        content = self.query_check(
+            self.Mutation.QuestionLeafGroupOrderBulkUpdate,
+            variables=variables,
+        )['data']['private']['projectScope']['bulkUpdateQuestionnairQuestionGroupsLeafOrder']
+        assert content['errors'] is not None, content
+
+        # -- With membership - With write access
+        project.add_member(user, role=ProjectMembership.Role.MEMBER)
+        content = self.query_check(
+            self.Mutation.QuestionLeafGroupOrderBulkUpdate,
+            variables=variables,
+        )['data']['private']['projectScope']['bulkUpdateQuestionnairQuestionGroupsLeafOrder']
+        assert content['errors'] is None, content
+        assert content['results'] == [
+            {
+                'id': self.gID(group.pk),
+                'name': group.name,
+                'order': order,
             }
-        '''
-
-    def test_create_question_group(self):
-        user = UserFactory.create()
-        ur_params = dict(created_by=user, modified_by=user)
-        # Create some projects
-        project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
-
-        question_group_count = QuestionGroup.objects.count()
-        # Without login
-        variables = {
-            'projectID': self.gID(project.pk),
-            'data': {
-                'name': 'question_group_01',
-                'label': 'Question Group 1',
-                'relevant': 'Not relevant',
-                'questionnaire': self.gID(q2.pk),
-            },
-        }
-        content = self.query_check(self.Mutation.QuestionGroupCreate, variables=variables, assert_errors=True)
-        assert content['data'] is None
-        # No change
-        assert QuestionGroup.objects.count() == question_group_count
-
-        # With login
-        # -- Without membership
-        self.force_login(user)
-        content = self.query_check(self.Mutation.QuestionGroupCreate, variables=variables)
-        assert content['data']['private']['projectScope'] is None
-        # No change
-        assert QuestionGroup.objects.count() == question_group_count
-
-        # -- With membership - But read access only
-        project.add_member(user, role=ProjectMembership.Role.VIEWER)
-        content = self.query_check(
-            self.Mutation.QuestionGroupCreate,
-            variables=variables,
-        )['data']['private']['projectScope']['createQuestionGroup']
-        assert content['ok'] is False, content
-        assert content['errors'] is not None, content
-        # No change
-        assert QuestionGroup.objects.count() == question_group_count
-
-        # -- With membership - With write access
-        # -- Invalid questionnaire id
-        project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        content = self.query_check(
-            self.Mutation.QuestionGroupCreate,
-            variables=variables,
-        )['data']['private']['projectScope']['createQuestionGroup']
-        assert content['ok'] is False, content
-        assert content['errors'] is not None, content
-        # -- Valid questionnaire id
-        variables['data']['questionnaire'] = self.gID(q1.pk)
-        content = self.query_check(
-            self.Mutation.QuestionGroupCreate,
-            variables=variables,
-        )['data']['private']['projectScope']['createQuestionGroup']
-        assert content['ok'] is True, content
-        assert content['errors'] is None, content
-        assert content['result']['name'] == variables['data']['name'], content
-        assert content['result']['label'] == variables['data']['label'], content
-        # 1 new
-        assert QuestionGroup.objects.count() == question_group_count + 1
-        # -- Simple name unique validation
-        content = self.query_check(
-            self.Mutation.QuestionGroupCreate,
-            variables=variables,
-        )['data']['private']['projectScope']['createQuestionGroup']
-        assert content['ok'] is not True, content
-        assert content['errors'] is not None, content
-        # Same as last
-        assert QuestionGroup.objects.count() == question_group_count + 1
-
-    def test_update_question_group(self):
-        user = UserFactory.create()
-        ur_params = dict(created_by=user, modified_by=user)
-        # Create some projects
-        project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
-
-        QuestionGroupFactory.create(**ur_params, questionnaire=q1, name='question_group_01')
-        question_group_12 = QuestionGroupFactory.create(**ur_params, questionnaire=q1, name='question_group_02')
-        question_group_2 = QuestionGroupFactory.create(**ur_params, questionnaire=q2, name='question_group_01')
-
-        # Without login
-        variables = {
-            'projectID': self.gID(project.pk),
-            'questionGroupID': self.gID(question_group_12.pk),
-            'data': {
-                'name': 'question_group_002',
-                'label': 'QuestionGroup 2',
-            },
-        }
-        content = self.query_check(self.Mutation.QuestionGroupUpdate, variables=variables, assert_errors=True)
-        assert content['data'] is None
-
-        # With login
-        # -- Without membership
-        self.force_login(user)
-        content = self.query_check(self.Mutation.QuestionGroupUpdate, variables=variables)
-        assert content['data']['private']['projectScope'] is None
-
-        # -- With membership - But read access only
-        project.add_member(user, role=ProjectMembership.Role.VIEWER)
-        content = self.query_check(
-            self.Mutation.QuestionGroupUpdate,
-            variables=variables,
-        )['data']['private']['projectScope']['updateQuestionGroup']
-        assert content['ok'] is False, content
-        assert content['errors'] is not None, content
-
-        # -- With membership - With write access
-        project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        content = self.query_check(
-            self.Mutation.QuestionGroupUpdate,
-            variables=variables,
-        )['data']['private']['projectScope']['updateQuestionGroup']
-        assert content['ok'] is True, content
-        assert content['errors'] is None, content
-        assert content['result']['name'] == variables['data']['name'], content
-        assert content['result']['label'] == variables['data']['label'], content
-
-        # -- Using another question name
-        project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        variables['data']['name'] = 'question_group_01'
-        content = self.query_check(
-            self.Mutation.QuestionGroupUpdate,
-            variables=variables,
-        )['data']['private']['projectScope']['updateQuestionGroup']
-        assert content['ok'] is False, content
-        assert content['errors'] is not None, content
-        variables['data']['name'] = 'question_group_02'
-
-        # -- Using another project questionnaire name
-        project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        variables['data']['questionnaire'] = self.gID(q2.pk)
-        content = self.query_check(
-            self.Mutation.QuestionGroupUpdate,
-            variables=variables,
-        )['data']['private']['projectScope']['updateQuestionGroup']
-        assert content['ok'] is False, content
-        assert content['errors'] is not None, content
-
-        # -- Another project question
-        project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        variables['questionGroupID'] = self.gID(question_group_2.id)
-        content = self.query_check(
-            self.Mutation.QuestionGroupUpdate,
-            variables=variables,
-            assert_errors=True,
-        )
-
-    def test_delete_question_group(self):
-        user = UserFactory.create()
-        ur_params = dict(created_by=user, modified_by=user)
-        # Create some projects
-        project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
-
-        question1 = QuestionGroupFactory.create(**ur_params, questionnaire=q1, name='question_group_0101')
-        question_group_2 = QuestionGroupFactory.create(**ur_params, questionnaire=q2, name='question_group_0201')
-
-        # Without login
-        variables = {
-            'projectID': self.gID(project.pk),
-            'questionGroupID': self.gID(question1.pk),
-        }
-        content = self.query_check(self.Mutation.QuestionGroupDelete, variables=variables, assert_errors=True)
-        assert content['data'] is None
-
-        # With login
-        # -- Without membership
-        self.force_login(user)
-        content = self.query_check(self.Mutation.QuestionGroupDelete, variables=variables)
-        assert content['data']['private']['projectScope'] is None
-
-        # -- With membership - But read access only
-        project.add_member(user, role=ProjectMembership.Role.VIEWER)
-        content = self.query_check(
-            self.Mutation.QuestionGroupDelete,
-            variables=variables,
-        )['data']['private']['projectScope']['deleteQuestionGroup']
-        assert content['ok'] is False, content
-        assert content['errors'] is not None, content
-
-        # -- With membership - With write access
-        project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        content = self.query_check(
-            self.Mutation.QuestionGroupDelete,
-            variables=variables,
-        )['data']['private']['projectScope']['deleteQuestionGroup']
-        assert content['ok'] is True, content
-        assert content['errors'] is None, content
-
-        # -- Another project question
-        project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        variables['questionGroupID'] = self.gID(question_group_2.id)
-        content = self.query_check(
-            self.Mutation.QuestionGroupDelete,
-            variables=variables,
-            assert_errors=True,
-        )
+            for group, order in valid_group_order_set
+        ]
 
 
 class TestChoiceCollectionMutation(TestCase):
     class Mutation:
         ChoiceCollectionCreate = '''
-            mutation MyMutation($projectID: ID!, $data: QuestionChoiceCollectionCreateInput!) {
+            mutation MyMutation($projectId: ID!, $data: QuestionChoiceCollectionCreateInput!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   createQuestionChoiceCollection(data: $data) {
                     ok
@@ -845,10 +848,10 @@ class TestChoiceCollectionMutation(TestCase):
         '''
 
         ChoiceCollectionUpdate = '''
-            mutation MyMutation($projectID: ID!, $questionGroupID: ID!, $data: QuestionChoiceCollectionUpdateInput!) {
+            mutation MyMutation($projectId: ID!, $questionGroupID: ID!, $data: QuestionChoiceCollectionUpdateInput!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   updateQuestionChoiceCollection(id: $questionGroupID, data: $data) {
                     ok
@@ -872,10 +875,10 @@ class TestChoiceCollectionMutation(TestCase):
         '''
 
         ChoiceCollectionDelete = '''
-            mutation MyMutation($projectID: ID!, $questionGroupID: ID!) {
+            mutation MyMutation($projectId: ID!, $questionGroupID: ID!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   deleteQuestionChoiceCollection(id: $questionGroupID) {
                     ok
@@ -909,7 +912,7 @@ class TestChoiceCollectionMutation(TestCase):
         choice_collection_count = ChoiceCollection.objects.count()
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
+            'projectId': self.gID(project.pk),
             'data': {
                 'name': 'choice_collection_01',
                 'label': 'Question Group 1',
@@ -1009,7 +1012,7 @@ class TestChoiceCollectionMutation(TestCase):
 
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
+            'projectId': self.gID(project.pk),
             'questionGroupID': self.gID(choice_collection_12.pk),
             'data': {
                 'name': 'choice_collection_002',
@@ -1088,7 +1091,7 @@ class TestChoiceCollectionMutation(TestCase):
 
         # Without login
         variables = {
-            'projectID': self.gID(project.pk),
+            'projectId': self.gID(project.pk),
             'questionGroupID': self.gID(question1.pk),
         }
         content = self.query_check(self.Mutation.ChoiceCollectionDelete, variables=variables, assert_errors=True)

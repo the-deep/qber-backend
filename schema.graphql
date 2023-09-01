@@ -180,9 +180,8 @@ type ProjectScopeMutation {
   createQuestion(data: QuestionCreateInput!): QuestionTypeMutationResponseType!
   updateQuestion(id: ID!, data: QuestionUpdateInput!): QuestionTypeMutationResponseType!
   deleteQuestion(id: ID!): QuestionTypeMutationResponseType!
-  createQuestionGroup(data: QuestionGroupCreateInput!): QuestionGroupTypeMutationResponseType!
-  updateQuestionGroup(id: ID!, data: QuestionGroupUpdateInput!): QuestionGroupTypeMutationResponseType!
-  deleteQuestionGroup(id: ID!): QuestionGroupTypeMutationResponseType!
+  bulkUpdateQuestionnairQuestionGroupsLeafOrder(questionnaireId: ID!, data: [QuestionLeafGroupOrderInputType!]!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
+  updateQuestionGroupLeafVisibility(id: ID!, visibility: QuestionLeafGroupVisibilityActionEnum!): QuestionLeafGroupTypeMutationResponseType!
   createQuestionChoiceCollection(data: QuestionChoiceCollectionCreateInput!): QuestionChoiceCollectionTypeMutationResponseType!
   updateQuestionChoiceCollection(id: ID!, data: QuestionChoiceCollectionUpdateInput!): QuestionChoiceCollectionTypeMutationResponseType!
   deleteQuestionChoiceCollection(id: ID!): QuestionChoiceCollectionTypeMutationResponseType!
@@ -193,11 +192,11 @@ type ProjectScopeMutation {
 
 type ProjectScopeType {
   questionnaires(filters: QuestionnaireFilter, order: QuestionnaireOrder, pagination: OffsetPaginationInput): QuestionnaireTypeCountList!
-  groups(filters: QuestionGroupFilter, order: QuestionGroupOrder, pagination: OffsetPaginationInput): QuestionGroupTypeCountList!
+  leafGroups(filters: QuestionLeafGroupFilter, order: QuestionLeafGroupOrder, pagination: OffsetPaginationInput): QuestionLeafGroupTypeCountList!
   choiceCollections(filters: QuestionChoiceCollectionFilter, order: QuestionChoiceCollectionOrder, pagination: OffsetPaginationInput): QuestionChoiceCollectionTypeCountList!
   questions(filters: QuestionFilter, order: QuestionOrder, pagination: OffsetPaginationInput): QuestionTypeCountList!
   questionnaire(pk: ID!): QuestionnaireType
-  group(pk: ID!): QuestionGroupType
+  leafGroup(pk: ID!): QuestionLeafGroupType
   choiceCollection(pk: ID!): QuestionChoiceCollectionType
   question(pk: ID!): QuestionType
   id: ID!
@@ -327,10 +326,10 @@ type QuestionChoiceType {
 
 input QuestionCreateInput {
   questionnaire: ID!
+  leafGroup: ID!
   type: QuestionTypeEnum!
   name: String!
   label: String!
-  group: ID
   hint: String
   choiceCollection: ID
   default: String
@@ -358,63 +357,180 @@ input QuestionFilter {
   type: QuestionTypeEnum
   name: StrFilterLookup
   label: StrFilterLookup
-  group: DjangoModelFilterInput
+  leafGroup: DjangoModelFilterInput
   includeChildGroup: Boolean = false
 }
 
-input QuestionGroupCreateInput {
-  questionnaire: ID!
-  name: String!
-  label: String!
-  parent: ID
-  relevant: String
+enum QuestionLeafGroupCategory1TypeEnum {
+  CONTEXT
+  EVENT_SHOCK
+  DISPLACEMENT
+  CASUALTIES
+  INFORMATION_AND_COMMUNICATION
+  HUMANITARIAN_ACCESS
+  IMPACT
+  HUMANITARIAN_CONDITIONS
+  AT_RISK
+  PRIORITIES
+  CAPACITIES_RESPONSE
 }
 
-input QuestionGroupFilter {
+enum QuestionLeafGroupCategory2TypeEnum {
+  POLITICS
+  DEMOGRAPHY
+  SOCIO_CULTURAL
+  ENVIRONMENT
+  SECURITY_AND_STABILITY
+  ECONOMICS
+  EVENT_SHOCK_CHARACTERISTICS
+  DRIVERS_AND_AGGRAVATING_FACTORS
+  MITIGATING_FACTORS
+  HAZARDS_AND_THREATS
+  DISPLACEMENT_CHARACTERISTICS
+  PUSH_FACTORS
+  PULL_FACTORS
+  INTENTIONS
+  LOCAL_INTEGRATION
+  DEAD
+  INJURED
+  MISSING
+  SOURCE_AND_MEANS
+  CHALLENDGES_AND_BARRIERS
+  KNOWLEDGE_AND_INFO_GAPS_HUMANITARIAN
+  KNOWLEDGE_AND_INFO_GAPS_POPULATION
+  POPULATION_TO_RELIEF
+  RELIEF_TO_POPULATION
+  PHYSICAL_AND_SECURITY
+  NUMBER_OF_PEOPLE_FACING_HUMANITARIN_ACCESS_CONSTRAINTS
+  DRIVERS
+  IMPACT_ON_PEOPLE
+  IMPACT_ON_SYSTEMS_SERVICES_NETWORK
+  LIVING_STANDARDS
+  COPING_MECHANISMS
+  PHYSICAL_AND_MENTAL_WELLBEING
+  PEOPLE_AT_RISK
+  PRIOTIY_ISSUES_POP
+  PRIOTIY_ISSUES_HUM
+  PRIOTIY_INTERVENTIONS_POP
+  PRIOTIY_INTERVENTIONS_HUM
+  GOVERNMENT_LOCAL_AUTHORITIES
+  INTERNATIONAL_ORGANISATIONS
+  NATION_AND_LOCAL_ORGANISATIONS
+  RED_CROSS_RED_CRESCENT
+  HUMANITARIAN_COORDINATION
+}
+
+enum QuestionLeafGroupCategory3TypeEnum {
+  CROSS
+  FOOD
+  WASH
+  HEALTH
+  PROTECTION
+  EDUCATION
+  LIVELIHOOD
+  NUTRITION
+  AGRICULTURE
+  LOGISTICS
+  SHELTER
+  ANALYTICAL_OUTPUTS
+}
+
+enum QuestionLeafGroupCategory4TypeEnum {
+  WATER
+  SANITATION
+  HYGIENE
+  WASTE_MANAGEMENT
+  VECTOR_CONTROL
+  HEALTH_CARE
+  HEALTH_STATUS
+  DOCUMENTATION
+  CIVIL_AND_POLITICAL_RIGHTS
+  PHYSICAL_SAFETY_AND_SECURITY
+  FREEDOM_OF_MOVEMENT
+  LIBERTY
+  CHILD_PROTECTION
+  SGBV
+  HOUSING_LAND_AND_PROPERTY
+  JUSTICE_AND_RULE_OF_LAW
+  MINES
+  HUMAN_TRAFFICKING
+  LEARNING_ENVIRONMENT
+  FACILITIES_AND_AMENITIES
+  TEACHER_AND_LEARNING
+  TEACHERS_AND_EDUCATION_PERSONNEL
+  INCOME
+  EXPENDITURES
+  PRODUCTIVE_ASSETS
+  SKILLS_AND_QUALIFICATIONS
+  NUTRITION_GOODS_AND_SERVICES
+  NUTRITION_STATUS
+  DWELLING_ENVELOPPE
+  INTERIOR_DOMENSTIC_LIFE
+}
+
+input QuestionLeafGroupFilter {
   id: IDFilterLookup
   questionnaire: DjangoModelFilterInput
-  parent: DjangoModelFilterInput
   name: StrFilterLookup
-  label: StrFilterLookup
+  isHidden: Boolean
+  type: QuestionLeafGroupTypeEnum
 }
 
-input QuestionGroupOrder {
+input QuestionLeafGroupOrder {
   id: Ordering
+  order: Ordering
   createdAt: Ordering
 }
 
-type QuestionGroupType {
+input QuestionLeafGroupOrderInputType {
+  id: ID!
+  order: Int!
+}
+
+type QuestionLeafGroupType {
   createdAt: DateTime!
   modifiedAt: DateTime!
   id: ID!
   name: String!
-  label: String!
+  type: QuestionLeafGroupTypeEnum!
+  order: Int!
+  isHidden: Boolean!
+  category1: QuestionLeafGroupCategory1TypeEnum!
+  category2: QuestionLeafGroupCategory2TypeEnum!
+  category3: QuestionLeafGroupCategory3TypeEnum
+  category4: QuestionLeafGroupCategory4TypeEnum
   relevant: String!
   createdBy: UserType!
   modifiedBy: UserType!
-  parentId: ID
   questionnaireId: ID!
 }
 
-type QuestionGroupTypeCountList {
+type QuestionLeafGroupTypeBulkBasicMutationResponseType {
+  errors: [CustomErrorType!]
+  results: [QuestionLeafGroupType!]
+}
+
+type QuestionLeafGroupTypeCountList {
   limit: Int!
   offset: Int!
   count: Int!
-  items: [QuestionGroupType!]!
+  items: [QuestionLeafGroupType!]!
 }
 
-type QuestionGroupTypeMutationResponseType {
+enum QuestionLeafGroupTypeEnum {
+  MATRIX_1D
+  MATRIX_2D
+}
+
+type QuestionLeafGroupTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
-  result: QuestionGroupType
+  result: QuestionLeafGroupType
 }
 
-input QuestionGroupUpdateInput {
-  questionnaire: ID
-  parent: ID
-  name: String
-  label: String
-  relevant: String
+enum QuestionLeafGroupVisibilityActionEnum {
+  SHOW
+  HIDE
 }
 
 input QuestionOrder {
@@ -448,7 +564,7 @@ type QuestionType {
   type: QuestionTypeEnum!
   choiceCollection: QuestionChoiceCollectionType
   createdBy: UserType!
-  groupId: ID
+  leafGroupId: ID
   modifiedBy: UserType!
   questionnaireId: ID!
 }
@@ -488,7 +604,7 @@ type QuestionTypeMutationResponseType {
 
 input QuestionUpdateInput {
   questionnaire: ID
-  group: ID
+  leafGroup: ID
   type: QuestionTypeEnum
   name: String
   label: String

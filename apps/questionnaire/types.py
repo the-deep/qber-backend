@@ -9,11 +9,18 @@ from utils.common import get_queryset_for_model
 from apps.common.types import UserResourceTypeMixin, ClientIdMixin
 from apps.project.models import Project
 
-from .enums import QuestionTypeEnum
+from .enums import (
+    QuestionTypeEnum,
+    QuestionLeafGroupTypeEnum,
+    QuestionLeafGroupCategory1TypeEnum,
+    QuestionLeafGroupCategory2TypeEnum,
+    QuestionLeafGroupCategory3TypeEnum,
+    QuestionLeafGroupCategory4TypeEnum,
+)
 from .models import (
     Questionnaire,
     Question,
-    QuestionGroup,
+    QuestionLeafGroup,
     ChoiceCollection,
     Choice,
 )
@@ -39,24 +46,30 @@ class QuestionnaireType(UserResourceTypeMixin):
         return strawberry.ID(str(self.project_id))
 
 
-@strawberry_django.type(QuestionGroup)
-class QuestionGroupType(UserResourceTypeMixin):
+@strawberry_django.type(QuestionLeafGroup)
+class QuestionLeafGroupType(UserResourceTypeMixin):
     id: strawberry.ID
     name: strawberry.auto
-    label: strawberry.auto
+    type: QuestionLeafGroupTypeEnum
+    order: strawberry.auto
+    is_hidden: strawberry.auto
+    # Categories
+    # -- For Matrix1D/Matrix2D
+    category_1: QuestionLeafGroupCategory1TypeEnum
+    category_2: QuestionLeafGroupCategory2TypeEnum
+    # -- For Matrix2D
+    category_3: typing.Optional[QuestionLeafGroupCategory3TypeEnum]
+    category_4: typing.Optional[QuestionLeafGroupCategory4TypeEnum]
+    # Misc
     relevant: strawberry.auto
 
     @strawberry.field
     def questionnaire_id(self) -> strawberry.ID:
         return strawberry.ID(str(self.questionnaire_id))
 
-    @strawberry.field
-    def parent_id(self) -> typing.Optional[strawberry.ID]:
-        return self.parent_id and strawberry.ID(str(self.parent_id))
-
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):
-        qs = get_queryset_for_model(QuestionGroup, queryset)
+        qs = get_queryset_for_model(QuestionLeafGroup, queryset)
         if (
             info.context.active_project and
             info.context.has_perm(Project.Permission.VIEW_QUESTION_GROUP)
@@ -147,9 +160,9 @@ class QuestionType(UserResourceTypeMixin):
         return strawberry.ID(str(self.questionnaire_id))
 
     @strawberry.field
-    def group_id(self) -> typing.Optional[strawberry.ID]:
-        if self.group_id:
-            return strawberry.ID(str(self.group_id))
+    def leaf_group_id(self) -> typing.Optional[strawberry.ID]:
+        if self.leaf_group_id:
+            return strawberry.ID(str(self.leaf_group_id))
 
     @strawberry.field
     @sync_to_async

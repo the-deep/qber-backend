@@ -1,14 +1,17 @@
+import random
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.conf import settings
 
 from apps.user.models import User
 from apps.user.factories import UserFactory
 from apps.project.models import Project, ProjectMembership
 from apps.project.factories import ProjectFactory
-from apps.questionnaire.models import Question
+from apps.questionnaire.models import Question, Questionnaire, QuestionLeafGroup
 from apps.questionnaire.factories import (
     QuestionnaireFactory,
-    QuestionGroupFactory,
+    QuestionLeafGroupFactory,
     QuestionFactory,
     ChoiceCollectionFactory,
     ChoiceFactory,
@@ -18,7 +21,18 @@ from apps.questionnaire.factories import (
 class Command(BaseCommand):
     help = 'Load dummy data'
 
-    def create_superuser(self):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--delete-all',
+            dest='DELETE_ALL',
+            action='store_true',
+            default=False,
+        )
+
+    def get_or_create_superuser(self):
+        user = User.objects.filter(email='admin@test.com').first()
+        if user:
+            return user
         user = UserFactory.create(
             email='admin@test.com',
             password_text='admin123',
@@ -29,13 +43,7 @@ class Command(BaseCommand):
         self.stdout.write(f'Added user with credentials: {user.email}:{user.password_text}')
         return user
 
-    def process_questionnare(self, questionnaire):
-        # Groups
-        group1, group2, _ = QuestionGroupFactory.create_batch(
-            3,
-            **self.user_resource_params,
-            questionnaire=questionnaire,
-        )
+    def process_questionnare(self, questionnaire: Questionnaire):
         # Choices
         # -- Collection
         choice_collection_1, choice_collection_2, choice_collection_3 = ChoiceCollectionFactory.create_batch(
@@ -47,19 +55,38 @@ class Command(BaseCommand):
         ChoiceFactory.create_batch(10, collection=choice_collection_1)
         ChoiceFactory.create_batch(5, collection=choice_collection_2)
         ChoiceFactory.create_batch(7, collection=choice_collection_3)
+
         # Questions
-        # -- No group
-        question_params = {
-            **self.user_resource_params,
-            'type': Question.Type.INTEGER,
-            'questionnaire': questionnaire,
+        group_categories = QuestionLeafGroupFactory.random_category_generator(100)
+        group_order_by_type = {
+            QuestionLeafGroup.Type.MATRIX_1D: 100,
+            QuestionLeafGroup.Type.MATRIX_2D: 200,
         }
-        QuestionFactory.create_batch(5, **question_params)
-        # -- Group 1
-        QuestionFactory.create_batch(3, **question_params, group=group1)
-        # -- Group 2
-        QuestionFactory.create_batch(2, **question_params, group=group2, choice_collection=choice_collection_1)
-        QuestionFactory.create_batch(2, **question_params, group=group2, choice_collection=choice_collection_2)
+        for _type, *categories in group_categories:
+            # Group
+            group = QuestionLeafGroupFactory.create(
+                questionnaire=questionnaire,
+                type=_type,
+                category_1=categories[0],
+                category_2=categories[1],
+                category_3=categories[2],
+                category_4=categories[3],
+                order=group_order_by_type[_type],
+                **self.user_resource_params,
+            )
+            group_order_by_type[_type] += 1
+            # Questions
+            question_params = {
+                **self.user_resource_params,
+                'type': Question.Type.INTEGER,
+                'questionnaire': questionnaire,
+                'leaf_group': group,
+            }
+            # Without choices
+            QuestionFactory.create_batch(random.randrange(4, 10), **question_params)
+            # With choices
+            QuestionFactory.create_batch(random.randrange(1, 3), **question_params, choice_collection=choice_collection_2)
+            QuestionFactory.create_batch(random.randrange(1, 4), **question_params, choice_collection=choice_collection_1)
 
     def process_project(
         self,
@@ -77,13 +104,28 @@ class Command(BaseCommand):
             self.process_questionnare(questionnaire)
 
     @transaction.atomic
-    def handle(self, **_):
-        user = self.create_superuser()  # Main user
-        UserFactory.create_batch(10)  # Other users
+    def handle(self, **kwargs):
+        if not (settings.DEBUG and settings.ALLOW_DUMMY_DATA_SCRIPT):
+            self.stdout.write(
+                self.style.ERROR(
+                    'You need to enable DEBUG & ALLOW_DUMMY_DATA_SCRIPT to use this'
+                )
+            )
+            return
+
+        user = self.get_or_create_superuser()  # Main user
         self.user_resource_params = {
             'created_by': user,
             'modified_by': user,
         }
+        if not User.objects.exclude(pk=user.pk).exists():
+            UserFactory.create_batch(10)  # Other users
+
+        if kwargs.get('DELETE_ALL', False):
+            self.stdout.write(self.style.WARNING('Removing existing Data'))
+            Question.objects.all().delete()
+            Project.objects.all().delete()
+
         projects = ProjectFactory.create_batch(10, **self.user_resource_params)
         total_projects = len(projects)
         self.stdout.write(f'Created {total_projects} projects')
@@ -103,7 +145,6 @@ class Command(BaseCommand):
                     role,
                 )
 
-        # raise Exception('NOOOP')
         self.stdout.write(
             self.style.SUCCESS('Loaded sucessfully')
         )

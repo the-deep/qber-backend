@@ -1,11 +1,14 @@
 import strawberry
 import strawberry_django
 
-from .enums import QuestionTypeEnum
+from .enums import (
+    QuestionTypeEnum,
+    QuestionLeafGroupTypeEnum,
+)
 from .models import (
     Questionnaire,
     Question,
-    QuestionGroup,
+    QuestionLeafGroup,
     ChoiceCollection,
 )
 
@@ -17,13 +20,13 @@ class QuestionnaireFilter:
     title: strawberry.auto
 
 
-@strawberry_django.filters.filter(QuestionGroup, lookups=True)
-class QuestionGroupFilter:
+@strawberry_django.filters.filter(QuestionLeafGroup, lookups=True)
+class QuestionLeafGroupFilter:
     id: strawberry.auto
     questionnaire: strawberry.auto
-    parent: strawberry.auto
     name: strawberry.auto
-    label: strawberry.auto
+    is_hidden: strawberry.auto
+    type: QuestionLeafGroupTypeEnum
 
 
 @strawberry_django.filters.filter(ChoiceCollection, lookups=True)
@@ -42,21 +45,21 @@ class QuestionFilter:
     type: QuestionTypeEnum
     name: strawberry.auto
     label: strawberry.auto
-    group: strawberry.auto
+    leaf_group: strawberry.auto
     include_child_group: bool | None = False
 
-    def filter_group(self, queryset):
+    def filter_leaf_group(self, queryset):
         # NOTE: logic is in filter_include_child_group
         return queryset
 
     def filter_include_child_group(self, queryset):
-        if self.group is strawberry.UNSET:
+        if self.leaf_group is strawberry.UNSET:
             # Nothing to do here
             return queryset
         if not self.include_child_group:
-            return queryset.filter(group=self.group.pk)
+            return queryset.filter(group=self.leaf_group.pk)
         all_groups = [
-            self.group.pk,
-            # TODO: *get_child_groups_id(self.group.pk),
+            self.leaf_group.pk,
+            # TODO: *get_child_groups_id(self.leaf_group.pk),
         ]
         return queryset.filter(group__in=all_groups)

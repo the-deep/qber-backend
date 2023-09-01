@@ -6,7 +6,7 @@ from apps.questionnaire.models import Question
 from apps.questionnaire.factories import (
     QuestionnaireFactory,
     QuestionFactory,
-    QuestionGroupFactory,
+    QuestionLeafGroupFactory,
     ChoiceCollectionFactory,
     ChoiceFactory,
 )
@@ -15,10 +15,10 @@ from apps.questionnaire.factories import (
 class TestQuestionnaireQuery(TestCase):
     class Query:
         QuestionnaireList = '''
-            query MyQuery($projectID: ID!) {
+            query MyQuery($projectId: ID!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   questionnaires(order: {id: ASC}) {
                     count
@@ -42,12 +42,12 @@ class TestQuestionnaireQuery(TestCase):
         '''
 
         Questionnaire = '''
-            query MyQuery($projectID: ID!, $questionnaireID: ID!) {
+            query MyQuery($projectId: ID!, $questionnaireId: ID!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
-                  questionnaire(pk: $questionnaireID) {
+                  questionnaire(pk: $questionnaireId) {
                     id
                     title
                     projectId
@@ -80,7 +80,7 @@ class TestQuestionnaireQuery(TestCase):
         content = self.query_check(
             self.Query.QuestionnaireList,
             assert_errors=True,
-            variables={'projectID': self.gID(project1.id)},
+            variables={'projectId': self.gID(project1.id)},
         )
         assert content['data'] is None
 
@@ -95,7 +95,7 @@ class TestQuestionnaireQuery(TestCase):
             content = self.query_check(
                 self.Query.QuestionnaireList,
                 variables={
-                    'projectID': self.gID(project.id)
+                    'projectId': self.gID(project.id)
                 },
             )
             if questionnaires is None:
@@ -133,7 +133,7 @@ class TestQuestionnaireQuery(TestCase):
         questionnaires = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params)
         q2 = QuestionnaireFactory.create(project=project2, **user_resource_params)
 
-        variables = {'projectID': self.gID(project.id)}
+        variables = {'projectId': self.gID(project.id)}
         # Without authentication -----
         content = self.query_check(
             self.Query.Questionnaire,
@@ -149,7 +149,7 @@ class TestQuestionnaireQuery(TestCase):
             self.Query.Questionnaire,
             variables={
                 **variables,
-                'questionnaireID': self.gID(questionnaires[0].id),
+                'questionnaireId': self.gID(questionnaires[0].id),
             },
         )
         assert content['data']['private']['projectScope'] is None, content
@@ -160,7 +160,7 @@ class TestQuestionnaireQuery(TestCase):
                 self.Query.Questionnaire,
                 variables={
                     **variables,
-                    'questionnaireID': self.gID(questionnaire.id),
+                    'questionnaireId': self.gID(questionnaire.id),
                 },
             )
             assert_msg = (content, user, questionnaire)
@@ -180,7 +180,7 @@ class TestQuestionnaireQuery(TestCase):
             }, assert_msg
 
         # Another project questionnaire
-        variables['questionnaireID'] = self.gID(q2.id)
+        variables['questionnaireId'] = self.gID(q2.id)
         content = self.query_check(
             self.Query.Questionnaire,
             variables=variables,
@@ -191,17 +191,20 @@ class TestQuestionnaireQuery(TestCase):
 class TestQuestionGroupQuery(TestCase):
     class Query:
         QuestionGroupList = '''
-            query MyQuery($projectID: ID!, $filterData: QuestionGroupFilter) {
+            query MyQuery($projectId: ID!, $filterData: QuestionLeafGroupFilter) {
               private {
-                projectScope(pk: $projectID) {
-                  groups(order: {id: ASC}, filters: $filterData) {
+                projectScope(pk: $projectId) {
+                  leafGroups(order: {id: ASC}, filters: $filterData) {
                     count
                     items {
                       id
-                      parentId
                       questionnaireId
                       name
-                      label
+                      type
+                      category1
+                      category2
+                      category3
+                      category4
                       relevant
                       createdAt
                       createdBy {
@@ -219,16 +222,19 @@ class TestQuestionGroupQuery(TestCase):
         '''
 
         QuestionGroup = '''
-            query MyQuery($projectID: ID!, $questionGroupID: ID!) {
+            query MyQuery($projectId: ID!, $questionGroupId: ID!) {
               private {
-                projectScope(pk: $projectID) {
-                  group(pk: $questionGroupID) {
+                projectScope(pk: $projectId) {
+                  leafGroup(pk: $questionGroupId) {
                     id
                     questionnaireId
-                    parentId
                     name
-                    label
                     relevant
+                    type
+                    category1
+                    category2
+                    category3
+                    category4
                     createdAt
                     createdBy {
                       id
@@ -243,7 +249,7 @@ class TestQuestionGroupQuery(TestCase):
             }
         '''
 
-    def test_groups(self):
+    def test_leaf_groups(self):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
@@ -252,18 +258,13 @@ class TestQuestionGroupQuery(TestCase):
 
         q1, q2, q3 = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params)
 
-        q1_groups = QuestionGroupFactory.create_batch(
-            2,
-            **user_resource_params,
-            questionnaire=q1,
-            label='[Group] Who are you?',
-        )
-        q2_groups = QuestionGroupFactory.create_batch(3, **user_resource_params, questionnaire=q2)
-        q3_groups = QuestionGroupFactory.create_batch(5, **user_resource_params, questionnaire=q3)
+        q1_groups = QuestionLeafGroupFactory.static_generator(2, **user_resource_params, questionnaire=q1)
+        q2_groups = QuestionLeafGroupFactory.static_generator(3, **user_resource_params, questionnaire=q2)
+        q3_groups = QuestionLeafGroupFactory.static_generator(5, **user_resource_params, questionnaire=q3)
         q3_groups[0].name = 'question-group-unique-0001'
         q3_groups[0].save(update_fields=('name',))
 
-        variables = {'projectID': self.gID(project.id)}
+        variables = {'projectId': self.gID(project.id)}
         # Without authentication -----
         content = self.query_check(
             self.Query.QuestionGroupList,
@@ -274,11 +275,10 @@ class TestQuestionGroupQuery(TestCase):
 
         # With authentication -----
         self.force_login(user)
-        for filter_data, question_groups in [
+        for filter_data, question_leaf_groups in [
             ({'questionnaire': {'pk': self.gID(q1.id)}}, q1_groups),
             ({'questionnaire': {'pk': self.gID(q2.id)}}, q2_groups),
             ({'questionnaire': {'pk': self.gID(q3.id)}}, q3_groups),
-            ({'label': {'exact': '[Group] Who are you?'}}, q1_groups),
             ({'name': {'exact': 'question-group-unique-0001'}}, [q3_groups[0]]),
         ]:
             content = self.query_check(
@@ -288,32 +288,35 @@ class TestQuestionGroupQuery(TestCase):
                     'filterData': filter_data,
                 },
             )
-            assert_msg = (content, user, filter_data, question_groups)
+            assert_msg = (content, user, filter_data, question_leaf_groups)
             assert content['data']['private']['projectScope'] is not None, assert_msg
-            assert content['data']['private']['projectScope']['groups'] == {
-                'count': len(question_groups),
+            assert content['data']['private']['projectScope']['leafGroups'] == {
+                'count': len(question_leaf_groups),
                 'items': [
                     {
-                        'id': self.gID(question_group.pk),
-                        'questionnaireId': self.gID(question_group.questionnaire_id),
-                        'createdAt': self.gdatetime(question_group.created_at),
+                        'id': self.gID(question_leaf_group.pk),
+                        'questionnaireId': self.gID(question_leaf_group.questionnaire_id),
+                        'createdAt': self.gdatetime(question_leaf_group.created_at),
                         'createdBy': {
-                            'id': self.gID(question_group.created_by_id),
+                            'id': self.gID(question_leaf_group.created_by_id),
                         },
-                        'modifiedAt': self.gdatetime(question_group.modified_at),
+                        'modifiedAt': self.gdatetime(question_leaf_group.modified_at),
                         'modifiedBy': {
-                            'id': self.gID(question_group.modified_by_id),
+                            'id': self.gID(question_leaf_group.modified_by_id),
                         },
-                        'name': question_group.name,
-                        'label': question_group.label,
-                        'relevant': question_group.relevant,
-                        'parentId': self.gID(question_group.parent_id),
+                        'name': question_leaf_group.name,
+                        'relevant': question_leaf_group.relevant,
+                        'type': self.genum(question_leaf_group.type),
+                        'category1': self.genum(question_leaf_group.category_1),
+                        'category2': self.genum(question_leaf_group.category_2),
+                        'category3': self.genum(question_leaf_group.category_3),
+                        'category4': self.genum(question_leaf_group.category_4),
                     }
-                    for question_group in question_groups
+                    for question_leaf_group in question_leaf_groups
                 ]
             }, assert_msg
 
-    def test_group(self):
+    def test_leaf_group(self):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
@@ -321,12 +324,12 @@ class TestQuestionGroupQuery(TestCase):
 
         q1 = QuestionnaireFactory.create(project=project, **user_resource_params)
         q2 = QuestionnaireFactory.create(project=project2, **user_resource_params)
-        q1_question_group, *_ = QuestionGroupFactory.create_batch(4, **user_resource_params, questionnaire=q1)
-        q2_question_group = QuestionGroupFactory.create(**user_resource_params, questionnaire=q2)
+        q1_group, *_ = QuestionLeafGroupFactory.static_generator(4, **user_resource_params, questionnaire=q1)
+        [q2_group] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q2)
 
         variables = {
-            'projectID': self.gID(project.id),
-            'questionGroupID': self.gID(q1_question_group.id),
+            'projectId': self.gID(project.id),
+            'questionGroupId': self.gID(q1_group.id),
         }
         # Without authentication -----
         content = self.query_check(
@@ -345,38 +348,41 @@ class TestQuestionGroupQuery(TestCase):
         project.add_member(user)
         content = self.query_check(self.Query.QuestionGroup, variables=variables)
         assert content['data']['private']['projectScope'] is not None, content
-        assert content['data']['private']['projectScope']['group'] == {
-            'id': self.gID(q1_question_group.pk),
-            'questionnaireId': self.gID(q1_question_group.questionnaire_id),
-            'createdAt': self.gdatetime(q1_question_group.created_at),
+        assert content['data']['private']['projectScope']['leafGroup'] == {
+            'id': self.gID(q1_group.pk),
+            'questionnaireId': self.gID(q1_group.questionnaire_id),
+            'createdAt': self.gdatetime(q1_group.created_at),
             'createdBy': {
-                'id': self.gID(q1_question_group.created_by_id),
+                'id': self.gID(q1_group.created_by_id),
             },
-            'modifiedAt': self.gdatetime(q1_question_group.modified_at),
+            'modifiedAt': self.gdatetime(q1_group.modified_at),
             'modifiedBy': {
-                'id': self.gID(q1_question_group.modified_by_id),
+                'id': self.gID(q1_group.modified_by_id),
             },
-            'name': q1_question_group.name,
-            'label': q1_question_group.label,
-            'relevant': q1_question_group.relevant,
-            'parentId': self.gID(q1_question_group.parent_id),
+            'name': q1_group.name,
+            'relevant': q1_group.relevant,
+            'type': self.genum(q1_group.type),
+            'category1': self.genum(q1_group.category_1),
+            'category2': self.genum(q1_group.category_2),
+            'category3': self.genum(q1_group.category_3),
+            'category4': self.genum(q1_group.category_4),
         }, content
 
         # Another project question group
-        variables['questionGroupID'] = self.gID(q2_question_group.id)
+        variables['questionGroupId'] = self.gID(q2_group.id)
         content = self.query_check(
             self.Query.QuestionGroup,
             variables=variables,
         )
-        assert content['data']['private']['projectScope']['group'] is None, content
+        assert content['data']['private']['projectScope']['leafGroup'] is None, content
 
 
 class TestChoiceCollectionQuery(TestCase):
     class Query:
         ChoiceCollectionList = '''
-            query MyQuery($projectID: ID!, $filterData: QuestionChoiceCollectionFilter) {
+            query MyQuery($projectId: ID!, $filterData: QuestionChoiceCollectionFilter) {
               private {
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   choiceCollections(order: {id: ASC}, filters: $filterData) {
                     count
                     items {
@@ -406,9 +412,9 @@ class TestChoiceCollectionQuery(TestCase):
         '''
 
         ChoiceCollection = '''
-            query MyQuery($projectID: ID!, $choiceCollectionID: ID!) {
+            query MyQuery($projectId: ID!, $choiceCollectionID: ID!) {
               private {
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   choiceCollection(pk: $choiceCollectionID) {
                     id
                     label
@@ -454,7 +460,7 @@ class TestChoiceCollectionQuery(TestCase):
         q3_choice_collections[0].name = 'question-choice-collection-unique-0001'
         q3_choice_collections[0].save(update_fields=('name',))
 
-        variables = {'projectID': self.gID(project.id)}
+        variables = {'projectId': self.gID(project.id)}
         # Without authentication -----
         content = self.query_check(
             self.Query.ChoiceCollectionList,
@@ -520,7 +526,7 @@ class TestChoiceCollectionQuery(TestCase):
         )
 
         variables = {
-            'projectID': self.gID(project.id),
+            'projectId': self.gID(project.id),
             'choiceCollectionID': self.gID(q1_question_choice_collection.id),
         }
         # Without authentication -----
@@ -576,10 +582,10 @@ class TestChoiceCollectionQuery(TestCase):
 class TestQuestionQuery(TestCase):
     class Query:
         QuestionList = '''
-            query MyQuery($projectID: ID!, $filterData: QuestionFilter) {
+            query MyQuery($projectId: ID!, $filterData: QuestionFilter) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   questions(order: {id: ASC}, filters: $filterData) {
                     count
@@ -606,10 +612,10 @@ class TestQuestionQuery(TestCase):
         '''
 
         Question = '''
-            query MyQuery($projectID: ID!, $questionID: ID!) {
+            query MyQuery($projectId: ID!, $questionID: ID!) {
               private {
                 id
-                projectScope(pk: $projectID) {
+                projectScope(pk: $projectId) {
                   id
                   question(pk: $questionID) {
                     id
@@ -651,14 +657,19 @@ class TestQuestionQuery(TestCase):
 
         q1, q2, q3 = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params)
 
+        [group1] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q1)
+        [group2] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q2)
+        [group3] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q3)
+
         question_params = {**user_resource_params, 'type': Question.Type.DATE}
-        q1_questions = QuestionFactory.create_batch(2, **question_params, questionnaire=q1, label='Who are you?')
-        q2_questions = QuestionFactory.create_batch(3, **question_params, questionnaire=q2)
-        q3_questions = QuestionFactory.create_batch(5, **question_params, questionnaire=q3)
+        q1_questions = QuestionFactory.create_batch(
+            2, **question_params, questionnaire=q1, leaf_group=group1, label='Who are you?')
+        q2_questions = QuestionFactory.create_batch(3, **question_params, questionnaire=q2, leaf_group=group2)
+        q3_questions = QuestionFactory.create_batch(5, **question_params, questionnaire=q3, leaf_group=group3)
         q3_questions[0].name = 'question-unique-0001'
         q3_questions[0].save(update_fields=('name',))
 
-        variables = {'projectID': self.gID(project.id)}
+        variables = {'projectId': self.gID(project.id)}
         # Without authentication -----
         content = self.query_check(
             self.Query.QuestionList,
@@ -718,15 +729,19 @@ class TestQuestionQuery(TestCase):
         q1 = QuestionnaireFactory.create(project=project, **user_resource_params)
         q2 = QuestionnaireFactory.create(project=project2, **user_resource_params)
 
+        [group1] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q1)
+        [group2] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q2)
+
         q1_choice_collection = ChoiceCollectionFactory.create(**user_resource_params, questionnaire=q1)
 
         question, *_ = QuestionFactory.create_batch(
             4,
             **question_params,
             questionnaire=q1,
+            leaf_group=group1,
             choice_collection=q1_choice_collection,
         )
-        question2 = QuestionFactory.create(**question_params, questionnaire=q2)
+        question2 = QuestionFactory.create(**question_params, questionnaire=q2, leaf_group=group2)
 
         choice_collection_response = {
             'id': self.gID(q1_choice_collection.pk),
@@ -743,7 +758,7 @@ class TestQuestionQuery(TestCase):
         }
 
         variables = {
-            'projectID': self.gID(project.id),
+            'projectId': self.gID(project.id),
             'questionID': self.gID(question.id),
         }
         # Without authentication -----

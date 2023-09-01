@@ -75,6 +75,8 @@ env = environ.Env(
     SMTP_EMAIL_PORT=int,
     SMTP_EMAIL_USERNAME=str,
     SMTP_EMAIL_PASSWORD=str,
+    # MISC
+    ALLOW_DUMMY_DATA_SCRIPT=(bool, False),  # WARNING
 )
 
 
@@ -119,6 +121,7 @@ INSTALLED_APPS = [
     'apps.user',
     'apps.project',
     'apps.questionnaire',
+    # 'apps.qbank',
 ]
 
 MIDDLEWARE = [
@@ -397,3 +400,5 @@ CACHES = {
         'LOCATION': 'local-memory-02',
     }
 }
+
+ALLOW_DUMMY_DATA_SCRIPT = env('ALLOW_DUMMY_DATA_SCRIPT')

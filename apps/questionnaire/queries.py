@@ -8,18 +8,18 @@ from utils.strawberry.paginations import CountList, pagination_field
 from .filters import (
     QuestionnaireFilter,
     QuestionFilter,
-    QuestionGroupFilter,
+    QuestionLeafGroupFilter,
     QuestionChoiceCollectionFilter,
 )
 from .orders import (
     QuestionnaireOrder,
     QuestionOrder,
-    QuestionGroupOrder,
+    QuestionLeafGroupOrder,
     QuestionChoiceCollectionOrder,
 )
 from .types import (
     QuestionnaireType,
-    QuestionGroupType,
+    QuestionLeafGroupType,
     QuestionType,
     QuestionChoiceCollectionType,
 )
@@ -33,10 +33,10 @@ class PrivateProjectQuery:
         order=QuestionnaireOrder,
     )
 
-    groups: CountList[QuestionGroupType] = pagination_field(
+    leafGroups: CountList[QuestionLeafGroupType] = pagination_field(
         pagination=True,
-        filters=QuestionGroupFilter,
-        order=QuestionGroupOrder,
+        filters=QuestionLeafGroupFilter,
+        order=QuestionLeafGroupOrder,
     )
 
     choice_collections: CountList[QuestionChoiceCollectionType] = pagination_field(
@@ -58,8 +58,8 @@ class PrivateProjectQuery:
             .afirst()
 
     @strawberry_django.field
-    async def group(self, info: Info, pk: strawberry.ID) -> QuestionGroupType | None:
-        return await QuestionGroupType.get_queryset(None, None, info)\
+    async def leaf_group(self, info: Info, pk: strawberry.ID) -> QuestionLeafGroupType | None:
+        return await QuestionLeafGroupType.get_queryset(None, None, info)\
             .filter(pk=pk)\
             .afirst()
 

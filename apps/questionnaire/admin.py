@@ -1,7 +1,11 @@
 from django.contrib import admin
 from admin_auto_filters.filters import AutocompleteFilterFactory
 
-from .models import Questionnaire, Question
+from .models import (
+    Questionnaire,
+    Question,
+    QuestionLeafGroup,
+)
 
 
 @admin.register(Questionnaire)
@@ -26,4 +30,27 @@ class QuestionAdmin(admin.ModelAdmin):
     )
     list_filter = (
         AutocompleteFilterFactory('Questionnaire', 'questionnaire'),
+    )
+
+
+@admin.register(QuestionLeafGroup)
+class QuestionLeafGroupAdmin(admin.ModelAdmin):
+    search_fields = ('title',)
+    list_display = (
+        'name',
+        'order',
+        'type',
+        'category_1',
+        'category_2',
+        'category_3',
+        'category_4',
+        'relevant',
+    )
+    list_filter = (
+        AutocompleteFilterFactory('Questionnaire', 'questionnaire'),
+        'type',
+        'category_1',
+        'category_2',
+        'category_3',
+        'category_4',
     )
