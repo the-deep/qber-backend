@@ -160,10 +160,10 @@ class QuestionLeafGroup(UserResource):
         # -- AT_RISK
         PEOPLE_AT_RISK = 2201, 'People At risk'
         # -- PRIORITIES
-        PRIOTIY_ISSUES_POP = 2301, 'Priotiy Issues (Pop)'
-        PRIOTIY_ISSUES_HUM = 2302, 'Priotiy Issues (Hum)'
-        PRIOTIY_INTERVENTIONS_POP = 2303, 'Priotiy Interventions (Pop)'
-        PRIOTIY_INTERVENTIONS_HUM = 2304, 'Priotiy Interventions (Hum)'
+        PRIORITY_ISSUES_POP = 2301, 'Priotiy Issues (Pop)'
+        PRIORITY_ISSUES_HUM = 2302, 'Priotiy Issues (Hum)'
+        PRIORITY_INTERVENTIONS_POP = 2303, 'Priotiy Interventions (Pop)'
+        PRIORITY_INTERVENTIONS_HUM = 2304, 'Priotiy Interventions (Hum)'
         # -- CAPACITIES_RESPONSE
         GOVERNMENT_LOCAL_AUTHORITIES = 2401, 'Government Local Authorities'
         INTERNATIONAL_ORGANISATIONS = 2402, 'International Organisations'
@@ -289,10 +289,10 @@ class QuestionLeafGroup(UserResource):
                     Category2.PEOPLE_AT_RISK,
                 },
                 Category1.PRIORITIES: {
-                    Category2.PRIOTIY_ISSUES_POP,
-                    Category2.PRIOTIY_ISSUES_HUM,
-                    Category2.PRIOTIY_INTERVENTIONS_POP,
-                    Category2.PRIOTIY_INTERVENTIONS_HUM,
+                    Category2.PRIORITY_ISSUES_POP,
+                    Category2.PRIORITY_ISSUES_HUM,
+                    Category2.PRIORITY_INTERVENTIONS_POP,
+                    Category2.PRIORITY_INTERVENTIONS_HUM,
                 },
                 Category1.CAPACITIES_RESPONSE: {
                     Category2.GOVERNMENT_LOCAL_AUTHORITIES,

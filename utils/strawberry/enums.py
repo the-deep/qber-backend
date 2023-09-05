@@ -75,15 +75,7 @@ def get_enum_name_from_django_field(
     raise Exception(f'{serializer_name=} should have a value')
 
 
-EnumDescription = strawberry.scalar(
-    typing.NewType("EnumDescription", str),
-    description="Provide label for enum values",
-    serialize=lambda v: v,
-    parse_value=lambda v: v,
-)
-
-
-def enum_display_field(field: models.query_utils.DeferredAttribute) -> typing.Callable[..., EnumDescription]:
+def enum_display_field(field: models.query_utils.DeferredAttribute) -> typing.Callable[..., str]:
     _field = field.field
 
     if is_array := isinstance(_field, ArrayField):
@@ -108,18 +100,18 @@ def enum_display_field(field: models.query_utils.DeferredAttribute) -> typing.Ca
         )
 
     @strawberry.field
-    def array_field_(root) -> list[EnumDescription]:
+    def array_field_(root) -> list[str]:
         return _get_value(root)
 
     if is_array:
         return array_field_
 
     @strawberry.field
-    def field_(root) -> EnumDescription:
+    def field_(root) -> str:
         return _get_value(root)
 
     @strawberry.field
-    def nullable_field_(root) -> typing.Optional[EnumDescription]:
+    def nullable_field_(root) -> typing.Optional[str]:
         return _get_value(root)
 
     if _field.null:

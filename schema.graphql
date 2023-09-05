@@ -8,9 +8,6 @@ input DjangoModelFilterInput {
   pk: ID!
 }
 
-"""Provide label for enum values"""
-scalar EnumDescription
-
 input IDFilterLookup {
   exact: ID
   iExact: ID
@@ -411,10 +408,10 @@ enum QuestionLeafGroupCategory2TypeEnum {
   COPING_MECHANISMS
   PHYSICAL_AND_MENTAL_WELLBEING
   PEOPLE_AT_RISK
-  PRIOTIY_ISSUES_POP
-  PRIOTIY_ISSUES_HUM
-  PRIOTIY_INTERVENTIONS_POP
-  PRIOTIY_INTERVENTIONS_HUM
+  PRIORITY_ISSUES_POP
+  PRIORITY_ISSUES_HUM
+  PRIORITY_INTERVENTIONS_POP
+  PRIORITY_INTERVENTIONS_HUM
   GOVERNMENT_LOCAL_AUTHORITIES
   INTERNATIONAL_ORGANISATIONS
   NATION_AND_LOCAL_ORGANISATIONS
@@ -484,18 +481,18 @@ type QuestionLeafGroupType {
   isHidden: Boolean!
   relevant: String!
   category1: QuestionLeafGroupCategory1TypeEnum!
-  category1Display: EnumDescription!
+  category1Display: String!
   category2: QuestionLeafGroupCategory2TypeEnum!
-  category2Display: EnumDescription!
+  category2Display: String!
   category3: QuestionLeafGroupCategory3TypeEnum
-  category3Display: EnumDescription
+  category3Display: String
   category4: QuestionLeafGroupCategory4TypeEnum
-  category4Display: EnumDescription
+  category4Display: String
   createdBy: UserType!
   modifiedBy: UserType!
   questionnaireId: ID!
   type: QuestionLeafGroupTypeEnum!
-  typeDisplay: EnumDescription!
+  typeDisplay: String!
 }
 
 type QuestionLeafGroupTypeBulkBasicMutationResponseType {
@@ -553,7 +550,7 @@ type QuestionType {
   modifiedBy: UserType!
   questionnaireId: ID!
   type: QuestionTypeEnum!
-  typeDisplay: EnumDescription!
+  typeDisplay: String!
 }
 
 type QuestionTypeCountList {
@@ -705,7 +702,7 @@ type UserMeType {
   displayName: String!
   email: String!
   emailOptOuts: [OptEmailNotificationTypeEnum!]!
-  emailOptOutsDisplay: [EnumDescription!]!
+  emailOptOutsDisplay: [String!]!
 }
 
 type UserMeTypeMutationResponseType {
