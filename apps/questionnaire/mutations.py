@@ -1,7 +1,6 @@
 import strawberry
 from strawberry.types import Info
 from asgiref.sync import sync_to_async
-from django.shortcuts import get_object_or_404
 
 from utils.strawberry.mutations import (
     MutationResponseType,
@@ -146,19 +145,18 @@ class ProjectScopeMutation():
 
     @strawberry.mutation
     @sync_to_async
-    def update_question_group_leaf_visibility(
+    def update_question_groups_leaf_visibility(
         self,
-        id: strawberry.ID,
+        ids: list[strawberry.ID],
         visibility: QuestionLeafGroupVisibilityActionEnum,
         info: Info,
-    ) -> MutationResponseType[QuestionLeafGroupType]:
+    ) -> BulkBasicMutationResponseType[QuestionLeafGroupType]:
         if errors := ModelMutation.check_permissions(info, Project.Permission.UPDATE_QUESTION_GROUP):
-            return MutationResponseType(ok=False, errors=errors)
-        queryset = QuestionLeafGroupType.get_queryset(None, None, info)
-        group: QuestionLeafGroup = get_object_or_404(queryset, pk=id)
-        group.is_hidden = visibility == QuestionLeafGroupVisibilityActionEnum.HIDE
-        group.save(update_fields=('is_hidden',))
-        return MutationResponseType(result=group)
+            return BulkBasicMutationResponseType(errors=[errors])
+        queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(id__in=ids)
+        is_hidden = visibility == QuestionLeafGroupVisibilityActionEnum.HIDE
+        queryset.update(is_hidden=is_hidden)
+        return BulkBasicMutationResponseType(results=[i for i in queryset])
 
     @strawberry.mutation
     async def create_question_choice_collection(

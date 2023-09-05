@@ -181,7 +181,7 @@ type ProjectScopeMutation {
   updateQuestion(id: ID!, data: QuestionUpdateInput!): QuestionTypeMutationResponseType!
   deleteQuestion(id: ID!): QuestionTypeMutationResponseType!
   bulkUpdateQuestionnairQuestionGroupsLeafOrder(questionnaireId: ID!, data: [QuestionLeafGroupOrderInputType!]!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
-  updateQuestionGroupLeafVisibility(id: ID!, visibility: QuestionLeafGroupVisibilityActionEnum!): QuestionLeafGroupTypeMutationResponseType!
+  updateQuestionGroupsLeafVisibility(ids: [ID!]!, visibility: QuestionLeafGroupVisibilityActionEnum!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
   createQuestionChoiceCollection(data: QuestionChoiceCollectionCreateInput!): QuestionChoiceCollectionTypeMutationResponseType!
   updateQuestionChoiceCollection(id: ID!, data: QuestionChoiceCollectionUpdateInput!): QuestionChoiceCollectionTypeMutationResponseType!
   deleteQuestionChoiceCollection(id: ID!): QuestionChoiceCollectionTypeMutationResponseType!
@@ -503,12 +503,6 @@ type QuestionLeafGroupTypeBulkBasicMutationResponseType {
 enum QuestionLeafGroupTypeEnum {
   MATRIX_1D
   MATRIX_2D
-}
-
-type QuestionLeafGroupTypeMutationResponseType {
-  ok: Boolean!
-  errors: CustomErrorType
-  result: QuestionLeafGroupType
 }
 
 enum QuestionLeafGroupVisibilityActionEnum {

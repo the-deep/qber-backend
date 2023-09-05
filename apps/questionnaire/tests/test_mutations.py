@@ -636,17 +636,16 @@ class TestQuestionGroupMutation(TestCase):
         QuestionLeafGroupVisiblityUpdate = '''
             mutation MyMutation(
                 $projectId: ID!,
-                $questionLeafGroupID: ID!,
+                $questionLeafGroupsID: [ID!]!,
                 $visibility: QuestionLeafGroupVisibilityActionEnum!
             ) {
               private {
                 id
                 projectScope(pk: $projectId) {
                   id
-                  updateQuestionGroupLeafVisibility(id: $questionLeafGroupID, visibility: $visibility) {
-                    ok
+                  updateQuestionGroupsLeafVisibility(ids: $questionLeafGroupsID, visibility: $visibility) {
                     errors
-                    result {
+                    results {
                       id
                       name
                       isHidden
@@ -694,7 +693,7 @@ class TestQuestionGroupMutation(TestCase):
         # Without login
         variables = {
             'projectId': self.gID(project.pk),
-            'questionLeafGroupID': self.gID(group2.pk),
+            'questionLeafGroupsID': [self.gID(group2.pk)],
             'visibility': self.genum(QuestionLeafGroupVisibilityActionEnum.HIDE),
         }
         content = self.query_check(self.Mutation.QuestionLeafGroupVisiblityUpdate, variables=variables, assert_errors=True)
@@ -711,17 +710,22 @@ class TestQuestionGroupMutation(TestCase):
         content = self.query_check(
             self.Mutation.QuestionLeafGroupVisiblityUpdate,
             variables=variables,
-        )['data']['private']['projectScope']['updateQuestionGroupLeafVisibility']
-        assert content['ok'] is False, content
+        )['data']['private']['projectScope']['updateQuestionGroupsLeafVisibility']
+        assert content['results'] is None, content
         assert content['errors'] is not None, content
 
         # -- With membership - With write access
         # -- Invalid question leaf group id
         project.add_member(user, role=ProjectMembership.Role.MEMBER)
-        content = self.query_check(self.Mutation.QuestionLeafGroupVisiblityUpdate, variables=variables, assert_errors=True)
+        content = self.query_check(
+            self.Mutation.QuestionLeafGroupVisiblityUpdate,
+            variables=variables,
+        )['data']['private']['projectScope']['updateQuestionGroupsLeafVisibility']
+        assert content['errors'] is None, content  # Just empty response
+        assert content['results'] == [], content  # Just empty response
 
         # -- Valid question leaf group id
-        variables['questionLeafGroupID'] = self.gID(group1.pk)
+        variables['questionLeafGroupsID'] = [self.gID(group1.pk)]
         for visibility, is_hidden_value in [
             (self.genum(QuestionLeafGroupVisibilityActionEnum.HIDE), True),
             (self.genum(QuestionLeafGroupVisibilityActionEnum.SHOW), False),
@@ -730,12 +734,15 @@ class TestQuestionGroupMutation(TestCase):
             content = self.query_check(
                 self.Mutation.QuestionLeafGroupVisiblityUpdate,
                 variables=variables,
-            )['data']['private']['projectScope']['updateQuestionGroupLeafVisibility']
+            )['data']['private']['projectScope']['updateQuestionGroupsLeafVisibility']
             group1.refresh_from_db()
-            assert content['ok'] is True, content
             assert content['errors'] is None, content
-            assert content['result']['id'] == variables['questionLeafGroupID'], content
-            assert content['result']['isHidden'] == is_hidden_value, content
+            assert set([
+                d['id'] for d in content['results']
+            ]) == set(variables['questionLeafGroupsID']), content
+            assert set([
+                d['isHidden'] for d in content['results']
+            ]) == {is_hidden_value}, content
             assert group1.is_hidden == is_hidden_value
 
     def test_question_leaf_group_order_update(self):
