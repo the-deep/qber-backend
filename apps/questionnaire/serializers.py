@@ -75,6 +75,11 @@ class QuestionLeafGroupOrderSerializer(serializers.Serializer):
     order = serializers.IntegerField(required=True)
 
 
+class QuestionOrderSerializer(serializers.Serializer):
+    id = IntegerIDField(required=True)
+    order = serializers.IntegerField(required=True)
+
+
 class QuestionSerializer(UserResourceSerializer):
     class Meta:
         model = Question

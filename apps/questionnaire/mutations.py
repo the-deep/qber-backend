@@ -11,12 +11,13 @@ from utils.strawberry.mutations import (
 from utils.strawberry.transformers import convert_serializer_to_type
 from utils.common import get_object_or_404_async
 
-from .models import Project, QuestionLeafGroup
+from .models import Project, QuestionLeafGroup, Question
 from .serializers import (
     QuestionnaireSerializer,
     QuestionSerializer,
     QuestionChoiceCollectionSerializer,
     QuestionLeafGroupOrderSerializer,
+    QuestionOrderSerializer,
 )
 from .types import (
     QuestionnaireType,
@@ -31,6 +32,7 @@ QuestionMutation = ModelMutation('Question', QuestionSerializer)
 QuestionChoiceCollectionMutation = ModelMutation('QuestionChoiceCollection', QuestionChoiceCollectionSerializer)
 QuestionLeafGroupOrderInputType = convert_serializer_to_type(
     QuestionLeafGroupOrderSerializer, name='QuestionLeafGroupOrderInputType')
+QuestionOrderInputType = convert_serializer_to_type(QuestionOrderSerializer, name='QuestionOrderInputType')
 
 
 # NOTE: strawberry_django.type doesn't let use arguments in the field
@@ -136,11 +138,11 @@ class ProjectScopeMutation():
             questionnaire=questionnaire_id,
             pk__in=_data.keys(),
         )
-        to_update_groups = []
-        for group in queryset:
-            group.order = _data[group.id]
-            to_update_groups.append(group)
-        QuestionLeafGroup.objects.bulk_update(to_update_groups, ('order',))
+        to_update = []
+        for obj in queryset:
+            obj.order = _data[obj.id]
+            to_update.append(obj)
+        QuestionLeafGroup.objects.bulk_update(to_update, ('order',))
         return BulkBasicMutationResponseType(results=[i for i in queryset])
 
     @strawberry.mutation
@@ -160,6 +162,33 @@ class ProjectScopeMutation():
         )
         is_hidden = visibility == VisibilityActionEnum.HIDE
         queryset.update(is_hidden=is_hidden)
+        return BulkBasicMutationResponseType(results=[i for i in queryset])
+
+    @strawberry.mutation
+    @sync_to_async
+    def bulk_update_questions_order(
+        self,
+        questionnaire_id: strawberry.ID,
+        leaf_group_id: strawberry.ID,
+        data: list[QuestionOrderInputType],
+        info: Info,
+    ) -> BulkBasicMutationResponseType[QuestionType]:
+        if errors := ModelMutation.check_permissions(info, Project.Permission.UPDATE_QUESTION_GROUP):
+            return BulkBasicMutationResponseType(errors=[errors])
+        _data = {
+            int(d['id']): d['order']
+            for d in process_input_data(data)
+        }
+        queryset = QuestionType.get_queryset(None, None, info).filter(
+            questionnaire=questionnaire_id,
+            leaf_group=leaf_group_id,
+            pk__in=_data.keys(),
+        )
+        to_update = []
+        for obj in queryset:
+            obj.order = _data[obj.id]
+            to_update.append(obj)
+        Question.objects.bulk_update(to_update, ('order',))
         return BulkBasicMutationResponseType(results=[i for i in queryset])
 
     @strawberry.mutation

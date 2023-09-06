@@ -368,6 +368,34 @@ class TestQuestionMutation(TestCase):
             }
         '''
 
+        QuestionOrderBulkUpdate = '''
+            mutation MyMutation(
+                $projectId: ID!,
+                $questionnaireId: ID!,
+                $leafGroupId: ID!,
+                $data: [QuestionOrderInputType!]!
+            ) {
+              private {
+                id
+                projectScope(pk: $projectId) {
+                  id
+                  bulkUpdateQuestionsOrder(
+                      questionnaireId: $questionnaireId,
+                      leafGroupId: $leafGroupId,
+                      data: $data
+                  ) {
+                    errors
+                    results {
+                      id
+                      name
+                      order
+                    }
+                  }
+                }
+              }
+            }
+        '''
+
     def test_create_question(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
@@ -677,6 +705,96 @@ class TestQuestionMutation(TestCase):
             ]) == {is_hidden_value}, content
             assert ques1_1_1.is_hidden == is_hidden_value
             assert ques1_1_2.is_hidden == is_hidden_value
+
+    def test_question_order_update(self):
+        user = UserFactory.create()
+        ur_params = dict(created_by=user, modified_by=user)
+        # Create some projects
+        project, project2 = ProjectFactory.create_batch(2, **ur_params)
+        # Questionnaire
+        q1_1 = QuestionnaireFactory.create(**ur_params, project=project)
+        q1_2 = QuestionnaireFactory.create(**ur_params, project=project)
+        q2_1 = QuestionnaireFactory.create(**ur_params, project=project2)
+        # Groups
+        [
+            group1_1_1,
+            group1_1_2,
+        ] = QuestionLeafGroupFactory.static_generator(2, **ur_params, questionnaire=q1_1)
+        [group1_2_1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_2)
+        [group2_1_1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2_1)
+        # Questions
+        (
+            ques1_1_1_1,
+            ques1_1_1_2,
+            ques1_1_1_3,
+        ) = QuestionFactory.create_batch(3, **ur_params, leaf_group=group1_1_1)
+        (
+            ques1_1_2_1,
+            ques1_1_2_2,
+        ) = QuestionFactory.create_batch(2, **ur_params, leaf_group=group1_1_2)
+        [ques1_2_1_1] = QuestionFactory.create_batch(1, **ur_params, leaf_group=group1_2_1)
+        [ques2_1_1_1] = QuestionFactory.create_batch(1, **ur_params, leaf_group=group2_1_1)
+
+        valid_question_order_set = [
+            (ques1_1_1_1, 1001),
+            (ques1_1_1_2, 1002),
+            (ques1_1_1_3, 1003),
+        ]
+        # Without login
+        variables = {
+            'projectId': self.gID(project.pk),
+            'questionnaireId': self.gID(q1_1.pk),
+            'leafGroupId': self.gID(group1_1_1.pk),
+            'data': [
+                {
+                    'id': self.gID(question.pk),
+                    'order': order,
+                }
+                for question, order in (
+                    # Valid question set
+                    *valid_question_order_set,
+                    # Invalid question set
+                    # -- From another questionnaire
+                    (ques1_1_2_1, 1004),
+                    (ques1_1_2_2, 1005),
+                    (ques1_2_1_1, 1006),
+                    # -- From another questionnaire and another project
+                    (ques2_1_1_1, 1008),
+                )
+            ]
+        }
+        content = self.query_check(self.Mutation.QuestionOrderBulkUpdate, variables=variables, assert_errors=True)
+        assert content['data'] is None
+
+        # With login
+        # -- Without membership
+        self.force_login(user)
+        content = self.query_check(self.Mutation.QuestionOrderBulkUpdate, variables=variables)
+        assert content['data']['private']['projectScope'] is None
+
+        # -- With membership - But read access only
+        project.add_member(user, role=ProjectMembership.Role.VIEWER)
+        content = self.query_check(
+            self.Mutation.QuestionOrderBulkUpdate,
+            variables=variables,
+        )['data']['private']['projectScope']['bulkUpdateQuestionsOrder']
+        assert content['errors'] is not None, content
+
+        # -- With membership - With write access
+        project.add_member(user, role=ProjectMembership.Role.MEMBER)
+        content = self.query_check(
+            self.Mutation.QuestionOrderBulkUpdate,
+            variables=variables,
+        )['data']['private']['projectScope']['bulkUpdateQuestionsOrder']
+        assert content['errors'] is None, content
+        assert content['results'] == [
+            {
+                'id': self.gID(question.pk),
+                'name': question.name,
+                'order': order,
+            }
+            for question, order in valid_question_order_set
+        ]
 
 
 class TestQuestionTypeMutation(TestCase):

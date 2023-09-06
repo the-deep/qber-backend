@@ -24,3 +24,4 @@ class QuestionChoiceCollectionOrder:
 class QuestionOrder:
     id: strawberry.auto
     created_at: strawberry.auto
+    order: strawberry.auto
