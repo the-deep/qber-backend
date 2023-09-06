@@ -505,6 +505,7 @@ class Question(UserResource):
     leaf_group = models.ForeignKey(QuestionLeafGroup, on_delete=models.CASCADE)
     type = models.PositiveSmallIntegerField(choices=Type.choices)
     order = models.PositiveSmallIntegerField(default=0)
+    is_hidden = models.BooleanField(default=False)
 
     # XXX: This needs to be also unique within Questionnaire & Question Bank
     # TODO: Make sure this is also unique within questions and groups

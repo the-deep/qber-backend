@@ -35,20 +35,4 @@ class QuestionFilter:
     name: strawberry.auto
     label: strawberry.auto
     leaf_group: strawberry.auto
-    include_child_group: bool | None = False
-
-    def filter_leaf_group(self, queryset):
-        # NOTE: logic is in filter_include_child_group
-        return queryset
-
-    def filter_include_child_group(self, queryset):
-        if self.leaf_group is strawberry.UNSET:
-            # Nothing to do here
-            return queryset
-        if not self.include_child_group:
-            return queryset.filter(group=self.leaf_group.pk)
-        all_groups = [
-            self.leaf_group.pk,
-            # TODO: *get_child_groups_id(self.leaf_group.pk),
-        ]
-        return queryset.filter(group__in=all_groups)
+    is_hidden: strawberry.auto

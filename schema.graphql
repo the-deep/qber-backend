@@ -181,7 +181,8 @@ type ProjectScopeMutation {
   updateQuestion(id: ID!, data: QuestionUpdateInput!): QuestionTypeMutationResponseType!
   deleteQuestion(id: ID!): QuestionTypeMutationResponseType!
   bulkUpdateQuestionnairQuestionGroupsLeafOrder(questionnaireId: ID!, data: [QuestionLeafGroupOrderInputType!]!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
-  updateQuestionGroupsLeafVisibility(ids: [ID!]!, visibility: QuestionLeafGroupVisibilityActionEnum!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
+  updateQuestionGroupsLeafVisibility(questionnaireId: ID!, ids: [ID!]!, visibility: VisibilityActionEnum!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
+  updateQuestionsVisibility(questionnaireId: ID!, ids: [ID!]!, visibility: VisibilityActionEnum!): QuestionTypeBulkBasicMutationResponseType!
   createQuestionChoiceCollection(data: QuestionChoiceCollectionCreateInput!): QuestionChoiceCollectionTypeMutationResponseType!
   updateQuestionChoiceCollection(id: ID!, data: QuestionChoiceCollectionUpdateInput!): QuestionChoiceCollectionTypeMutationResponseType!
   deleteQuestionChoiceCollection(id: ID!): QuestionChoiceCollectionTypeMutationResponseType!
@@ -357,7 +358,7 @@ input QuestionFilter {
   name: StrFilterLookup
   label: StrFilterLookup
   leafGroup: DjangoModelFilterInput
-  includeChildGroup: Boolean = false
+  isHidden: Boolean
 }
 
 enum QuestionLeafGroupCategory1TypeEnum {
@@ -505,11 +506,6 @@ enum QuestionLeafGroupTypeEnum {
   MATRIX_2D
 }
 
-enum QuestionLeafGroupVisibilityActionEnum {
-  SHOW
-  HIDE
-}
-
 input QuestionOrder {
   id: Ordering
   createdAt: Ordering
@@ -522,6 +518,7 @@ type QuestionType {
   name: String!
   label: String!
   hint: String!
+  isHidden: Boolean!
   default: String!
   guidanceHint: String!
   trigger: String!
@@ -545,6 +542,11 @@ type QuestionType {
   questionnaireId: ID!
   type: QuestionTypeEnum!
   typeDisplay: String!
+}
+
+type QuestionTypeBulkBasicMutationResponseType {
+  errors: [CustomErrorType!]
+  results: [QuestionType!]
 }
 
 type QuestionTypeCountList {
@@ -721,4 +723,9 @@ type UserTypeCountList {
   offset: Int!
   count: Int!
   items: [UserType!]!
+}
+
+enum VisibilityActionEnum {
+  SHOW
+  HIDE
 }

@@ -24,7 +24,7 @@ from .types import (
     QuestionLeafGroupType,
     QuestionChoiceCollectionType,
 )
-from .enums import QuestionLeafGroupVisibilityActionEnum
+from .enums import VisibilityActionEnum
 
 QuestionnaireMutation = ModelMutation('Questionnaire', QuestionnaireSerializer)
 QuestionMutation = ModelMutation('Question', QuestionSerializer)
@@ -147,14 +147,37 @@ class ProjectScopeMutation():
     @sync_to_async
     def update_question_groups_leaf_visibility(
         self,
+        questionnaire_id: strawberry.ID,
         ids: list[strawberry.ID],
-        visibility: QuestionLeafGroupVisibilityActionEnum,
+        visibility: VisibilityActionEnum,
         info: Info,
     ) -> BulkBasicMutationResponseType[QuestionLeafGroupType]:
         if errors := ModelMutation.check_permissions(info, Project.Permission.UPDATE_QUESTION_GROUP):
             return BulkBasicMutationResponseType(errors=[errors])
-        queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(id__in=ids)
-        is_hidden = visibility == QuestionLeafGroupVisibilityActionEnum.HIDE
+        queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(
+            questionnaire=questionnaire_id,
+            id__in=ids,
+        )
+        is_hidden = visibility == VisibilityActionEnum.HIDE
+        queryset.update(is_hidden=is_hidden)
+        return BulkBasicMutationResponseType(results=[i for i in queryset])
+
+    @strawberry.mutation
+    @sync_to_async
+    def update_questions_visibility(
+        self,
+        questionnaire_id: strawberry.ID,
+        ids: list[strawberry.ID],
+        visibility: VisibilityActionEnum,
+        info: Info,
+    ) -> BulkBasicMutationResponseType[QuestionType]:
+        if errors := ModelMutation.check_permissions(info, Project.Permission.UPDATE_QUESTION):
+            return BulkBasicMutationResponseType(errors=[errors])
+        queryset = QuestionType.get_queryset(None, None, info).filter(
+            questionnaire=questionnaire_id,
+            id__in=ids,
+        )
+        is_hidden = visibility == VisibilityActionEnum.HIDE
         queryset.update(is_hidden=is_hidden)
         return BulkBasicMutationResponseType(results=[i for i in queryset])
 

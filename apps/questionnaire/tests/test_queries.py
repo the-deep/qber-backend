@@ -704,6 +704,7 @@ class TestQuestionQuery(TestCase):
             ({'questionnaire': {'pk': self.gID(q1.id)}}, q1_questions),
             ({'questionnaire': {'pk': self.gID(q2.id)}}, q2_questions),
             ({'questionnaire': {'pk': self.gID(q3.id)}}, q3_questions),
+            ({'leafGroup': {'pk': self.gID(group2.id)}}, q2_questions),
             ({'label': {'exact': 'Who are you?'}}, q1_questions),
             ({'name': {'exact': 'question-unique-0001'}}, [q3_questions[0]]),
         ]:

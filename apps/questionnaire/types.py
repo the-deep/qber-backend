@@ -128,6 +128,7 @@ class QuestionType(UserResourceTypeMixin):
     name: strawberry.auto
     label: strawberry.auto
     hint: strawberry.auto
+    is_hidden: strawberry.auto
 
     default: strawberry.auto
     guidance_hint: strawberry.auto

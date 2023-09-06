@@ -29,6 +29,6 @@ enum_map = {
 
 
 @strawberry.enum
-class QuestionLeafGroupVisibilityActionEnum(Enum):
+class VisibilityActionEnum(Enum):
     SHOW = auto(), 'Show'
     HIDE = auto(), 'Hide'

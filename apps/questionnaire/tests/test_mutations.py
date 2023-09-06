@@ -2,7 +2,7 @@ from main.tests import TestCase
 
 from apps.project.models import ProjectMembership
 from apps.project.factories import ProjectFactory
-from apps.questionnaire.enums import QuestionLeafGroupVisibilityActionEnum
+from apps.questionnaire.enums import VisibilityActionEnum
 from apps.questionnaire.models import (
     Questionnaire,
     Question,
@@ -181,45 +181,28 @@ class TestQuestionnaireMutation(TestCase):
         ur_params = dict(created_by=user, modified_by=user)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project)
+        q1_1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project)
         q2 = QuestionnaireFactory.create(**ur_params, project=project2)
         # Create some questions, groups and choice collections
-        group1 = QuestionLeafGroupFactory.create(
-            **ur_params,
-            questionnaire=q1,
-            type=QuestionLeafGroup.Type.MATRIX_1D,
-            category_1=QuestionLeafGroup.Category1.CONTEXT,
-            category_2=QuestionLeafGroup.Category2.POLITICS,
-        )
-        group1_2 = QuestionLeafGroupFactory.create(
-            **ur_params,
-            questionnaire=q1_2,
-            type=QuestionLeafGroup.Type.MATRIX_1D,
-            category_1=QuestionLeafGroup.Category1.CONTEXT,
-            category_2=QuestionLeafGroup.Category2.DEMOGRAPHY,
-        )
-        group2 = QuestionLeafGroupFactory.create(
-            **ur_params,
-            questionnaire=q2,
-            type=QuestionLeafGroup.Type.MATRIX_1D,
-            category_1=QuestionLeafGroup.Category1.CONTEXT,
-            category_2=QuestionLeafGroup.Category2.POLITICS,
-        )
-        # -- q1
-        choice_collections = ChoiceCollectionFactory.create_batch(3, **ur_params, questionnaire=q1)
-        QuestionFactory.create_batch(
-            2, **ur_params, questionnaire=q1, leaf_group=group1, choice_collection=choice_collections[0])
-        QuestionFactory.create_batch(
-            3, **ur_params, questionnaire=q1, leaf_group=group1, choice_collection=choice_collections[1])
-        QuestionFactory.create_batch(3, **ur_params, questionnaire=q1, leaf_group=group1)
-        QuestionFactory.create_batch(3, **ur_params, questionnaire=q1_2, leaf_group=group1_2)
+        [group1_1_1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_1)
+        [group1_2_1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_2)
+        [group2_1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
+        # -- q1_1
+        choice_collections = ChoiceCollectionFactory.create_batch(3, **ur_params, questionnaire=q1_1)
+        ChoiceCollectionFactory.create_batch(2, **ur_params, questionnaire=q1_2)
+        ChoiceCollectionFactory.create_batch(4, **ur_params, questionnaire=q2)
+        QuestionFactory.create_batch(2, **ur_params, leaf_group=group1_1_1, choice_collection=choice_collections[0])
+        QuestionFactory.create_batch(3, **ur_params, leaf_group=group1_1_1, choice_collection=choice_collections[1])
+        QuestionFactory.create_batch(8, **ur_params, leaf_group=group1_1_1)
+        # -- q1_2
+        QuestionFactory.create_batch(6, **ur_params, leaf_group=group1_2_1)
         # -- q2
-        QuestionFactory.create_batch(3, **ur_params, questionnaire=q1, leaf_group=group2)
+        QuestionFactory.create_batch(4, **ur_params, leaf_group=group2_1)
 
         # Without login
         variables = {
             'projectId': self.gID(project.pk),
-            'questionnaireId': self.gID(q1.pk),
+            'questionnaireId': self.gID(q1_1.pk),
         }
         content = self.query_check(self.Mutation.QuestionnaireDelete, variables=variables, assert_errors=True)
         assert content['data'] is None
@@ -230,9 +213,15 @@ class TestQuestionnaireMutation(TestCase):
                 'questions': Question.objects.count(),
                 'choice_collections': ChoiceCollection.objects.count(),
                 'groups': QuestionLeafGroup.objects.count(),
-                'questionnair': Questionnaire.objects.count(),
+                'questionnaire': Questionnaire.objects.count(),
             }
         counts = _get_counts()
+        assert counts == {
+            'questions': 23,
+            'choice_collections': 9,
+            'groups': 3,
+            'questionnaire': 3,
+        }
         # With login
         # -- Without membership
         self.force_login(user)
@@ -258,9 +247,9 @@ class TestQuestionnaireMutation(TestCase):
         )['data']['private']['projectScope']['deleteQuestionnaire']
         assert content['ok'] is True, content
         assert content['errors'] is None, content
-        counts['questions'] -= 11
+        counts['questions'] -= 13
         counts['choice_collections'] -= 3
-        counts['questionnair'] -= 1
+        counts['questionnaire'] -= 1
         counts['groups'] -= 1
         assert counts == _get_counts()
 
@@ -272,8 +261,9 @@ class TestQuestionnaireMutation(TestCase):
         )['data']['private']['projectScope']['deleteQuestionnaire']
         assert content['ok'] is True, content
         assert content['errors'] is None, content
-        counts['questions'] -= 3
-        counts['questionnair'] -= 1
+        counts['questions'] -= 6
+        counts['choice_collections'] -= 2
+        counts['questionnaire'] -= 1
         counts['groups'] -= 1
         assert counts == _get_counts()
 
@@ -343,6 +333,34 @@ class TestQuestionMutation(TestCase):
                       id
                       name
                       label
+                    }
+                  }
+                }
+              }
+            }
+        '''
+
+        QuestionVisibilityUpdate = '''
+            mutation MyMutation(
+                $projectId: ID!,
+                $questionnaireId: ID!,
+                $questionsId: [ID!]!,
+                $visibility: VisibilityActionEnum!
+            ) {
+              private {
+                id
+                projectScope(pk: $projectId) {
+                  id
+                  updateQuestionsVisibility(
+                    ids: $questionsId,
+                    questionnaireId: $questionnaireId,
+                    visibility: $visibility
+                  ) {
+                    errors
+                    results {
+                      id
+                      name
+                      isHidden
                     }
                   }
                 }
@@ -449,9 +467,9 @@ class TestQuestionMutation(TestCase):
         [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
 
         question_params = {**ur_params, 'type': Question.Type.INTEGER}
-        QuestionFactory.create(**question_params, questionnaire=q1, name='question_01', leaf_group=group1)
-        question12 = QuestionFactory.create(**question_params, questionnaire=q1, leaf_group=group1, name='question_02')
-        question2 = QuestionFactory.create(**question_params, questionnaire=q2, leaf_group=group2, name='question_01')
+        QuestionFactory.create(**question_params, name='question_01', leaf_group=group1)
+        question12 = QuestionFactory.create(**question_params, leaf_group=group1, name='question_02')
+        question2 = QuestionFactory.create(**question_params, leaf_group=group2, name='question_01')
 
         # Without login
         variables = {
@@ -533,8 +551,8 @@ class TestQuestionMutation(TestCase):
         [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
 
         question_params = {**ur_params, 'type': Question.Type.INTEGER}
-        question1 = QuestionFactory.create(**question_params, questionnaire=q1, name='question_0101', leaf_group=group1)
-        question2 = QuestionFactory.create(**question_params, questionnaire=q2, name='question_0201', leaf_group=group2)
+        question1 = QuestionFactory.create(**question_params, name='question_0101', leaf_group=group1)
+        question2 = QuestionFactory.create(**question_params, name='question_0201', leaf_group=group2)
 
         # Without login
         variables = {
@@ -576,6 +594,89 @@ class TestQuestionMutation(TestCase):
             variables=variables,
             assert_errors=True,
         )
+
+    def test_question_visibility(self):
+        user = UserFactory.create()
+        ur_params = dict(created_by=user, modified_by=user)
+        # Create some projects
+        project, project2 = ProjectFactory.create_batch(2, **ur_params)
+        # Questionnaires
+        q1_1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        # Leaf groups
+        [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_1)
+        [group1_2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_2)
+        [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
+        # Questions
+        ques1_1_1, ques1_1_2 = QuestionFactory.create_batch(2, **ur_params, leaf_group=group1)
+        ques1_2_1, ques1_2_2 = QuestionFactory.create_batch(2, **ur_params, leaf_group=group1_2)
+        ques2_2_1, ques2_2_2 = QuestionFactory.create_batch(2, **ur_params, leaf_group=group2)
+        # Without login
+        variables = {
+            'projectId': self.gID(project.pk),
+            'questionnaireId': self.gID(q1_1.pk),
+            'questionsId': [
+                # Invalid
+                self.gID(ques1_2_1.pk),
+                self.gID(ques1_2_2.pk),
+                self.gID(ques2_2_1.pk),
+                self.gID(ques2_2_2.pk),
+            ],
+            'visibility': self.genum(VisibilityActionEnum.HIDE),
+        }
+        content = self.query_check(self.Mutation.QuestionVisibilityUpdate, variables=variables, assert_errors=True)
+        assert content['data'] is None
+
+        # With login
+        # -- Without membership
+        self.force_login(user)
+        content = self.query_check(self.Mutation.QuestionVisibilityUpdate, variables=variables)
+        assert content['data']['private']['projectScope'] is None
+
+        # -- With membership - But read access only
+        project.add_member(user, role=ProjectMembership.Role.VIEWER)
+        content = self.query_check(
+            self.Mutation.QuestionVisibilityUpdate,
+            variables=variables,
+        )['data']['private']['projectScope']['updateQuestionsVisibility']
+        assert content['results'] is None, content
+        assert content['errors'] is not None, content
+
+        # -- With membership - With write access
+        # -- Invalid question id
+        project.add_member(user, role=ProjectMembership.Role.MEMBER)
+        content = self.query_check(
+            self.Mutation.QuestionVisibilityUpdate,
+            variables=variables,
+        )['data']['private']['projectScope']['updateQuestionsVisibility']
+        assert content['errors'] is None, content  # Just empty response
+        assert content['results'] == [], content  # Just empty response
+
+        # -- Valid question id
+        variables['questionsId'] = [
+            self.gID(ques1_1_1.pk),
+            self.gID(ques1_1_2.pk),
+        ]
+        for visibility, is_hidden_value in [
+            (self.genum(VisibilityActionEnum.HIDE), True),
+            (self.genum(VisibilityActionEnum.SHOW), False),
+        ]:
+            variables['visibility'] = visibility
+            content = self.query_check(
+                self.Mutation.QuestionVisibilityUpdate,
+                variables=variables,
+            )['data']['private']['projectScope']['updateQuestionsVisibility']
+            ques1_1_1.refresh_from_db()
+            ques1_1_2.refresh_from_db()
+            assert content['errors'] is None, content
+            assert set([
+                d['id'] for d in content['results']
+            ]) == set(variables['questionsId']), content
+            assert set([
+                d['isHidden'] for d in content['results']
+            ]) == {is_hidden_value}, content
+            assert ques1_1_1.is_hidden == is_hidden_value
+            assert ques1_1_2.is_hidden == is_hidden_value
 
 
 class TestQuestionTypeMutation(TestCase):
@@ -633,17 +734,22 @@ class TestQuestionTypeMutation(TestCase):
 
 class TestQuestionGroupMutation(TestCase):
     class Mutation:
-        QuestionLeafGroupVisiblityUpdate = '''
+        QuestionLeafGroupVisibilityUpdate = '''
             mutation MyMutation(
                 $projectId: ID!,
-                $questionLeafGroupsID: [ID!]!,
-                $visibility: QuestionLeafGroupVisibilityActionEnum!
+                $questionnaireId: ID!,
+                $questionLeafGroupsId: [ID!]!,
+                $visibility: VisibilityActionEnum!
             ) {
               private {
                 id
                 projectScope(pk: $projectId) {
                   id
-                  updateQuestionGroupsLeafVisibility(ids: $questionLeafGroupsID, visibility: $visibility) {
+                  updateQuestionGroupsLeafVisibility(
+                      ids: $questionLeafGroupsId,
+                      questionnaireId: $questionnaireId,
+                      visibility: $visibility,
+                  ) {
                     errors
                     results {
                       id
@@ -659,14 +765,14 @@ class TestQuestionGroupMutation(TestCase):
         QuestionLeafGroupOrderBulkUpdate = '''
             mutation MyMutation(
                 $projectId: ID!,
-                $questionnairId: ID!,
+                $questionnaireId: ID!,
                 $data: [QuestionLeafGroupOrderInputType!]!
             ) {
               private {
                 id
                 projectScope(pk: $projectId) {
                   id
-                  bulkUpdateQuestionnairQuestionGroupsLeafOrder(questionnaireId: $questionnairId, data: $data) {
+                  bulkUpdateQuestionnairQuestionGroupsLeafOrder(questionnaireId: $questionnaireId, data: $data) {
                     errors
                     results {
                       id
@@ -684,31 +790,33 @@ class TestQuestionGroupMutation(TestCase):
         ur_params = dict(created_by=user, modified_by=user)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
+        q1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project)
         q2 = QuestionnaireFactory.create(**ur_params, project=project2)
 
         [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
+        [group1_2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_2)
         [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
 
         # Without login
         variables = {
             'projectId': self.gID(project.pk),
-            'questionLeafGroupsID': [self.gID(group2.pk)],
-            'visibility': self.genum(QuestionLeafGroupVisibilityActionEnum.HIDE),
+            'questionnaireId': self.gID(q1.pk),
+            'questionLeafGroupsId': [self.gID(group2.pk), self.gID(group1_2.pk)],
+            'visibility': self.genum(VisibilityActionEnum.HIDE),
         }
-        content = self.query_check(self.Mutation.QuestionLeafGroupVisiblityUpdate, variables=variables, assert_errors=True)
+        content = self.query_check(self.Mutation.QuestionLeafGroupVisibilityUpdate, variables=variables, assert_errors=True)
         assert content['data'] is None
 
         # With login
         # -- Without membership
         self.force_login(user)
-        content = self.query_check(self.Mutation.QuestionLeafGroupVisiblityUpdate, variables=variables)
+        content = self.query_check(self.Mutation.QuestionLeafGroupVisibilityUpdate, variables=variables)
         assert content['data']['private']['projectScope'] is None
 
         # -- With membership - But read access only
         project.add_member(user, role=ProjectMembership.Role.VIEWER)
         content = self.query_check(
-            self.Mutation.QuestionLeafGroupVisiblityUpdate,
+            self.Mutation.QuestionLeafGroupVisibilityUpdate,
             variables=variables,
         )['data']['private']['projectScope']['updateQuestionGroupsLeafVisibility']
         assert content['results'] is None, content
@@ -718,28 +826,28 @@ class TestQuestionGroupMutation(TestCase):
         # -- Invalid question leaf group id
         project.add_member(user, role=ProjectMembership.Role.MEMBER)
         content = self.query_check(
-            self.Mutation.QuestionLeafGroupVisiblityUpdate,
+            self.Mutation.QuestionLeafGroupVisibilityUpdate,
             variables=variables,
         )['data']['private']['projectScope']['updateQuestionGroupsLeafVisibility']
         assert content['errors'] is None, content  # Just empty response
         assert content['results'] == [], content  # Just empty response
 
         # -- Valid question leaf group id
-        variables['questionLeafGroupsID'] = [self.gID(group1.pk)]
+        variables['questionLeafGroupsId'] = [self.gID(group1.pk)]
         for visibility, is_hidden_value in [
-            (self.genum(QuestionLeafGroupVisibilityActionEnum.HIDE), True),
-            (self.genum(QuestionLeafGroupVisibilityActionEnum.SHOW), False),
+            (self.genum(VisibilityActionEnum.HIDE), True),
+            (self.genum(VisibilityActionEnum.SHOW), False),
         ]:
             variables['visibility'] = visibility
             content = self.query_check(
-                self.Mutation.QuestionLeafGroupVisiblityUpdate,
+                self.Mutation.QuestionLeafGroupVisibilityUpdate,
                 variables=variables,
             )['data']['private']['projectScope']['updateQuestionGroupsLeafVisibility']
             group1.refresh_from_db()
             assert content['errors'] is None, content
             assert set([
                 d['id'] for d in content['results']
-            ]) == set(variables['questionLeafGroupsID']), content
+            ]) == set(variables['questionLeafGroupsId']), content
             assert set([
                 d['isHidden'] for d in content['results']
             ]) == {is_hidden_value}, content
@@ -772,7 +880,7 @@ class TestQuestionGroupMutation(TestCase):
         # Without login
         variables = {
             'projectId': self.gID(project.pk),
-            'questionnairId': self.gID(q1_1.pk),
+            'questionnaireId': self.gID(q1_1.pk),
             'data': [
                 {
                     'id': self.gID(group.pk),
@@ -782,10 +890,10 @@ class TestQuestionGroupMutation(TestCase):
                     # Valid groups
                     *valid_group_order_set,
                     # Invalid groups
-                    # -- Another questionnair
+                    # -- Another questionnaire
                     (group1_2_1, 1001),
                     (group1_2_2, 1001),
-                    # -- Another questionnair another project
+                    # -- Another questionnaire another project
                     (group2_1_1, 1001),
                     (group2_1_2, 1001),
                 )

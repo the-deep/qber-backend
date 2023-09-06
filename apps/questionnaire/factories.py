@@ -141,3 +141,12 @@ class QuestionFactory(DjangoModelFactory):
 
     class Meta:
         model = Question
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.questionnaire = obj.leaf_group.questionnaire
+        if getattr(obj, 'choice_collection', None):
+            assert obj.choice_collection.questionnaire == obj.questionnaire
+        obj.save()
+        return obj
