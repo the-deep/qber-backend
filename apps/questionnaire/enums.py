@@ -3,10 +3,27 @@ from enum import Enum, auto
 
 from utils.strawberry.enums import get_enum_name_from_django_field
 
-from .models import Question, QuestionLeafGroup
+from .models import (
+    Question,
+    Questionnaire,
+    QuestionLeafGroup,
+)
 
 
+# Questionnaire
+
+QuestionnarePriorityLevelTypeEnum = strawberry.enum(
+    Questionnaire.PriorityLevel, name='QuestionnarePriorityLevelTypeEnum')
+QuestionnareEnumeratorSkillTypeEnum = strawberry.enum(
+    Questionnaire.EnumeratorSkill, name='QuestionnareEnumeratorSkillTypeEnum')
+QuestionnareDataCollectionMethodTypeEnum = strawberry.enum(
+    Questionnaire.DataCollectionMethod, name='QuestionnareDataCollectionMethodTypeEnum')
+
+
+# Question
 QuestionTypeEnum = strawberry.enum(Question.Type, name='QuestionTypeEnum')
+
+# QuestionLeafGroup
 QuestionLeafGroupTypeEnum = strawberry.enum(QuestionLeafGroup.Type, name='QuestionLeafGroupTypeEnum')
 QuestionLeafGroupCategory1TypeEnum = strawberry.enum(QuestionLeafGroup.Category1, name='QuestionLeafGroupCategory1TypeEnum')
 QuestionLeafGroupCategory2TypeEnum = strawberry.enum(QuestionLeafGroup.Category2, name='QuestionLeafGroupCategory2TypeEnum')
@@ -17,6 +34,11 @@ QuestionLeafGroupCategory4TypeEnum = strawberry.enum(QuestionLeafGroup.Category4
 enum_map = {
     get_enum_name_from_django_field(field): enum
     for field, enum in (
+        # Questionnaire
+        (Questionnaire.priority_level, QuestionnarePriorityLevelTypeEnum),
+        (Questionnaire.enumerator_skill, QuestionnareEnumeratorSkillTypeEnum),
+        (Questionnaire.data_collection_method, QuestionnareDataCollectionMethodTypeEnum),
+        # Question
         (Question.type, QuestionTypeEnum),
         # QuestionLeafGroup
         (QuestionLeafGroup.type, QuestionLeafGroupTypeEnum),

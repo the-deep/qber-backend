@@ -21,6 +21,11 @@ class QuestionnaireSerializer(UserResourceSerializer):
         model = Questionnaire
         fields = (
             'title',
+            # Qber Metadata
+            'priority_level',
+            'enumerator_skill',
+            'data_collection_method',
+            'required_duration',
         )
 
     instance: Questionnaire

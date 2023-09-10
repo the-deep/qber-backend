@@ -60,6 +60,14 @@ class QuestionLeafGroupType(UserResourceTypeMixin):
 class QuestionnaireType(UserResourceTypeMixin):
     id: strawberry.ID
     title: strawberry.auto
+    # Qber Metadata
+    priority_level = enum_field(Questionnaire.priority_level)
+    priority_level_display = enum_display_field(Questionnaire.priority_level)
+    enumerator_skill = enum_field(Questionnaire.enumerator_skill)
+    enumerator_skill_display = enum_display_field(Questionnaire.enumerator_skill)
+    data_collection_method = enum_field(Questionnaire.data_collection_method)
+    data_collection_method_display = enum_display_field(Questionnaire.data_collection_method)
+    required_duration: strawberry.auto
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):

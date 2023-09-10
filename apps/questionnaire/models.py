@@ -10,22 +10,47 @@ from apps.project.models import Project
 
 
 class Questionnaire(UserResource):
-    class MetadataCollection(models.IntegerChoices):
-        START = 1, 'Start date and time of the survey.'
-        END = 2, 'End date and time of the survey.'
-        TODAY = 3, 'Day of the survey.'
-        DEVICEID = 4, 'Unique client identifier. Can be user-reset.'
-        PHONENUMBER = 5, 'Phone number (if available).'
-        USERNAME = 6, 'Username configured (if available).'
-        EMAIL = 7, 'Email address configured (if available).'
-        AUDIT = 8, 'Log enumerator behavior during data entry'
+    class PriorityLevel(models.IntegerChoices):
+        HIGH = 1, 'High'
+        MEDIUM = 2, 'Medium'
+        LOW = 3, 'Low'
+
+    class EnumeratorSkill(models.IntegerChoices):
+        BASIC = 1, 'Basic'
+        MEDIUM = 2, 'Medium'
+        ADVANCED = 3, 'Advanced'
+
+    class DataCollectionMethod(models.IntegerChoices):
+        # TODO: Incomplete
+        DIRECT = 1, 'Direct observation'
+        FOCUS_GROUP = 2, 'Focus group'
+        ONE_ON_ONE_INTERVIEW = 3, '1-on-1 interviews'
+        OPEN_ENDED_SURVEY = 4, 'Open-ended survey'
+        CLOSED_ENDED_SURVEY = 5, 'Closed-ended survey'
+        KEY_INFORMANT_INTERVIEW = 6, 'Key Informant Interview'
+
+    # class MetadataCollection(models.IntegerChoices):
+    #     START = 1, 'Start date and time of the survey.'
+    #     END = 2, 'End date and time of the survey.'
+    #     TODAY = 3, 'Day of the survey.'
+    #     DEVICEID = 4, 'Unique client identifier. Can be user-reset.'
+    #     PHONENUMBER = 5, 'Phone number (if available).'
+    #     USERNAME = 6, 'Username configured (if available).'
+    #     EMAIL = 7, 'Email address configured (if available).'
+    #     AUDIT = 8, 'Log enumerator behavior during data entry'
 
     title = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     description = models.TextField(blank=True)
     # qbank = models.ForeignKey('qbank.QuestionBank', on_delete=models.PROTECT)
 
-    # Metadata
+    # Qber Metadata
+    priority_level = models.PositiveSmallIntegerField(choices=PriorityLevel.choices, null=True, blank=True)
+    enumerator_skill = models.PositiveSmallIntegerField(choices=EnumeratorSkill.choices, null=True, blank=True)
+    data_collection_method = models.PositiveSmallIntegerField(choices=DataCollectionMethod.choices, null=True, blank=True)
+    required_duration = models.PositiveIntegerField(null=True, blank=True, help_text='In seconds')
+
+    # XlsxForm Metadata
     # https://xlsform.org/en/#metadata
     # include_metadata = ArrayField(
     #     models.PositiveSmallIntegerField(choices=MetadataCollection.choices),

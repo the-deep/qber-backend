@@ -618,6 +618,10 @@ input QuestionUpdateInput {
 
 input QuestionnaireCreateInput {
   title: String!
+  priorityLevel: QuestionnarePriorityLevelTypeEnum
+  enumeratorSkill: QuestionnareEnumeratorSkillTypeEnum
+  dataCollectionMethod: QuestionnareDataCollectionMethodTypeEnum
+  requiredDuration: Int
 }
 
 input QuestionnaireFilter {
@@ -636,9 +640,16 @@ type QuestionnaireType {
   modifiedAt: DateTime!
   id: ID!
   title: String!
+  requiredDuration: Int
   createdBy: UserType!
+  dataCollectionMethod: QuestionnareDataCollectionMethodTypeEnum
+  dataCollectionMethodDisplay: String
+  enumeratorSkill: QuestionnareEnumeratorSkillTypeEnum
+  enumeratorSkillDisplay: String
   leafGroups: [QuestionLeafGroupType!]!
   modifiedBy: UserType!
+  priorityLevel: QuestionnarePriorityLevelTypeEnum
+  priorityLevelDisplay: String
   projectId: ID!
 }
 
@@ -657,6 +668,31 @@ type QuestionnaireTypeMutationResponseType {
 
 input QuestionnaireUpdateInput {
   title: String
+  priorityLevel: QuestionnarePriorityLevelTypeEnum
+  enumeratorSkill: QuestionnareEnumeratorSkillTypeEnum
+  dataCollectionMethod: QuestionnareDataCollectionMethodTypeEnum
+  requiredDuration: Int
+}
+
+enum QuestionnareDataCollectionMethodTypeEnum {
+  DIRECT
+  FOCUS_GROUP
+  ONE_ON_ONE_INTERVIEW
+  OPEN_ENDED_SURVEY
+  CLOSED_ENDED_SURVEY
+  KEY_INFORMANT_INTERVIEW
+}
+
+enum QuestionnareEnumeratorSkillTypeEnum {
+  BASIC
+  MEDIUM
+  ADVANCED
+}
+
+enum QuestionnarePriorityLevelTypeEnum {
+  HIGH
+  MEDIUM
+  LOW
 }
 
 input RegisterInput {
