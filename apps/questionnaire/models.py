@@ -1,7 +1,7 @@
 import typing
 from django.db import models
-from django.contrib.gis.db import models as gid_models
 from django.core.exceptions import ValidationError
+# from django.contrib.gis.db import models as gid_models
 # from django.contrib.postgres.fields import ArrayField
 
 from utils.common import get_queryset_for_model, validate_xlsform_name
@@ -111,7 +111,7 @@ class Choice(models.Model):
     collection = models.ForeignKey(ChoiceCollection, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)  # (list name) Should be unique within ChoiceCollection
     label = models.CharField(max_length=255)
-    geometry = gid_models.GeometryField(null=True, blank=True)
+    # geometry = gid_models.GeometryField(null=True, blank=True)
 
     class Meta:
         unique_together = ('collection', 'name')
@@ -562,7 +562,8 @@ class Question(UserResource):
     video = models.CharField(max_length=255, blank=True)
     # -- Or Other: https://xlsform.org/en/#specify-other
     is_or_other = models.BooleanField(default=False)
-    or_other_label = models.TextField(blank=True)
+
+    choice_collection_id: int
 
     class Meta:
         unique_together = ('questionnaire', 'name')

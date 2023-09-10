@@ -43,7 +43,7 @@ class Command(BaseCommand):
         self.stdout.write(f'Added user with credentials: {user.email}:{user.password_text}')
         return user
 
-    def process_questionnare(self, questionnaire: Questionnaire):
+    def process_questionnaire(self, questionnaire: Questionnaire):
         # Choices
         # -- Collection
         choice_collection_1, choice_collection_2, choice_collection_3 = ChoiceCollectionFactory.create_batch(
@@ -101,7 +101,7 @@ class Command(BaseCommand):
         self.stdout.write(f' - Created questionnaires {len(questionnaires)}')
         for questionnaire in questionnaires:
             self.stdout.write(f'  - Processing questionnaire {questionnaire}')
-            self.process_questionnare(questionnaire)
+            self.process_questionnaire(questionnaire)
 
     @transaction.atomic
     def handle(self, **kwargs):

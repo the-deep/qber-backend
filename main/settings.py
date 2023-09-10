@@ -36,6 +36,8 @@ env = environ.Env(
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, 'assets/media')),  # Where to store
     # -- S3
     DJANGO_USE_S3=(bool, False),
+    MEDIA_FILE_CACHE_URL_TTL=(int, 86400),  # 1 day default
+    TEMP_FILE_DIR=(str, '/tmp/'),
     AWS_S3_BUCKET_STATIC=str,
     AWS_S3_BUCKET_MEDIA=str,
     AWS_S3_QUERYSTRING_EXPIRE=(int, 60 * 60 * 24 * 2),  # Default 2 days
@@ -225,6 +227,8 @@ STORAGES = {
     },
 }
 
+TEMP_FILE_DIR = env('TEMP_FILE_DIR')
+MEDIA_FILE_CACHE_URL_TTL = env('MEDIA_FILE_CACHE_URL_TTL')
 
 if env('DJANGO_USE_S3'):
     # AWS S3 Bucket Credentials
@@ -295,21 +299,20 @@ SENTRY_DSN = env('SENTRY_DSN')
 SENTRY_SAMPLE_RATE = env('SENTRY_SAMPLE_RATE')
 SENTRY_ENABLED = False
 
+SENTRY_CONFIG = {
+    'app_type': APP_TYPE,
+    'dsn': SENTRY_DSN,
+    'send_default_pii': True,
+    'release': env('RELEASE'),
+    'environment': APP_ENVIRONMENT,
+    'debug': DEBUG,
+    'tags': {
+        'site': ','.join(set(ALLOWED_HOSTS)),
+    },
+}
+
 if SENTRY_DSN:
-    SENTRY_CONFIG = {
-        'dsn': SENTRY_DSN,
-        'send_default_pii': True,
-        'release': env('RELEASE'),
-        'environment': APP_ENVIRONMENT,
-        'debug': DEBUG,
-        'tags': {
-            'site': ','.join(set(ALLOWED_HOSTS)),
-        },
-    }
-    sentry.init_sentry(
-        app_type=APP_TYPE,
-        **SENTRY_CONFIG,
-    )
+    sentry.init_sentry(**SENTRY_CONFIG)
     SENTRY_ENABLED = True
 
 # See if we are inside a test environment (pytest)
@@ -401,4 +404,5 @@ CACHES = {
     }
 }
 
+# Misc
 ALLOW_DUMMY_DATA_SCRIPT = env('ALLOW_DUMMY_DATA_SCRIPT')

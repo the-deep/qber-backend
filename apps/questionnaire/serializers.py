@@ -114,7 +114,6 @@ class QuestionSerializer(UserResourceSerializer):
             'image',
             'video',
             'is_or_other',
-            'or_other_label',
         )
 
     instance: Question

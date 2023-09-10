@@ -890,7 +890,7 @@ class TestQuestionGroupMutation(TestCase):
                 id
                 projectScope(pk: $projectId) {
                   id
-                  bulkUpdateQuestionnairQuestionGroupsLeafOrder(questionnaireId: $questionnaireId, data: $data) {
+                  bulkUpdateQuestionnaireQuestionGroupsLeafOrder(questionnaireId: $questionnaireId, data: $data) {
                     errors
                     results {
                       id
@@ -1031,7 +1031,7 @@ class TestQuestionGroupMutation(TestCase):
         content = self.query_check(
             self.Mutation.QuestionLeafGroupOrderBulkUpdate,
             variables=variables,
-        )['data']['private']['projectScope']['bulkUpdateQuestionnairQuestionGroupsLeafOrder']
+        )['data']['private']['projectScope']['bulkUpdateQuestionnaireQuestionGroupsLeafOrder']
         assert content['errors'] is not None, content
 
         # -- With membership - With write access
@@ -1039,7 +1039,7 @@ class TestQuestionGroupMutation(TestCase):
         content = self.query_check(
             self.Mutation.QuestionLeafGroupOrderBulkUpdate,
             variables=variables,
-        )['data']['private']['projectScope']['bulkUpdateQuestionnairQuestionGroupsLeafOrder']
+        )['data']['private']['projectScope']['bulkUpdateQuestionnaireQuestionGroupsLeafOrder']
         assert content['errors'] is None, content
         assert content['results'] == [
             {

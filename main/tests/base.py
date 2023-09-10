@@ -1,10 +1,42 @@
 from typing import Dict
 from enum import Enum
 
-from django.test import TestCase as BaseTestCase
+from django.test import TestCase as BaseTestCase, override_settings
+from django.conf import settings
 from django.db import models
 
 
+TEST_CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': settings.TEST_DJANGO_CACHE_REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'test_dj_cache-',
+    },
+    'local-memory': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+TEST_STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
+
+
+@override_settings(
+    DEBUG=True,
+    EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend',
+    MEDIA_ROOT='rest-media-temp',
+    STORAGES=TEST_STORAGES,
+    CACHES=TEST_CACHES,
+    CELERY_TASK_ALWAYS_EAGER=True,
+)
 class TestCase(BaseTestCase):
     def force_login(self, user):
         self.client.force_login(user)

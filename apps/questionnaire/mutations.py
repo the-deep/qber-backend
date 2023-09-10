@@ -38,7 +38,6 @@ QuestionOrderInputType = convert_serializer_to_type(QuestionOrderSerializer, nam
 # NOTE: strawberry_django.type doesn't let use arguments in the field
 @strawberry.type
 class ProjectScopeMutation():
-    id: strawberry.ID
 
     @strawberry.mutation
     async def create_questionnaire(
@@ -122,7 +121,7 @@ class ProjectScopeMutation():
 
     @strawberry.mutation
     @sync_to_async
-    def bulk_update_questionnair_question_groups_leaf_order(
+    def bulk_update_questionnaire_question_groups_leaf_order(
         self,
         questionnaire_id: strawberry.ID,
         data: list[QuestionLeafGroupOrderInputType],

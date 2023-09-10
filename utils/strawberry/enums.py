@@ -2,6 +2,7 @@ import typing
 import strawberry
 
 from django.db import models
+from django.db.models.fields import Field as DjangoBaseField
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
@@ -11,15 +12,7 @@ from utils.common import to_camel_case
 
 
 def get_enum_name_from_django_field(
-    field: (
-        None |
-        serializers.ChoiceField |
-        models.CharField |
-        models.IntegerField |
-        models.SmallIntegerField |
-        ArrayField |
-        models.query_utils.DeferredAttribute
-    ),
+    field: None | DjangoBaseField,
     field_name=None,
     model_name=None,
     serializer_name=None,
@@ -75,8 +68,10 @@ def get_enum_name_from_django_field(
     raise Exception(f'{serializer_name=} should have a value')
 
 
-def enum_display_field(field: models.query_utils.DeferredAttribute) -> typing.Callable[..., str]:
-    _field = field.field
+def enum_display_field(field: DjangoBaseField) -> typing.Callable[..., str]:
+    _field = field
+    if isinstance(field, models.query_utils.DeferredAttribute):
+        _field = field.field
 
     if is_array := isinstance(_field, ArrayField):
         _field = _field.base_field
@@ -119,10 +114,13 @@ def enum_display_field(field: models.query_utils.DeferredAttribute) -> typing.Ca
     return field_
 
 
-def enum_field(field: models.query_utils.DeferredAttribute):
+def enum_field(field: DjangoBaseField):
     # NOTE: To avoid circular import
     from main.enums import ENUM_TO_STRAWBERRY_ENUM_MAP
-    _field = field.field
+
+    _field = field
+    if isinstance(field, models.query_utils.DeferredAttribute):
+        _field = field.field
     FieldEnum = ENUM_TO_STRAWBERRY_ENUM_MAP[get_enum_name_from_django_field(field)]
 
     if is_array := isinstance(_field, ArrayField):
