@@ -10,6 +10,7 @@ from utils.strawberry.mutations import (
 )
 
 from apps.questionnaire import mutations as questionnaire_mutations
+from apps.export import mutations as export_mutations
 from .models import Project, ProjectMembership
 from .serializers import (
     ProjectSerializer,
@@ -25,6 +26,7 @@ ProjectMembershipBulkMutation = ModelMutation('ProjectMembership', ProjectMember
 @strawberry.type
 class ProjectScopeMutation(
     questionnaire_mutations.ProjectScopeMutation,
+    export_mutations.ProjectScopeMutation,
 ):
     id: strawberry.ID
 

@@ -154,7 +154,6 @@ class QuestionType(UserResourceTypeMixin):
     image: strawberry.auto
     video: strawberry.auto
     is_or_other: strawberry.auto
-    or_other_label: strawberry.auto
 
     type = enum_field(Question.type)
     type_display = enum_display_field(Question.type)

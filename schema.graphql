@@ -4,8 +4,33 @@ scalar CustomErrorType
 """Date with time (isoformat)"""
 scalar DateTime
 
+input DatetimeFilterLookup {
+  exact: DateTime
+  iExact: DateTime
+  contains: DateTime
+  iContains: DateTime
+  inList: [DateTime!]
+  gt: DateTime
+  gte: DateTime
+  lt: DateTime
+  lte: DateTime
+  startsWith: DateTime
+  iStartsWith: DateTime
+  endsWith: DateTime
+  iEndsWith: DateTime
+  range: [DateTime!]
+  isNull: Boolean
+  regex: String
+  iRegex: String
+}
+
 input DjangoModelFilterInput {
   pk: ID!
+}
+
+type FileFieldType {
+  name: String!
+  url: String!
 }
 
 input IDFilterLookup {
@@ -155,6 +180,7 @@ enum ProjectPermissionTypeEnum {
   UPDATE_PROJECT
   UPDATE_MEMBERSHIPS
   VIEW_QUESTIONNAIRE
+  EXPORT_QUESTIONNAIRE
   CREATE_QUESTIONNAIRE
   UPDATE_QUESTIONNAIRE
   DELETE_QUESTIONNAIRE
@@ -173,20 +199,22 @@ enum ProjectPermissionTypeEnum {
 }
 
 type ProjectScopeMutation {
-  id: ID!
   createQuestionnaire(data: QuestionnaireCreateInput!): QuestionnaireTypeMutationResponseType!
   updateQuestionnaire(id: ID!, data: QuestionnaireUpdateInput!): QuestionnaireTypeMutationResponseType!
   deleteQuestionnaire(id: ID!): QuestionnaireTypeMutationResponseType!
   createQuestion(data: QuestionCreateInput!): QuestionTypeMutationResponseType!
   updateQuestion(id: ID!, data: QuestionUpdateInput!): QuestionTypeMutationResponseType!
   deleteQuestion(id: ID!): QuestionTypeMutationResponseType!
-  bulkUpdateQuestionnairQuestionGroupsLeafOrder(questionnaireId: ID!, data: [QuestionLeafGroupOrderInputType!]!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
+  bulkUpdateQuestionnaireQuestionGroupsLeafOrder(questionnaireId: ID!, data: [QuestionLeafGroupOrderInputType!]!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
   updateQuestionGroupsLeafVisibility(questionnaireId: ID!, ids: [ID!]!, visibility: VisibilityActionEnum!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
   bulkUpdateQuestionsOrder(questionnaireId: ID!, leafGroupId: ID!, data: [QuestionOrderInputType!]!): QuestionTypeBulkBasicMutationResponseType!
   updateQuestionsVisibility(questionnaireId: ID!, ids: [ID!]!, visibility: VisibilityActionEnum!): QuestionTypeBulkBasicMutationResponseType!
   createQuestionChoiceCollection(data: QuestionChoiceCollectionCreateInput!): QuestionChoiceCollectionTypeMutationResponseType!
   updateQuestionChoiceCollection(id: ID!, data: QuestionChoiceCollectionUpdateInput!): QuestionChoiceCollectionTypeMutationResponseType!
   deleteQuestionChoiceCollection(id: ID!): QuestionChoiceCollectionTypeMutationResponseType!
+  createQuestionnaireExport(data: QuestionnaireExportCreateInput!): QuestionnaireExportTypeMutationResponseType!
+  deleteQuestionnaireExport(id: ID!): QuestionnaireExportTypeMutationResponseType!
+  id: ID!
   updateProject(data: ProjectUpdateInput!): ProjectTypeMutationResponseType!
   leaveProject(confirmPassword: String!): MutationEmptyResponseType!
   updateMemberships(items: [ProjectMembershipUpdateInput!] = [], deleteIds: [ID!] = []): ProjectMembershipTypeBulkMutationResponseType!
@@ -200,6 +228,8 @@ type ProjectScopeType {
   leafGroup(pk: ID!): QuestionLeafGroupType
   choiceCollection(pk: ID!): QuestionChoiceCollectionType
   question(pk: ID!): QuestionType
+  questionnaireExports(filters: QuestionnaireExportFilter, order: QuestionnaireExportOrder, pagination: OffsetPaginationInput): QuestionnaireExportTypeCountList!
+  questionnaireExport(pk: ID!): QuestionnaireExportType
   id: ID!
   project: ProjectType!
 }
@@ -348,7 +378,6 @@ input QuestionCreateInput {
   image: String
   video: String
   isOrOther: Boolean
-  orOtherLabel: String
 }
 
 input QuestionFilter {
@@ -542,7 +571,6 @@ type QuestionType {
   image: String!
   video: String!
   isOrOther: Boolean!
-  orOtherLabel: String!
   choiceCollection: QuestionChoiceCollectionType
   createdBy: UserType!
   leafGroupId: ID
@@ -613,15 +641,86 @@ input QuestionUpdateInput {
   image: String
   video: String
   isOrOther: Boolean
-  orOtherLabel: String
 }
 
 input QuestionnaireCreateInput {
   title: String!
-  priorityLevel: QuestionnarePriorityLevelTypeEnum
-  enumeratorSkill: QuestionnareEnumeratorSkillTypeEnum
-  dataCollectionMethod: QuestionnareDataCollectionMethodTypeEnum
+  priorityLevel: QuestionnairePriorityLevelTypeEnum
+  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
+  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
   requiredDuration: Int
+}
+
+enum QuestionnaireDataCollectionMethodTypeEnum {
+  DIRECT
+  FOCUS_GROUP
+  ONE_ON_ONE_INTERVIEW
+  OPEN_ENDED_SURVEY
+  CLOSED_ENDED_SURVEY
+  KEY_INFORMANT_INTERVIEW
+}
+
+enum QuestionnaireEnumeratorSkillTypeEnum {
+  BASIC
+  MEDIUM
+  ADVANCED
+}
+
+input QuestionnaireExportCreateInput {
+  type: QuestionnaireExportTypeEnum!
+  questionnaire: ID!
+}
+
+input QuestionnaireExportFilter {
+  id: IDFilterLookup
+  questionnaire: DjangoModelFilterInput
+  exportedAt: DatetimeFilterLookup
+  type: QuestionnaireExportTypeEnum
+  status: QuestionnaireExportStatusEnum
+}
+
+input QuestionnaireExportOrder {
+  id: Ordering
+  exportedAt: Ordering
+}
+
+enum QuestionnaireExportStatusEnum {
+  PENDING
+  STARTED
+  SUCCESS
+  FAILURE
+  CANCELED
+}
+
+type QuestionnaireExportType {
+  id: ID!
+  exportedAt: DateTime!
+  startedAt: DateTime
+  endedAt: DateTime
+  exportedBy: UserType!
+  file: FileFieldType
+  questionnaireId: ID!
+  status: QuestionnaireExportStatusEnum!
+  statusDisplay: String!
+  type: QuestionnaireExportTypeEnum!
+  typeDisplay: String!
+}
+
+type QuestionnaireExportTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionnaireExportType!]!
+}
+
+enum QuestionnaireExportTypeEnum {
+  XLSFORM
+}
+
+type QuestionnaireExportTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionnaireExportType
 }
 
 input QuestionnaireFilter {
@@ -635,6 +734,12 @@ input QuestionnaireOrder {
   createdAt: Ordering
 }
 
+enum QuestionnairePriorityLevelTypeEnum {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 type QuestionnaireType {
   createdAt: DateTime!
   modifiedAt: DateTime!
@@ -642,13 +747,13 @@ type QuestionnaireType {
   title: String!
   requiredDuration: Int
   createdBy: UserType!
-  dataCollectionMethod: QuestionnareDataCollectionMethodTypeEnum
+  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
   dataCollectionMethodDisplay: String
-  enumeratorSkill: QuestionnareEnumeratorSkillTypeEnum
+  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
   enumeratorSkillDisplay: String
   leafGroups: [QuestionLeafGroupType!]!
   modifiedBy: UserType!
-  priorityLevel: QuestionnarePriorityLevelTypeEnum
+  priorityLevel: QuestionnairePriorityLevelTypeEnum
   priorityLevelDisplay: String
   projectId: ID!
 }
@@ -668,31 +773,10 @@ type QuestionnaireTypeMutationResponseType {
 
 input QuestionnaireUpdateInput {
   title: String
-  priorityLevel: QuestionnarePriorityLevelTypeEnum
-  enumeratorSkill: QuestionnareEnumeratorSkillTypeEnum
-  dataCollectionMethod: QuestionnareDataCollectionMethodTypeEnum
+  priorityLevel: QuestionnairePriorityLevelTypeEnum
+  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
+  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
   requiredDuration: Int
-}
-
-enum QuestionnareDataCollectionMethodTypeEnum {
-  DIRECT
-  FOCUS_GROUP
-  ONE_ON_ONE_INTERVIEW
-  OPEN_ENDED_SURVEY
-  CLOSED_ENDED_SURVEY
-  KEY_INFORMANT_INTERVIEW
-}
-
-enum QuestionnareEnumeratorSkillTypeEnum {
-  BASIC
-  MEDIUM
-  ADVANCED
-}
-
-enum QuestionnarePriorityLevelTypeEnum {
-  HIGH
-  MEDIUM
-  LOW
 }
 
 input RegisterInput {

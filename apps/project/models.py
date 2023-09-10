@@ -56,6 +56,7 @@ class Project(UserResource):
         UPDATE_MEMBERSHIPS = auto()
         # Questionnaire
         VIEW_QUESTIONNAIRE = auto()
+        EXPORT_QUESTIONNAIRE = auto()
         CREATE_QUESTIONNAIRE = auto()
         UPDATE_QUESTIONNAIRE = auto()
         DELETE_QUESTIONNAIRE = auto()
