@@ -28,6 +28,11 @@ env = environ.Env(
     DJANGO_DB_HOST=str,
     DJANGO_DB_PORT=int,
     DJANGO_CORS_ORIGIN_REGEX_WHITELIST=(list, []),
+    # Redis
+    CELERY_REDIS_URL=str,
+    DJANGO_CACHE_REDIS_URL=str,
+    # -- For running test (Optional)
+    TEST_DJANGO_CACHE_REDIS_URL=(str, None),
     # Static, Media configs
     DJANGO_STATIC_URL=(str, '/static/'),
     DJANGO_MEDIA_URL=(str, '/media/'),
@@ -123,6 +128,7 @@ INSTALLED_APPS = [
     'apps.user',
     'apps.project',
     'apps.questionnaire',
+    'apps.export',
     # 'apps.qbank',
 ]
 
@@ -391,18 +397,34 @@ else:
 DEFAULT_PAGINATION_LIMIT = 50
 MAX_PAGINATION_LIMIT = 100
 
+# Redis
+CELERY_REDIS_URL = env('CELERY_REDIS_URL')
+DJANGO_CACHE_REDIS_URL = env('DJANGO_CACHE_REDIS_URL')
+TEST_DJANGO_CACHE_REDIS_URL = env('TEST_DJANGO_CACHE_REDIS_URL')
+
 # Caches
 CACHES = {
     'default': {
-        # XXX: Use redis if needed
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'local-memory-01',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': DJANGO_CACHE_REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'dj_cache-',
     },
     'local-memory': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'local-memory-02',
     }
 }
+
+# Celery
+CELERY_BROKER_URL = CELERY_REDIS_URL
+CELERY_RESULT_BACKEND = CELERY_REDIS_URL
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_EVENT_QUEUE_PREFIX = 'qber-celery-'
+CELERY_ACKS_LATE = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Misc
 ALLOW_DUMMY_DATA_SCRIPT = env('ALLOW_DUMMY_DATA_SCRIPT')
