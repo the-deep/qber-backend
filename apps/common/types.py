@@ -4,7 +4,7 @@ from strawberry.types import Info
 from django.db import models
 from django.db.models.fields.files import FieldFile as DjFieldFile
 from django.http import HttpRequest
-from django.core.files.storage import FileSystemStorage, storages
+from django.core.files.storage import FileSystemStorage, default_storage
 from django.core.cache import cache
 from django.conf import settings
 
@@ -41,8 +41,7 @@ class UserResourceTypeMixin:
 def get_cached_file_uri(file: DjFieldFile, request: HttpRequest) -> str | None:
     if file.name is None:
         return
-
-    if isinstance(storages.backends['default'], FileSystemStorage):
+    if isinstance(default_storage, FileSystemStorage):
         return request.build_absolute_uri(file.url)
     # Other is only S3 for now
     cache_key = CacheKey.URL_CACHED_FILE_FIELD_KEY_FORMAT.format(CacheKey.generate_hash(file.name))

@@ -101,6 +101,9 @@ class TestCase(BaseTestCase):
         if pk:
             return str(pk)
 
+    def get_media_url(self, path):
+        return f'http://testserver/media/{path}'
+
     def _dict_with_keys(
         self,
         data: dict,

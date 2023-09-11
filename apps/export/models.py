@@ -44,6 +44,7 @@ class QuestionnaireExport(models.Model):
 
     questionnaire_id: int
     exported_by_id: int
+    get_type_display: typing.Callable[..., str]
     get_status_display: typing.Callable[..., str]
 
     def __str__(self):

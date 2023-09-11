@@ -15,3 +15,5 @@ sitecustomize.py
 .coverage
 htmlcov/
 .pytest_cache/
+
+rest-media-temp/

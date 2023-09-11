@@ -23,14 +23,14 @@ class UnknownQuestionLeafGroupType(Exception):
 class XlsQuestionType:
     @staticmethod
     def get_select_one(question):
-        name = f'select_one {question.choice.name}'
+        name = f'select_one {question.choice_collection.name}'
         if question.is_or_other:
             return f'{name} or_other'
         return name
 
     @staticmethod
     def get_select_multiple(question):
-        name = f'select_multiple {question.choice.name}'
+        name = f'select_multiple {question.choice_collection.name}'
         if question.is_or_other:
             return f'{name} or_other'
         return name
