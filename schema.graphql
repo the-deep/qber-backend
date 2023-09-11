@@ -681,7 +681,6 @@ enum QuestionnaireEnumeratorSkillTypeEnum {
 }
 
 input QuestionnaireExportCreateInput {
-  type: QuestionnaireExportTypeEnum!
   questionnaire: ID!
 }
 
@@ -689,7 +688,6 @@ input QuestionnaireExportFilter {
   id: IDFilterLookup
   questionnaire: DjangoModelFilterInput
   exportedAt: DatetimeFilterLookup
-  type: QuestionnaireExportTypeEnum
   status: QuestionnaireExportStatusEnum
 }
 
@@ -711,13 +709,13 @@ type QuestionnaireExportType {
   exportedAt: DateTime!
   startedAt: DateTime
   endedAt: DateTime
+  enketoPreviewUrl: String
   exportedBy: UserType!
-  file: FileFieldType
   questionnaireId: ID!
   status: QuestionnaireExportStatusEnum!
   statusDisplay: String!
-  type: QuestionnaireExportTypeEnum!
-  typeDisplay: String!
+  xlsxFile: FileFieldType
+  xmlFile: FileFieldType
 }
 
 type QuestionnaireExportTypeCountList {
@@ -725,10 +723,6 @@ type QuestionnaireExportTypeCountList {
   offset: Int!
   count: Int!
   items: [QuestionnaireExportType!]!
-}
-
-enum QuestionnaireExportTypeEnum {
-  XLSFORM
 }
 
 type QuestionnaireExportTypeMutationResponseType {

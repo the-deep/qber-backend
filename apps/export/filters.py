@@ -1,10 +1,7 @@
 import strawberry
 import strawberry_django
 
-from .enums import (
-    QuestionnaireExportTypeEnum,
-    QuestionnaireExportStatusEnum,
-)
+from .enums import QuestionnaireExportStatusEnum
 from .models import QuestionnaireExport
 
 
@@ -13,5 +10,4 @@ class QuestionnaireExportFilter:
     id: strawberry.auto
     questionnaire: strawberry.auto
     exported_at: strawberry.auto
-    type: QuestionnaireExportTypeEnum
     status: QuestionnaireExportStatusEnum

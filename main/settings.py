@@ -82,6 +82,8 @@ env = environ.Env(
     SMTP_EMAIL_PORT=int,
     SMTP_EMAIL_USERNAME=str,
     SMTP_EMAIL_PASSWORD=str,
+    # Enketo
+    ENKETO_DOMAIN=str,  # https://enketo.qber.com
     # MISC
     ALLOW_DUMMY_DATA_SCRIPT=(bool, False),  # WARNING
 )
@@ -426,3 +428,5 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Misc
 ALLOW_DUMMY_DATA_SCRIPT = env('ALLOW_DUMMY_DATA_SCRIPT')
+
+ENKETO_DOMAIN = env('ENKETO_DOMAIN')

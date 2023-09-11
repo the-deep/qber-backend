@@ -25,8 +25,6 @@ class TestExportMutation(TestCase):
                     errors
                     result {
                       id
-                      type
-                      typeDisplay
                       statusDisplay
                       status
                       startedAt
@@ -36,7 +34,11 @@ class TestExportMutation(TestCase):
                       exportedBy {
                         id
                       }
-                      file {
+                      xlsxFile {
+                        name
+                        url
+                      }
+                      xmlFile {
                         name
                         url
                       }
@@ -61,8 +63,6 @@ class TestExportMutation(TestCase):
                     errors
                     result {
                       id
-                      type
-                      typeDisplay
                       statusDisplay
                       status
                       startedAt
@@ -73,7 +73,11 @@ class TestExportMutation(TestCase):
                         id
                         displayName
                       }
-                      file {
+                      xlsxFile {
+                        name
+                        url
+                      }
+                      xmlFile {
                         name
                         url
                       }
@@ -104,7 +108,6 @@ class TestExportMutation(TestCase):
         variables = {
             'projectId': self.gID(self.project.id),
             'data': {
-                'type': self.genum(QuestionnaireExport.Type.XLSFORM),
                 'questionnaire': self.gID(self.q1.pk),
             },
         }
@@ -146,8 +149,6 @@ class TestExportMutation(TestCase):
         assert export.get_task_id() == DummyCeleryTaskResponse.id
         assert content['result'] == {
             'id': self.gID(export.pk),
-            'type': self.genum(QuestionnaireExport.Type.XLSFORM),
-            'typeDisplay': export.get_type_display(),
             'status': self.genum(QuestionnaireExport.Status.PENDING),
             'statusDisplay': export.get_status_display(),
             'exportedAt': self.gdatetime(export.exported_at),
@@ -156,6 +157,7 @@ class TestExportMutation(TestCase):
             'exportedBy': {
                 'id': self.gID(export.exported_by_id),
             },
-            'file': None,
+            'xlsxFile': None,
+            'xmlFile': None,
             'questionnaireId': self.gID(self.q1.pk),
         }

@@ -18,8 +18,6 @@ class TestExportQuery(TestCase):
                   id
                   questionnaireExport(pk: $questionnaireExportId) {
                     id
-                    type
-                    typeDisplay
                     status
                     statusDisplay
                     exportedAt
@@ -28,7 +26,11 @@ class TestExportQuery(TestCase):
                     exportedBy {
                       id
                     }
-                    file {
+                    xlsxFile {
+                      url
+                      name
+                    }
+                    xmlFile {
                       url
                       name
                     }
@@ -47,8 +49,6 @@ class TestExportQuery(TestCase):
                     count
                     items {
                       id
-                      type
-                      typeDisplay
                       status
                       statusDisplay
                       exportedAt
@@ -57,7 +57,11 @@ class TestExportQuery(TestCase):
                       exportedBy {
                         id
                       }
-                      file {
+                      xlsxFile {
+                        url
+                        name
+                      }
+                      xmlFile {
                         url
                         name
                       }
@@ -110,8 +114,6 @@ class TestExportQuery(TestCase):
         content = self.query_check(self.Query.EXPORT, variables=variables)
         assert content['data']['private']['projectScope']['questionnaireExport'] == {
             'id': self.gID(export.id),
-            'type': self.genum(export.type),
-            'typeDisplay': export.get_type_display(),
             'status': self.genum(export.status),
             'statusDisplay': export.get_status_display(),
             'exportedAt': self.gdatetime(export.exported_at),
@@ -120,9 +122,13 @@ class TestExportQuery(TestCase):
             'exportedBy': {
                 'id': self.gID(export.exported_by_id),
             },
-            'file': {
-                'url': self.get_media_url(export.file.name),
-                'name': export.file.name,
+            'xlsxFile': {
+                'url': self.get_media_url(export.xlsx_file.name),
+                'name': export.xlsx_file.name,
+            },
+            'xmlFile': {
+                'url': self.get_media_url(export.xml_file.name),
+                'name': export.xml_file.name,
             },
         }
 
@@ -154,8 +160,6 @@ class TestExportQuery(TestCase):
                 'items': [
                     {
                         'id': self.gID(export.id),
-                        'type': self.genum(export.type),
-                        'typeDisplay': export.get_type_display(),
                         'status': self.genum(export.status),
                         'statusDisplay': export.get_status_display(),
                         'exportedAt': self.gdatetime(export.exported_at),
@@ -164,10 +168,14 @@ class TestExportQuery(TestCase):
                         'exportedBy': {
                             'id': self.gID(export.exported_by_id),
                         },
-                        'file': {
-                            'name': export.file.name,
-                            'url': self.get_media_url(export.file.name),
-                        }
+                        'xlsxFile': {
+                            'url': self.get_media_url(export.xlsx_file.name),
+                            'name': export.xlsx_file.name,
+                        },
+                        'xmlFile': {
+                            'url': self.get_media_url(export.xml_file.name),
+                            'name': export.xml_file.name,
+                        },
                     }
                     for export in exports_
                 ]
@@ -203,9 +211,17 @@ class TestExportQuery(TestCase):
                     self.Query.EXPORT,
                     variables=variables,
                 )['data']['private']['projectScope']['questionnaireExport']
-                expected_startswith_url = file_uri_prefix_func(export.file.name)
-                real_url = content['file']['url']
-                assert real_url.startswith(expected_startswith_url), (
-                    expected_startswith_url,
-                    real_url,
+                # XLSX
+                xlsx_expected_startswith_url = file_uri_prefix_func(export.xlsx_file.name)
+                xlsx_real_url = content['xlsxFile']['url']
+                assert xlsx_real_url.startswith(xlsx_expected_startswith_url), (
+                    xlsx_expected_startswith_url,
+                    xlsx_real_url,
+                )
+                # XML
+                xml_expected_startswith_url = file_uri_prefix_func(export.xml_file.name)
+                xml_real_url = content['xmlFile']['url']
+                assert xml_real_url.startswith(xml_expected_startswith_url), (
+                    xml_expected_startswith_url,
+                    xml_real_url,
                 )

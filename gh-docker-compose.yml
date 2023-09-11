@@ -46,6 +46,8 @@ services:
       TEST_DJANGO_CACHE_REDIS_URL: redis://redis:6379/12
       # EMAIL
       EMAIL_FROM: dev@example.com
+      # Enketo
+      ENKETO_DOMAIN: http://localhost:8005
     volumes:
       - ./coverage/:/code/coverage/
       - ./ci-share/:/ci-share/

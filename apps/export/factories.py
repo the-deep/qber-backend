@@ -4,9 +4,9 @@ from .models import QuestionnaireExport
 
 
 class QuestionnaireExportFactory(DjangoModelFactory):
-    type = QuestionnaireExport.Type.XLSFORM
     status = QuestionnaireExport.Status.PENDING
-    file = 'random-file-path'
+    xlsx_file = 'random-file-path/random-file.xlsx'
+    xml_file = 'random-file-path/random-file.xml'
 
     class Meta:
         model = QuestionnaireExport

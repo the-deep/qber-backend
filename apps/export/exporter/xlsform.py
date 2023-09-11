@@ -2,7 +2,7 @@ import typing
 from collections import defaultdict
 
 import pandas as pd
-from django.db import models
+from pyxform.xls2xform import xls2xform_convert
 
 from apps.export.models import QuestionnaireExport
 from apps.questionnaire.models import (
@@ -41,7 +41,7 @@ class XlsQuestionType:
         Question.Type.TEXT: 'text',
         Question.Type.SELECT_ONE: get_select_one,
         Question.Type.SELECT_MULTIPLE: get_select_multiple,
-        Question.Type.RANK: '',
+        Question.Type.RANK: lambda q: f'rank {q.choice_collection.name}',
         Question.Type.RANGE: 'range',
         Question.Type.NOTE: 'note',
         Question.Type.DATE: 'date',
@@ -175,11 +175,6 @@ class XlsSheet:
             # 'instance_name': '',
             # 'default_language': '',
         }
-
-
-def generate_group_structure(leaf_groups_qs: models.QuerySet[QuestionLeafGroup]):
-    # leaf_groups_qs.order_by().values()
-    return []
 
 
 def generate_groups_tree(leaf_groups: list[QuestionLeafGroup]):
@@ -328,18 +323,21 @@ def generate_data(questionnaire: Questionnaire) -> tuple[dict, dict, dict]:
     # Groups TOC
     survey_list = []
 
-    def _add_to_survey_list(nodes, _list):
+    def _add_to_survey_list(nodes, _list, parent_key=None):
         for node in nodes:
             _nodes = node.get('nodes')
             if _nodes is not None:
                 # We need to add group for non-leaf nodes only
+                _node_key = f"category__{node['key']}"
+                if parent_key:
+                    _node_key = f"{parent_key}__{_node_key}"
                 _list.append(
                     XlsSheet.get_survey_raw_group_dict(
-                        f"category__{node['key']}",
+                        _node_key,
                         node['label'],
                     )
                 )
-                _add_to_survey_list(_nodes, _list)
+                _add_to_survey_list(_nodes, _list, parent_key=_node_key)
                 _list.append(XlsSheet.SURVEY_END_GROUP_ROW)
             else:
                 _list.extend(leaf_groups_collections[node['id']])
@@ -368,17 +366,30 @@ def generate_data(questionnaire: Questionnaire) -> tuple[dict, dict, dict]:
     }
 
 
-def export(export: QuestionnaireExport, temp_file):
+def export(
+    export: QuestionnaireExport,
+    temp_xlsx_file: typing.IO[typing.Any],
+    temp_xml_file: typing.IO[typing.Any],
+) -> None:
     questionnaire = export.questionnaire
     surveys, choices, settings = generate_data(questionnaire)
     survey_df = pd.DataFrame.from_records(surveys['values'])
     choices_df = pd.DataFrame.from_records(choices['values'])
     settings_df = pd.DataFrame.from_records(settings['values'])
+    # Generate XLSX
     with pd.ExcelWriter(
-        temp_file,
+        temp_xlsx_file,
         engine='openpyxl'
     ) as writer:  # pyright: ignore [reportGeneralTypeIssues]
         survey_df.to_excel(writer, sheet_name='survey')
         choices_df.to_excel(writer, sheet_name='choices')
         settings_df.to_excel(writer, sheet_name='settings')
-        return 'xlsx'
+    # Generate XML
+    temp_xlsx_file.seek(0)
+    xls2xform_convert(
+        temp_xlsx_file.name,
+        temp_xml_file.name,
+        # NOTE: Need to install java as dependencies for validation, Instead we use standalone enketo for that
+        validate=False,
+        enketo=False,
+    )

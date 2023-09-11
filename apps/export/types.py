@@ -1,11 +1,13 @@
+import urllib.parse
 import strawberry
 import strawberry_django
 from strawberry.types import Info
 from django.db import models
+from django.conf import settings
 
 from utils.common import get_queryset_for_model
 from utils.strawberry.enums import enum_display_field, enum_field
-from apps.common.types import file_field
+from apps.common.types import file_field, get_cached_file_uri
 from apps.project.models import Project
 from apps.user.types import UserType
 
@@ -20,12 +22,23 @@ class QuestionnaireExportType:
     started_at: strawberry.auto
     ended_at: strawberry.auto
 
-    type = enum_field(QuestionnaireExport.type)
-    type_display = enum_display_field(QuestionnaireExport.type)
     status = enum_field(QuestionnaireExport.status)
     status_display = enum_display_field(QuestionnaireExport.status)
 
-    file = file_field(QuestionnaireExport.file)
+    xlsx_file = file_field(QuestionnaireExport.xlsx_file)
+    # http://localhost:8005/preview?form=http%3A%2F%2F127.0.0.1%3A8080%2FQuestionnaire-5_nXuUP4m.xml
+    xml_file = file_field(QuestionnaireExport.xml_file)
+
+    @strawberry.field
+    @staticmethod
+    def enketo_preview_url(root: QuestionnaireExport, info: Info) -> str | None:
+        if root.xml_file.name:
+            xm_file_url = get_cached_file_uri(
+                root.xml_file,
+                info.context.request,
+            )
+            params = {'form': xm_file_url}
+            return f'{settings.ENKETO_DOMAIN}/preview?{urllib.parse.urlencode(params)}'
 
     @strawberry.field
     @staticmethod

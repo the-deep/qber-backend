@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('ended_at', models.DateTimeField(blank=True, null=True)),
                 ('type', models.PositiveSmallIntegerField(choices=[(1, 'XLSFORM')])),
                 ('status', models.PositiveSmallIntegerField(choices=[(1, 'Pending'), (2, 'Started'), (3, 'Success'), (4, 'Failure'), (5, 'Canceled')], default=1)),
-                ('file', models.FileField(blank=True, default=None, max_length=255, null=True, upload_to=apps.export.models.export_file_upload_to)),
+                ('file', models.FileField(blank=True, default=None, max_length=255, null=True, upload_to=apps.export.models.questionnaire_export_file_upload_to)),
                 ('exported_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
                 ('questionnaire', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='questionnaire.questionnaire')),
             ],

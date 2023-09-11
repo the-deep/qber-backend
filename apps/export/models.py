@@ -1,6 +1,7 @@
 import typing
 
 from django.db import models
+from django.utils import timezone
 from django.core.cache import cache
 
 from main.celery import app as celery_app
@@ -9,15 +10,12 @@ from apps.user.models import User
 from apps.questionnaire.models import Questionnaire
 
 
-def export_file_upload_to(instance, filename: str) -> str:
-    return f'export/{instance.type}/{filename}'
+def questionnaire_export_file_upload_to(_: 'QuestionnaireExport', filename: str) -> str:
+    time_str = timezone.now().strftime('%Y-%m-%d%z')
+    return f'export/questionnaire/{time_str}/{filename}'
 
 
 class QuestionnaireExport(models.Model):
-
-    class Type(models.IntegerChoices):
-        XLSFORM = 1, 'XLSFORM'
-
     class Status(models.IntegerChoices):
         PENDING = 1, 'Pending'
         STARTED = 2, 'Started'
@@ -25,17 +23,25 @@ class QuestionnaireExport(models.Model):
         FAILURE = 4, 'Failure'
         CANCELED = 5, 'Canceled'
 
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     exported_by = models.ForeignKey(User, on_delete=models.CASCADE)
     exported_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(null=True, blank=True)
     ended_at = models.DateTimeField(null=True, blank=True)
 
-    type = models.PositiveSmallIntegerField(choices=Type.choices)
     status: models.PositiveSmallIntegerField = models.PositiveSmallIntegerField(
         choices=Status.choices, default=Status.PENDING)
-    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    file = models.FileField(
-        upload_to=export_file_upload_to,
+
+    # Files
+    xlsx_file = models.FileField(
+        upload_to=questionnaire_export_file_upload_to,
+        max_length=255,
+        null=True,
+        blank=True,
+        default=None,
+    )
+    xml_file = models.FileField(
+        upload_to=questionnaire_export_file_upload_to,
         max_length=255,
         null=True,
         blank=True,

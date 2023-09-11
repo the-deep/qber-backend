@@ -38,7 +38,7 @@ class TestExportTaskQuery(TestCase):
         for group in groups:
             for type_, _ in Question.Type.choices:
                 question_params = {**user_resource_params}
-                if type_ in [Question.Type.SELECT_MULTIPLE, Question.Type.SELECT_ONE]:
+                if type_ in Question.FIELDS_WITH_CHOICE_COLLECTION:
                     question_params['choice_collection'] = random.choice(choice_collections)
                 QuestionFactory.create_batch(2, **question_params, leaf_group=group, type=type_)
                 QuestionFactory.create_batch(3, **question_params, leaf_group=group, type=type_)

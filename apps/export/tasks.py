@@ -28,13 +28,21 @@ def export_task(export_id, force=False):
         with transaction.atomic():
             export.save(update_fields=('status', 'started_at',))
 
-        with NamedTemporaryFile(dir=settings.TEMP_FILE_DIR, delete=True) as temp_file:
-            extension = xlsform.export(export, temp_file)
-            temp_file.seek(0)
+        with (
+            NamedTemporaryFile(dir='/tmp/', delete=True, suffix='.xlsx') as temp_xlsx_file,
+            NamedTemporaryFile(dir=settings.TEMP_FILE_DIR, delete=True, suffix='.xml') as temp_xml_file,
+        ):
+            xlsform.export(export, temp_xlsx_file, temp_xml_file)
+            temp_xlsx_file.seek(0)
+            temp_xml_file.seek(0)
             # Upload file to storage
-            export.file.save(
-                f'{export.questionnaire.title}.{extension}',
-                temp_file,
+            export.xlsx_file.save(
+                f'{export.questionnaire.title}.xlsx',
+                temp_xlsx_file,
+            )
+            export.xml_file.save(
+                f'{export.questionnaire.title}.xml',
+                temp_xml_file,
             )
         # Update status to SUCCESS
         export.status = QuestionnaireExport.Status.SUCCESS

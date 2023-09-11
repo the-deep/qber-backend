@@ -7,7 +7,7 @@ local_cache = caches['local-memory']
 
 class CacheKey:
     # Redis Cache
-    URL_CACHED_FILE_FIELD_KEY_FORMAT = 'url-cached-file-key-%s'
+    URL_CACHED_FILE_FIELD_KEY_FORMAT = 'url-cached-file-key-{0}'
 
     # Local (RAM) Cache
     TEMP_CLIENT_ID_KEY_FORMAT = 'client-id-mixin-{request_hash}-{instance_type}-{instance_id}'
