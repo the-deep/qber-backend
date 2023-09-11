@@ -563,6 +563,13 @@ class Question(UserResource):
     # -- Or Other: https://xlsform.org/en/#specify-other
     is_or_other = models.BooleanField(default=False)
 
+    # Qber Metadata
+    priority_level = models.PositiveSmallIntegerField(choices=Questionnaire.PriorityLevel.choices, null=True, blank=True)
+    enumerator_skill = models.PositiveSmallIntegerField(choices=Questionnaire.EnumeratorSkill.choices, null=True, blank=True)
+    data_collection_method = models.PositiveSmallIntegerField(
+        choices=Questionnaire.DataCollectionMethod.choices, null=True, blank=True)
+    required_duration = models.PositiveIntegerField(null=True, blank=True, help_text='In seconds')
+
     choice_collection_id: int
 
     class Meta:

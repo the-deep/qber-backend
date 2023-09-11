@@ -86,7 +86,6 @@ env = environ.Env(
     ALLOW_DUMMY_DATA_SCRIPT=(bool, False),  # WARNING
 )
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -105,7 +104,6 @@ APP_FRONTEND_HOST = env('APP_FRONTEND_HOST')
 
 APP_ENVIRONMENT = env('APP_ENVIRONMENT')
 APP_TYPE = env('APP_TYPE')
-
 
 # Application definition
 

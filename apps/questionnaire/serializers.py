@@ -92,6 +92,11 @@ class QuestionSerializer(UserResourceSerializer):
             # Parents
             'questionnaire',
             'leaf_group',
+            # Qber Metadata
+            'priority_level',
+            'enumerator_skill',
+            'data_collection_method',
+            'required_duration',
             # Question metadata
             'type',
             'name',

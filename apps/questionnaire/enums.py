@@ -38,6 +38,9 @@ enum_map = {
         (Questionnaire.data_collection_method, QuestionnaireDataCollectionMethodTypeEnum),
         # Question
         (Question.type, QuestionTypeEnum),
+        (Question.priority_level, QuestionnairePriorityLevelTypeEnum),
+        (Question.enumerator_skill, QuestionnaireEnumeratorSkillTypeEnum),
+        (Question.data_collection_method, QuestionnaireDataCollectionMethodTypeEnum),
         # QuestionLeafGroup
         (QuestionLeafGroup.type, QuestionLeafGroupTypeEnum),
         (QuestionLeafGroup.category_1, QuestionLeafGroupCategory1TypeEnum),

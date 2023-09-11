@@ -361,6 +361,10 @@ input QuestionCreateInput {
   type: QuestionTypeEnum!
   name: String!
   label: String!
+  priorityLevel: QuestionnairePriorityLevelTypeEnum
+  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
+  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  requiredDuration: Int
   hint: String
   choiceCollection: ID
   default: String
@@ -573,8 +577,14 @@ type QuestionType {
   isOrOther: Boolean!
   choiceCollection: QuestionChoiceCollectionType
   createdBy: UserType!
+  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  dataCollectionMethodDisplay: String
+  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
+  enumeratorSkillDisplay: String
   leafGroupId: ID
   modifiedBy: UserType!
+  priorityLevel: QuestionnairePriorityLevelTypeEnum
+  priorityLevelDisplay: String
   questionnaireId: ID!
   type: QuestionTypeEnum!
   typeDisplay: String!
@@ -621,6 +631,10 @@ type QuestionTypeMutationResponseType {
 input QuestionUpdateInput {
   questionnaire: ID
   leafGroup: ID
+  priorityLevel: QuestionnairePriorityLevelTypeEnum
+  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
+  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  requiredDuration: Int
   type: QuestionTypeEnum
   name: String
   label: String
