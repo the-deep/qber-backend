@@ -19,25 +19,53 @@ TEST_CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-TEST_STORAGES = {
-    'default': {
-        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+
+FILE_SYSTEM_TEST_STORAGES_CONFIGS = dict(
+    DJANGO_USE_S3=False,
+    STORAGES={
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        },
     },
-    'staticfiles': {
-        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
-    },
-}
+)
+
+S3_TEST_STORAGES_CONFIGS = dict(
+    DJANGO_USE_S3=True,
+    AWS_S3_BUCKET_STATIC='qb-static',
+    AWS_S3_BUCKET_MEDIA='qb-media',
+    AWS_S3_ACCESS_KEY_ID='FAKE-ACCESS-KEY',
+    AWS_S3_SECRET_ACCESS_KEY='FAKE-SECRET-KEY',
+    AWS_S3_ENDPOINT_URL='https://fake.s3.endpoint',
+    STORAGES={
+        # Need to manually override here as this is auto selected on startup
+        'default': {
+            'BACKEND': 'main.storages.S3MediaStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'main.storages.S3StaticStorage',
+        },
+    }
+)
 
 
 @override_settings(
     DEBUG=True,
     EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend',
     MEDIA_ROOT='rest-media-temp',
-    STORAGES=TEST_STORAGES,
+    STORAGES=FILE_SYSTEM_TEST_STORAGES_CONFIGS['STORAGES'],
     CACHES=TEST_CACHES,
     CELERY_TASK_ALWAYS_EAGER=True,
 )
 class TestCase(BaseTestCase):
+    def setUp(self):
+        from django.core.cache import cache
+        # Clear all test cache
+        cache.clear()
+        super().setUp()
+
     def force_login(self, user):
         self.client.force_login(user)
 

@@ -1,6 +1,7 @@
-from main.tests import TestCase
-
 from django.test import override_settings
+
+from main.tests import TestCase
+from main.tests.base import FILE_SYSTEM_TEST_STORAGES_CONFIGS, S3_TEST_STORAGES_CONFIGS
 
 from apps.user.factories import UserFactory
 from apps.project.factories import ProjectFactory
@@ -142,48 +143,69 @@ class TestExportQuery(TestCase):
         assert content['data']['private']['projectScope'] is None
 
         # With Access
-        for backend_storage in (
-            'django.core.files.storage.FileSystemStorage',
-            'main.storages.S3MediaStorage',
-        ):
-            with override_settings(
-                STORAGES={
-                    'default': {
-                        'BACKEND': backend_storage,
-                    },
-                },
-            ):
-                for user_, exports_ in [
-                        (self.user1, exports),
-                        (self.user2, []),
-                ]:
-                    self.force_login(user_)
-                    content = self.query_check(self.Query.EXPORTS, variables=variables)
-                    assert content['data']['private']['projectScope']['questionnaireExports'] == {
-                        'count': len(exports_),
-                        'items': [
-                            {
-                                'id': self.gID(export.id),
-                                'type': self.genum(export.type),
-                                'typeDisplay': export.get_type_display(),
-                                'status': self.genum(export.status),
-                                'statusDisplay': export.get_status_display(),
-                                'exportedAt': self.gdatetime(export.exported_at),
-                                'startedAt': self.gdatetime(export.started_at),
-                                'endedAt': self.gdatetime(export.ended_at),
-                                'exportedBy': {
-                                    'id': self.gID(export.exported_by_id),
-                                },
-                                'file': {
-                                    'name': export.file.name,
-                                    'url': (
-                                        f'/media/{export.file.name}'
-                                        if backend_storage == 'main.storages.S3MediaStorage'
-                                        else
-                                        self.get_media_url(export.file.name)
-                                    ),
-                                }
-                            }
-                            for export in exports_
-                        ]
+        for user_, exports_ in [
+                (self.user1, exports),
+                (self.user2, []),
+        ]:
+            self.force_login(user_)
+            content = self.query_check(self.Query.EXPORTS, variables=variables)
+            assert content['data']['private']['projectScope']['questionnaireExports'] == {
+                'count': len(exports_),
+                'items': [
+                    {
+                        'id': self.gID(export.id),
+                        'type': self.genum(export.type),
+                        'typeDisplay': export.get_type_display(),
+                        'status': self.genum(export.status),
+                        'statusDisplay': export.get_status_display(),
+                        'exportedAt': self.gdatetime(export.exported_at),
+                        'startedAt': self.gdatetime(export.started_at),
+                        'endedAt': self.gdatetime(export.ended_at),
+                        'exportedBy': {
+                            'id': self.gID(export.exported_by_id),
+                        },
+                        'file': {
+                            'name': export.file.name,
+                            'url': self.get_media_url(export.file.name),
+                        }
                     }
+                    for export in exports_
+                ]
+            }
+
+    def test_storage_backend(self):
+        project = self.project
+        export = self.exports[0]
+        variables = {
+            'projectId': self.gID(project.id),
+            'questionnaireExportId': self.gID(export.id),
+        }
+
+        self.force_login(self.user1)
+        # With Access
+        # TODO: Test cache behaviour as well
+        for file_uri_prefix_func, storage_configs in (
+            (self.get_media_url, FILE_SYSTEM_TEST_STORAGES_CONFIGS),
+            (
+                lambda x: (
+                    '/'.join([
+                        str(S3_TEST_STORAGES_CONFIGS['AWS_S3_ENDPOINT_URL']),
+                        str(S3_TEST_STORAGES_CONFIGS['AWS_S3_BUCKET_MEDIA']),
+                        'media',
+                        str(x),
+                    ])
+                ),
+                S3_TEST_STORAGES_CONFIGS,
+            ),
+        ):
+            with override_settings(**storage_configs):
+                content = self.query_check(
+                    self.Query.EXPORT,
+                    variables=variables,
+                )['data']['private']['projectScope']['questionnaireExport']
+                expected_startswith_url = file_uri_prefix_func(export.file.name)
+                real_url = content['file']['url']
+                assert real_url.startswith(expected_startswith_url), (
+                    expected_startswith_url,
+                    real_url,
+                )
