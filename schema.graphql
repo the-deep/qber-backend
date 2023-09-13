@@ -575,6 +575,7 @@ type QuestionType {
   image: String!
   video: String!
   isOrOther: Boolean!
+  requiredDuration: Int
   choiceCollection: QuestionChoiceCollectionType
   createdBy: UserType!
   dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum

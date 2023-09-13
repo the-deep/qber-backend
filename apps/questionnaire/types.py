@@ -164,6 +164,7 @@ class QuestionType(UserResourceTypeMixin):
     enumerator_skill_display = enum_display_field(Question.enumerator_skill)
     data_collection_method = enum_field(Question.data_collection_method)
     data_collection_method_display = enum_display_field(Question.data_collection_method)
+    required_duration: strawberry.auto
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):
