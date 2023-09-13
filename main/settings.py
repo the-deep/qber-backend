@@ -358,6 +358,7 @@ if APP_HTTP_PROTOCOL == 'https':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     CSRF_TRUSTED_ORIGINS = [
         APP_FRONTEND_HOST,
+        f'{APP_HTTP_PROTOCOL}://{APP_DOMAIN}',
     ]
 
 # https://docs.djangoproject.com/en/3.2/ref/settings/#std:setting-SESSION_COOKIE_DOMAIN
