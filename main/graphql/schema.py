@@ -6,6 +6,7 @@ from strawberry.django.context import StrawberryDjangoContext
 
 import utils.strawberry.transformers  # noqa: 403
 
+from main.enums import AppEnumCollection, AppEnumCollectionData
 from apps.project.models import Project
 
 from apps.user import queries as user_queries, mutations as user_mutations
@@ -96,6 +97,9 @@ class Query:
     private: PrivateQuery = strawberry.field(
         permission_classes=[IsAuthenticated],
         resolver=lambda: PrivateQuery()
+    )
+    enums: AppEnumCollection = strawberry.field(
+        resolver=lambda: AppEnumCollectionData()
     )
 
 

@@ -1,3 +1,141 @@
+type AppEnumCollection {
+  UserEmailOptOuts: [AppEnumCollectionUserEmailOptOuts!]!
+  ProjectMembershipRole: [AppEnumCollectionProjectMembershipRole!]!
+  QuestionnairePriorityLevel: [AppEnumCollectionQuestionnairePriorityLevel!]!
+  QuestionnaireEnumeratorSkill: [AppEnumCollectionQuestionnaireEnumeratorSkill!]!
+  QuestionnaireDataCollectionMethod: [AppEnumCollectionQuestionnaireDataCollectionMethod!]!
+  QuestionType: [AppEnumCollectionQuestionType!]!
+  QuestionPriorityLevel: [AppEnumCollectionQuestionPriorityLevel!]!
+  QuestionEnumeratorSkill: [AppEnumCollectionQuestionEnumeratorSkill!]!
+  QuestionDataCollectionMethod: [AppEnumCollectionQuestionDataCollectionMethod!]!
+  QuestionLeafGroupType: [AppEnumCollectionQuestionLeafGroupType!]!
+  QuestionLeafGroupCategory1: [AppEnumCollectionQuestionLeafGroupCategory1!]!
+  QuestionLeafGroupCategory2: [AppEnumCollectionQuestionLeafGroupCategory2!]!
+  QuestionLeafGroupCategory3: [AppEnumCollectionQuestionLeafGroupCategory3!]!
+  QuestionLeafGroupCategory4: [AppEnumCollectionQuestionLeafGroupCategory4!]!
+  QuestionnaireExportStatus: [AppEnumCollectionQuestionnaireExportStatus!]!
+}
+
+type AppEnumCollectionProjectMembershipRole {
+  key: ProjectMembershipRoleTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupCategory1 {
+  key: QuestionLeafGroupCategory1TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupCategory2 {
+  key: QuestionLeafGroupCategory2TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupCategory3 {
+  key: QuestionLeafGroupCategory3TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupCategory4 {
+  key: QuestionLeafGroupCategory4TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupType {
+  key: QuestionLeafGroupTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBQuestionDataCollectionMethod {
+  key: QberDataCollectionMethodTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBQuestionEnumeratorSkill {
+  key: QberEnumeratorSkillTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBQuestionPriorityLevel {
+  key: QberMetaDataPriorityLevelTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBQuestionType {
+  key: QberQuestionTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionDataCollectionMethod {
+  key: QberDataCollectionMethodTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionEnumeratorSkill {
+  key: QberEnumeratorSkillTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupCategory1 {
+  key: QuestionLeafGroupCategory1TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupCategory2 {
+  key: QuestionLeafGroupCategory2TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupCategory3 {
+  key: QuestionLeafGroupCategory3TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupCategory4 {
+  key: QuestionLeafGroupCategory4TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupType {
+  key: QuestionLeafGroupTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionPriorityLevel {
+  key: QberMetaDataPriorityLevelTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionType {
+  key: QberQuestionTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionnaireDataCollectionMethod {
+  key: QberDataCollectionMethodTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionnaireEnumeratorSkill {
+  key: QberEnumeratorSkillTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionnaireExportStatus {
+  key: QuestionnaireExportStatusEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionnairePriorityLevel {
+  key: QberMetaDataPriorityLevelTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionUserEmailOptOuts {
+  key: OptEmailNotificationTypeEnum!
+  label: String!
+}
+
 """A generic type to return error messages"""
 scalar CustomErrorType
 
@@ -280,6 +418,7 @@ type PublicQuery {
 type Query {
   public: PublicQuery!
   private: PrivateQuery!
+  enums: AppEnumCollection!
 }
 
 input QuestionChoiceCollectionCreateInput {
