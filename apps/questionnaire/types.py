@@ -5,10 +5,11 @@ from asgiref.sync import sync_to_async
 from strawberry.types import Info
 from django.db import models
 
-from utils.common import get_queryset_for_model
+from utils.common import get_queryset_for_model, resolve_field_relation
 from utils.strawberry.enums import enum_display_field, enum_field
 from apps.common.types import UserResourceTypeMixin, ClientIdMixin
 from apps.project.models import Project
+from apps.qbank.types import QuestionBankType
 
 from .models import (
     Questionnaire,
@@ -98,9 +99,22 @@ class QuestionnaireType(UserResourceTypeMixin):
         queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(questionnaire=self.pk)
         return [q async for q in queryset]
 
+    @strawberry_django.field
+    async def choice_collections(self, info: Info) -> list['QuestionChoiceCollectionType']:
+        queryset = QuestionChoiceCollectionType.get_queryset(None, None, info).filter(questionnaire=self.pk)
+        return [q async for q in queryset]
+
     @strawberry.field
     def total_questions(self, info: Info) -> QuestionCount:
         return info.context.dl.questionnaire.total_questions_by_questionnare.load(self.id)
+
+    @strawberry.field
+    def qbank(self, info: Info) -> QuestionBankType:
+        return resolve_field_relation(
+            self,
+            'qbank',
+            info.context.dl.questionnaire.load_qbank.load,
+        )
 
 
 @strawberry_django.type(Choice)

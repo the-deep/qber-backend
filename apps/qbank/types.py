@@ -56,6 +56,7 @@ class QBLeafGroupType:
 class QuestionBankType(UserResourceTypeMixin):
     id: strawberry.ID
     title: strawberry.auto
+    is_active: strawberry.auto
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):
@@ -65,6 +66,11 @@ class QuestionBankType(UserResourceTypeMixin):
     @strawberry_django.field
     async def leaf_groups(self, info: Info) -> list[QBLeafGroupType]:
         queryset = QBLeafGroupType.get_queryset(None, None, info).filter(qbank=self.pk)
+        return [q async for q in queryset]
+
+    @strawberry_django.field
+    async def choice_collections(self, info: Info) -> list['QBChoiceCollectionType']:
+        queryset = QBChoiceCollectionType.get_queryset(None, None, info).filter(qbank=self.pk)
         return [q async for q in queryset]
 
     @strawberry.field
@@ -99,7 +105,7 @@ class QBChoiceCollectionType:
         # TODO: Use Dataloaders
         return [
             choice
-            async for choice in self.choice_set.order_by('id')
+            async for choice in self.qbchoice_set.order_by('id')
         ]
 
     @staticmethod

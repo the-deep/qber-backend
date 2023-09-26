@@ -1,6 +1,7 @@
 import typing
 
 from django.db import models
+from django.core.exceptions import ValidationError
 
 from apps.common.models import UserResource
 from utils.common import get_current_datetime_str
@@ -19,13 +20,35 @@ def import_file_upload_to(_: 'QuestionBank', filename: str) -> str:
 
 
 class QuestionBank(UserResource):
+    class Status(models.IntegerChoices):
+        PENDING = 1, 'Pending'
+        STARTED = 2, 'Started'
+        SUCCESS = 3, 'Success'
+        FAILURE = 4, 'Failure'
+
     title = models.CharField(max_length=255)
-    is_draft = models.BooleanField(default=True)
+    status = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.PENDING)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=False)
     import_file = models.FileField(
         upload_to=import_file_upload_to,
         help_text='XLSForm',
         max_length=255,
     )
+
+    def activate(self):
+        if self.status != self.Status.SUCCESS:
+            raise ValidationError('QuestionBank status should be success')
+        type(self).objects.filter(is_active=True).update(is_active=False)
+        self.is_active = True
+        self.save(update_fields=('is_active',))
+
+    @classmethod
+    def get_active(cls, queryset: models.QuerySet[typing.Self] | None = None) -> typing.Self | None:
+        _queryset = queryset
+        if _queryset is None:
+            _queryset = cls.objects
+        return _queryset.filter(is_active=True).order_by('-id').first()
 
 
 class QBChoiceCollection(BaseChoiceCollection):

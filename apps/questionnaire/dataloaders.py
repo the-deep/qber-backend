@@ -4,11 +4,12 @@ from strawberry.dataloader import DataLoader
 from django.db import models
 from django.utils.functional import cached_property
 
+from apps.qbank.models import QuestionBank
 from apps.questionnaire.models import Question
 from apps.questionnaire.types import QuestionCount
 
 
-def total_questions_by_questionnare(keys: list[str]) -> list[QuestionCount]:
+def total_questions_by_questionnare(keys: list[int]) -> list[QuestionCount]:
     qs = (
         Question.objects
         .filter(questionnaire__in=keys)
@@ -32,7 +33,7 @@ def total_questions_by_questionnare(keys: list[str]) -> list[QuestionCount]:
     return [_map.get(key, QuestionCount()) for key in keys]
 
 
-def total_questions_by_leaf_group(keys: list[str]) -> list[QuestionCount]:
+def total_questions_by_leaf_group(keys: list[int]) -> list[QuestionCount]:
     qs = (
         Question.objects
         .filter(leaf_group__in=keys)
@@ -56,6 +57,15 @@ def total_questions_by_leaf_group(keys: list[str]) -> list[QuestionCount]:
     return [_map.get(key, QuestionCount()) for key in keys]
 
 
+def load_qbank(keys: list[int]) -> list[QuestionBank]:
+    qs = QuestionBank.objects .filter(id__in=keys)
+    _map = {
+        qbank.pk: qbank
+        for qbank in qs
+    }
+    return [_map[key] for key in keys]
+
+
 class QuestionnaireDataLoader():
     @cached_property
     def total_questions_by_questionnare(self) -> list[QuestionCount]:
@@ -64,3 +74,7 @@ class QuestionnaireDataLoader():
     @cached_property
     def total_questions_by_leaf_group(self) -> list[QuestionCount]:
         return DataLoader(load_fn=sync_to_async(total_questions_by_leaf_group))
+
+    @cached_property
+    def load_qbank(self) -> list[QuestionBank]:
+        return DataLoader(load_fn=sync_to_async(load_qbank))

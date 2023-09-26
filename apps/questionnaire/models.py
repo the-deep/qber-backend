@@ -34,6 +34,7 @@ class Questionnaire(QberMetaData, UserResource):
     )
 
     project_id: int
+    qbank_id: int
     question_set: models.QuerySet['Question']
 
     def __str__(self):

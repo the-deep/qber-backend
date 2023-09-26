@@ -33,7 +33,7 @@ class QuestionnaireSerializer(UserResourceSerializer):
     instance: Questionnaire
 
     def validate(self, data):
-        qbank = QuestionBank.objects.filter(is_draft=False).order_by('-id').first()
+        qbank = QuestionBank.get_active()
         if qbank is None:
             raise serializers.ValidationError('No available Question Bank. Please ask admin to add one.')
         data['qbank'] = qbank

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib import messages
 from admin_auto_filters.filters import AutocompleteFilterFactory
 
 from apps.common.admin import ReadOnlyMixin
@@ -17,12 +18,29 @@ class QuestionBankAdmin(ReadOnlyMixin, admin.ModelAdmin):
     list_display = (
         '__str__',
         'created_at',
-        'is_draft',
+        'is_active',
     )
     list_filter = (
         AutocompleteFilterFactory('Created By', 'created_by'),
-        'is_draft',
+        'is_active',
     )
+
+    def save_model(self, request, obj, form, change):
+        if change and form.initial.get('is_active') != obj.is_active and obj.is_active:
+            if obj.status == QuestionBank.Status.SUCCESS:
+                obj.activate()
+            else:
+                messages.add_message(
+                    request,
+                    messages.WARNING,
+                    (
+                        'QuestionBank import needs to be success to become active'
+                        '. Reverting back to inactive.'
+                    )
+                )
+                obj.is_active = False
+                form.instance.is_active = False
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(QBQuestion)

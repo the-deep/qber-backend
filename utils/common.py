@@ -76,3 +76,25 @@ def get_object_or_404_async(queryset, **kwargs):
 
 def get_current_datetime_str():
     return timezone.now().strftime('%Y-%m-%d-%H:%M:%S')
+
+
+def has_select_related(obj, field):
+    """
+    Checks if field is select_related.
+    """
+    if field in obj._state.fields_cache:
+        return True
+    return False
+
+
+def resolve_field_relation(
+    root: models.Model,
+    field: str,
+    dataloader: typing.Callable
+):
+    # Check if it is already fetched.
+    if has_select_related(root, field):
+        return getattr(root, field)
+    # Use Dataloader to load the data
+    # - Pass ID to dataloader
+    return dataloader(getattr(root, f"{field}_id"))
