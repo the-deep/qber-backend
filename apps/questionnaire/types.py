@@ -1,7 +1,6 @@
 import typing
 import strawberry
 import strawberry_django
-from asgiref.sync import sync_to_async
 from strawberry.types import Info
 from django.db import models
 
@@ -140,12 +139,8 @@ class QuestionChoiceCollectionType(UserResourceTypeMixin):
         return strawberry.ID(str(self.questionnaire_id))
 
     @strawberry.field
-    async def choices(self) -> list[QuestionChoiceType]:
-        # TODO: Use Dataloaders
-        return [
-            choice
-            async for choice in self.choice_set.order_by('id')
-        ]
+    def choices(self, info: Info) -> list[QuestionChoiceType]:
+        return info.context.dl.questionnaire.load_choices.load(self.id)
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):
@@ -214,7 +209,5 @@ class QuestionType(UserResourceTypeMixin):
             return strawberry.ID(str(self.leaf_group_id))
 
     @strawberry.field
-    @sync_to_async
-    def choice_collection(self) -> typing.Optional[QuestionChoiceCollectionType]:
-        # TODO: Dataloader
-        return self.choice_collection
+    def choice_collection_id(self) -> typing.Optional[int]:
+        return self.choice_collection_id

@@ -1,6 +1,6 @@
+import functools
 from enum import Enum, auto, unique
 from django.db import models
-from django.utils.functional import cached_property
 
 from utils.common import get_queryset_for_model
 from apps.common.models import UserResource
@@ -76,7 +76,8 @@ class Project(UserResource):
         UPDATE_QUESTION_CHOICE = auto()
         DELETE_QUESTION_CHOICE = auto()
 
-    @cached_property
+    @classmethod
+    @functools.lru_cache
     def get_permissions(cls) -> dict[ProjectMembership.Role, list[Permission]]:
         return {
             ProjectMembership.Role.ADMIN: [
@@ -103,13 +104,12 @@ class Project(UserResource):
         return self.title
 
     def get_permissions_for_user(self, user: User):
-        # XXX: N+1
         membership = ProjectMembership.objects.filter(
             member=user,
             project=self,
         ).first()
         if membership:
-            return self.get_permissions.get(membership.role, [])
+            return self.get_permissions().get(membership.role, [])
         return []
 
     @classmethod

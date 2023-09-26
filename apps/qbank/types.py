@@ -1,7 +1,6 @@
 import typing
 import strawberry
 import strawberry_django
-from asgiref.sync import sync_to_async
 from strawberry.types import Info
 from django.db import models
 
@@ -101,12 +100,8 @@ class QBChoiceCollectionType:
         return strawberry.ID(str(self.qbank_id))
 
     @strawberry.field
-    async def choices(self) -> list[QBChoiceType]:
-        # TODO: Use Dataloaders
-        return [
-            choice
-            async for choice in self.qbchoice_set.order_by('id')
-        ]
+    def choices(self, info: Info) -> list[QBChoiceType]:
+        return info.context.dl.qbank.load_choices.load(self.id)
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):
@@ -162,7 +157,5 @@ class QBQuestionType:
             return strawberry.ID(str(self.leaf_group_id))
 
     @strawberry.field
-    @sync_to_async
-    def choice_collection(self) -> typing.Optional[QBChoiceCollectionType]:
-        # TODO: Dataloader
-        return self.choice_collection
+    def choice_collection_id(self) -> typing.Optional[int]:
+        return self.choice_collection_id

@@ -2,7 +2,6 @@ import typing
 import strawberry
 import strawberry_django
 from strawberry.types import Info
-from asgiref.sync import sync_to_async
 
 from utils.common import get_queryset_for_model
 from utils.strawberry.paginations import CountList, pagination_field
@@ -70,10 +69,10 @@ class ProjectType(UserResourceTypeMixin):
         return getattr(self, 'current_user_role', None)
 
     @strawberry.field
-    @sync_to_async
     def allowed_permissions(self, info: Info) -> list[ProjectPermissionTypeEnum]:
-        # TODO: Use dataloader
-        return self.get_permissions_for_user(info.context.request.user)
+        return info.context.dl.project.load_user_permissions.load(
+            (info.context.request.user.pk, self.pk)
+        )
 
     def get_queryset(self, queryset, info: Info):
         return Project.get_for(
