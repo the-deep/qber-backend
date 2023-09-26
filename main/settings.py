@@ -86,6 +86,7 @@ env = environ.Env(
     ENKETO_DOMAIN=str,  # https://enketo.qber.com
     # MISC
     ALLOW_DUMMY_DATA_SCRIPT=(bool, False),  # WARNING
+    ENABLE_BREAKING_MODE=(bool, False),  # Only enable if you know what you are doing
 )
 
 # Quick-start development settings - unsuitable for production
@@ -129,7 +130,7 @@ INSTALLED_APPS = [
     'apps.project',
     'apps.questionnaire',
     'apps.export',
-    # 'apps.qbank',
+    'apps.qbank',
 ]
 
 MIDDLEWARE = [
@@ -428,6 +429,7 @@ CELERY_ACKS_LATE = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Misc
-ALLOW_DUMMY_DATA_SCRIPT = env('ALLOW_DUMMY_DATA_SCRIPT')
-
 ENKETO_DOMAIN = env('ENKETO_DOMAIN')
+
+ALLOW_DUMMY_DATA_SCRIPT = env('ALLOW_DUMMY_DATA_SCRIPT')
+ENABLE_BREAKING_MODE = env('ENABLE_BREAKING_MODE')

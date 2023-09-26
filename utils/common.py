@@ -5,6 +5,7 @@ from asgiref.sync import sync_to_async
 from user_agents import parse
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
 
@@ -71,3 +72,7 @@ def validate_xlsform_name(name):
 @sync_to_async
 def get_object_or_404_async(queryset, **kwargs):
     return get_object_or_404(queryset, **kwargs)
+
+
+def get_current_datetime_str():
+    return timezone.now().strftime('%Y-%m-%d-%H:%M:%S')

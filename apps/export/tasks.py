@@ -29,7 +29,7 @@ def export_task(export_id, force=False):
             export.save(update_fields=('status', 'started_at',))
 
         with (
-            NamedTemporaryFile(dir='/tmp/', delete=True, suffix='.xlsx') as temp_xlsx_file,
+            NamedTemporaryFile(dir=settings.TEMP_FILE_DIR, delete=True, suffix='.xlsx') as temp_xlsx_file,
             NamedTemporaryFile(dir=settings.TEMP_FILE_DIR, delete=True, suffix='.xml') as temp_xml_file,
         ):
             xlsform.export(export, temp_xlsx_file, temp_xml_file)

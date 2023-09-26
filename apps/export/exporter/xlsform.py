@@ -35,7 +35,7 @@ class XlsQuestionType:
             return f'{name} or_other'
         return name
 
-    MAP: dict[typing.Any, str | typing.Callable[[Question], str]] = {
+    MAP: dict[Question.Type, str | typing.Callable[[Question], str]] = {
         Question.Type.INTEGER: 'integer',
         Question.Type.DECIMAL: 'decimal',
         Question.Type.TEXT: 'text',
@@ -83,6 +83,7 @@ class XlsSheet:
         'required_message',
         'relevant',
         'constraint',
+        'constraint_message',
         'appearance',
         'calculation',
         'parameters',
@@ -106,6 +107,7 @@ class XlsSheet:
             'required_message': question.required_message,
             'relevant': question.relevant,
             'constraint': question.constraint,
+            'constraint_message': question.constraint_message,
             'appearance': question.appearance,
             'calculation': question.calculation,
             'parameters': question.parameters,

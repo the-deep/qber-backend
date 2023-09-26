@@ -4,7 +4,9 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from .models import (
     Questionnaire,
     Question,
+    ChoiceCollection,
     QuestionLeafGroup,
+    Choice,
 )
 
 
@@ -30,6 +32,29 @@ class QuestionAdmin(admin.ModelAdmin):
     )
     list_filter = (
         AutocompleteFilterFactory('Questionnaire', 'questionnaire'),
+    )
+
+
+class ChoiceAdminInline(admin.TabularInline):
+    model = Choice
+    search_fields = ('name',)
+    extra = 0
+    autocomplete_fields = ('collection',)
+
+
+@admin.register(ChoiceCollection)
+class ChoiceCollectionAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'label')
+    list_display = (
+        'name',
+        'label',
+        'questionnaire_id',
+    )
+    list_filter = (
+        AutocompleteFilterFactory('Questionnaire', 'questionnaire'),
+    )
+    inlines = (
+        ChoiceAdminInline,
     )
 
 

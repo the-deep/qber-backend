@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from strawberry.django.views import AsyncGraphQLView
 from strawberry.django.context import StrawberryDjangoContext
 
+# Imported to make sure strawberry custom modules are loadded first
 import utils.strawberry.transformers  # noqa: 403
 
 from main.enums import AppEnumCollection, AppEnumCollectionData
@@ -12,7 +13,7 @@ from apps.project.models import Project
 from apps.user import queries as user_queries, mutations as user_mutations
 from apps.project import queries as project_queries
 from apps.project import mutations as project_mutations
-# from apps.questionnaire import queries as questionnaire_queries
+from apps.qbank import queries as qbank_queries
 
 from .permissions import IsAuthenticated
 from .dataloaders import GlobalDataLoader
@@ -69,6 +70,7 @@ class PublicQuery(
 class PrivateQuery(
     user_queries.PrivateQuery,
     project_queries.PrivateQuery,
+    qbank_queries.PrivateQuery,
     # questionnaire_queries.PrivateQuery,
 ):
     id: strawberry.ID = strawberry.ID('private')

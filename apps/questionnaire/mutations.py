@@ -2,6 +2,8 @@ import strawberry
 from strawberry.types import Info
 from asgiref.sync import sync_to_async
 
+from django.db import transaction
+
 from utils.strawberry.mutations import (
     MutationResponseType,
     ModelMutation,
@@ -146,6 +148,7 @@ class ProjectScopeMutation():
 
     @strawberry.mutation
     @sync_to_async
+    @transaction.atomic
     def update_question_groups_leaf_visibility(
         self,
         questionnaire_id: strawberry.ID,
@@ -161,6 +164,17 @@ class ProjectScopeMutation():
         )
         is_hidden = visibility == VisibilityActionEnum.HIDE
         queryset.update(is_hidden=is_hidden)
+        # Clone questions from Qbank
+        empty_leaf_group_queryset = queryset.filter(
+            qbank_leaf_group__isnull=False,
+            question__isnull=True,
+            is_hidden=False,
+        )
+        for leaf_group in empty_leaf_group_queryset.all():
+            Question.clone_from_qb_leaf_group(
+                leaf_group,
+                info.context.request.user,
+            )
         return BulkBasicMutationResponseType(results=[i for i in queryset])
 
     @strawberry.mutation

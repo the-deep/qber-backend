@@ -8,13 +8,15 @@ from apps.user.models import User
 from apps.user.factories import UserFactory
 from apps.project.models import Project, ProjectMembership
 from apps.project.factories import ProjectFactory
-from apps.questionnaire.models import Question, Questionnaire, QuestionLeafGroup
-from apps.questionnaire.factories import (
-    QuestionnaireFactory,
-    QuestionLeafGroupFactory,
-    QuestionFactory,
-    ChoiceCollectionFactory,
-    ChoiceFactory,
+from apps.qbank.models import QBQuestion, QuestionBank, QBLeafGroup
+from apps.questionnaire.models import QuestionLeafGroup
+from apps.questionnaire.factories import QuestionnaireFactory
+from apps.qbank.factories import (
+    QuestionBankFactory,
+    QBLeafGroupFactory,
+    QBQuestionFactory,
+    QBChoiceCollectionFactory,
+    QBChoiceFactory,
 )
 
 
@@ -43,50 +45,68 @@ class Command(BaseCommand):
         self.stdout.write(f'Added user with credentials: {user.email}:{user.password_text}')
         return user
 
-    def process_questionnaire(self, questionnaire: Questionnaire):
+    def process_qbank(self, qbank: QuestionBank):
         # Choices
         # -- Collection
-        choice_collection_1, choice_collection_2, choice_collection_3 = ChoiceCollectionFactory.create_batch(
+        choice_collection_1, choice_collection_2, choice_collection_3 = QBChoiceCollectionFactory.create_batch(
             3,
-            **self.user_resource_params,
-            questionnaire=questionnaire,
+            qbank=qbank,
         )
         # -- Choices
-        ChoiceFactory.create_batch(10, collection=choice_collection_1)
-        ChoiceFactory.create_batch(5, collection=choice_collection_2)
-        ChoiceFactory.create_batch(7, collection=choice_collection_3)
+        QBChoiceFactory.create_batch(10, collection=choice_collection_1)
+        QBChoiceFactory.create_batch(5, collection=choice_collection_2)
+        QBChoiceFactory.create_batch(7, collection=choice_collection_3)
 
         # Questions
-        group_categories = QuestionLeafGroupFactory.random_category_generator(100)
+        group_categories = QBLeafGroupFactory.random_category_generator(100)
         group_order_by_type = {
-            QuestionLeafGroup.Type.MATRIX_1D: 100,
-            QuestionLeafGroup.Type.MATRIX_2D: 200,
+            QBLeafGroup.Type.MATRIX_1D: 100,
+            QBLeafGroup.Type.MATRIX_2D: 200,
         }
         for _type, *categories in group_categories:
             # Group
-            group = QuestionLeafGroupFactory.create(
-                questionnaire=questionnaire,
+            group = QBLeafGroupFactory.create(
+                qbank=qbank,
                 type=_type,
                 category_1=categories[0],
                 category_2=categories[1],
                 category_3=categories[2],
                 category_4=categories[3],
                 order=group_order_by_type[_type],
-                **self.user_resource_params,
             )
             group_order_by_type[_type] += 1
             # Questions
             question_params = {
-                **self.user_resource_params,
-                'type': Question.Type.INTEGER,
-                'questionnaire': questionnaire,
+                'type': QBQuestion.Type.INTEGER,
+                'qbank': qbank,
                 'leaf_group': group,
             }
             # Without choices
-            QuestionFactory.create_batch(random.randrange(4, 10), **question_params)
+            QBQuestionFactory.create_batch(random.randrange(4, 10), **question_params)
             # With choices
-            QuestionFactory.create_batch(random.randrange(1, 3), **question_params, choice_collection=choice_collection_2)
-            QuestionFactory.create_batch(random.randrange(1, 4), **question_params, choice_collection=choice_collection_1)
+            QBQuestionFactory.create_batch(
+                random.randrange(1, 3),
+                **question_params,
+                choice_collection=choice_collection_2,
+            )
+            QBQuestionFactory.create_batch(
+                random.randrange(1, 4),
+                **question_params,
+                choice_collection=choice_collection_1,
+            )
+
+    def process_questionnare(self, project, user):
+        for qbank in QuestionBank.objects.all():
+            questionnaire = QuestionnaireFactory.create(
+                qbank=qbank,
+                project=project,
+                created_by=user,
+                modified_by=user,
+            )
+            QuestionLeafGroup.clone_from_qbank(
+                questionnaire,
+                questionnaire.created_by,
+            )
 
     def process_project(
         self,
@@ -96,12 +116,8 @@ class Command(BaseCommand):
     ):
         self.stdout.write(f' - Adding user as {role.label}')
         project.add_member(user, role=ProjectMembership.Role.ADMIN)
-        # Create Questionnaires
-        questionnaires = QuestionnaireFactory.create_batch(3, project=project, **self.user_resource_params)
-        self.stdout.write(f' - Created questionnaires {len(questionnaires)}')
-        for questionnaire in questionnaires:
-            self.stdout.write(f'  - Processing questionnaire {questionnaire}')
-            self.process_questionnaire(questionnaire)
+        self.stdout.write(' - Addding some questionnaire using Dummy QuestionBank')
+        self.process_questionnare(project, user)
 
     @transaction.atomic
     def handle(self, **kwargs):
@@ -123,12 +139,19 @@ class Command(BaseCommand):
 
         if kwargs.get('DELETE_ALL', False):
             self.stdout.write(self.style.WARNING('Removing existing Data'))
-            Question.objects.all().delete()
+            QBQuestion.objects.all().delete()
             Project.objects.all().delete()
 
         projects = ProjectFactory.create_batch(10, **self.user_resource_params)
         total_projects = len(projects)
         self.stdout.write(f'Created {total_projects} projects')
+
+        # Create Qbanks
+        qbanks = QuestionBankFactory.create_batch(3, **self.user_resource_params)
+        self.stdout.write(f' - Created qbanks {len(qbanks)}')
+        for qbank in qbanks:
+            self.stdout.write(f'  - Processing qbank {qbank}')
+            self.process_qbank(qbank)
 
         index = 0
         for projects, role in [
@@ -146,5 +169,5 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(
-            self.style.SUCCESS('Loaded sucessfully')
+            self.style.SUCCESS('Loaded successfully')
         )

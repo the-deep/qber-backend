@@ -47,6 +47,8 @@ class User(AbstractUser):
 
     objects = CustomUserManager()
 
+    pk: int
+
     def save(self, *args, **kwargs):
         # Make sure email/username are same and lowercase
         self.email = self.email.lower()

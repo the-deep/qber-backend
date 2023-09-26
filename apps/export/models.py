@@ -1,17 +1,17 @@
 import typing
 
 from django.db import models
-from django.utils import timezone
 from django.core.cache import cache
 
 from main.celery import app as celery_app
 from main.caches import CacheKey
+from utils.common import get_current_datetime_str
 from apps.user.models import User
 from apps.questionnaire.models import Questionnaire
 
 
 def questionnaire_export_file_upload_to(_: 'QuestionnaireExport', filename: str) -> str:
-    time_str = timezone.now().strftime('%Y-%m-%d%z')
+    time_str = get_current_datetime_str()
     return f'export/questionnaire/{time_str}/{filename}'
 
 

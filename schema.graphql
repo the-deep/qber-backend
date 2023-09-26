@@ -1,6 +1,15 @@
 type AppEnumCollection {
   UserEmailOptOuts: [AppEnumCollectionUserEmailOptOuts!]!
   ProjectMembershipRole: [AppEnumCollectionProjectMembershipRole!]!
+  QBQuestionType: [AppEnumCollectionQBQuestionType!]!
+  QBQuestionPriorityLevel: [AppEnumCollectionQBQuestionPriorityLevel!]!
+  QBQuestionEnumeratorSkill: [AppEnumCollectionQBQuestionEnumeratorSkill!]!
+  QBQuestionDataCollectionMethod: [AppEnumCollectionQBQuestionDataCollectionMethod!]!
+  QBLeafGroupType: [AppEnumCollectionQBLeafGroupType!]!
+  QBLeafGroupCategory1: [AppEnumCollectionQBLeafGroupCategory1!]!
+  QBLeafGroupCategory2: [AppEnumCollectionQBLeafGroupCategory2!]!
+  QBLeafGroupCategory3: [AppEnumCollectionQBLeafGroupCategory3!]!
+  QBLeafGroupCategory4: [AppEnumCollectionQBLeafGroupCategory4!]!
   QuestionnairePriorityLevel: [AppEnumCollectionQuestionnairePriorityLevel!]!
   QuestionnaireEnumeratorSkill: [AppEnumCollectionQuestionnaireEnumeratorSkill!]!
   QuestionnaireDataCollectionMethod: [AppEnumCollectionQuestionnaireDataCollectionMethod!]!
@@ -250,6 +259,9 @@ type PrivateQuery {
   users(filters: UserFilter, order: UserOrder, pagination: OffsetPaginationInput): UserTypeCountList!
   projects(filters: ProjectFilter, order: ProjectOrder, pagination: OffsetPaginationInput): ProjectTypeCountList!
   projectScope(pk: ID!): ProjectScopeType
+  questionBanks(filters: QuestionBankFilter, order: QuestionBankOrder, pagination: OffsetPaginationInput): QuestionBankTypeCountList!
+  qbQuestions(filters: QBQuestionFilter, order: QBQuestionOrder, pagination: OffsetPaginationInput): QBQuestionTypeCountList!
+  questionBank(pk: ID!): QuestionBankType
   id: ID!
 }
 
@@ -415,10 +427,167 @@ type PublicQuery {
   id: ID!
 }
 
+type QBChoiceCollectionType {
+  id: ID!
+  name: String!
+  label: String!
+  choices: [QBChoiceType!]!
+  qbankId: ID!
+}
+
+type QBChoiceType {
+  id: ID!
+  name: String!
+  label: String!
+  collectionId: ID!
+}
+
+type QBLeafGroupType {
+  id: ID!
+  name: String!
+  order: Int!
+  relevant: String!
+  category1: QuestionLeafGroupCategory1TypeEnum!
+  category1Display: String!
+  category2: QuestionLeafGroupCategory2TypeEnum!
+  category2Display: String!
+  category3: QuestionLeafGroupCategory3TypeEnum
+  category3Display: String
+  category4: QuestionLeafGroupCategory4TypeEnum
+  category4Display: String
+  qbankId: ID!
+  totalQuestions: Int!
+  type: QuestionLeafGroupTypeEnum!
+  typeDisplay: String!
+}
+
+input QBQuestionFilter {
+  id: IDFilterLookup
+  qbank: DjangoModelFilterInput
+  leafGroup: DjangoModelFilterInput
+}
+
+input QBQuestionOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type QBQuestionType {
+  id: ID!
+  name: String!
+  label: String!
+  hint: String!
+  order: Int!
+  default: String!
+  guidanceHint: String!
+  trigger: String!
+  readonly: String!
+  required: Boolean!
+  requiredMessage: String!
+  relevant: String!
+  constraint: String!
+  appearance: String!
+  calculation: String!
+  parameters: String!
+  choiceFilter: String!
+  image: String!
+  video: String!
+  isOrOther: Boolean!
+  requiredDuration: Int
+  choiceCollection: QBChoiceCollectionType
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
+  dataCollectionMethodDisplay: String
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  enumeratorSkillDisplay: String
+  leafGroupId: ID
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  priorityLevelDisplay: String
+  qbankId: ID!
+  type: QberQuestionTypeEnum!
+  typeDisplay: String!
+}
+
+type QBQuestionTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QBQuestionType!]!
+}
+
+enum QberDataCollectionMethodTypeEnum {
+  DIRECT
+  FOCUS_GROUP
+  ONE_ON_ONE_INTERVIEW
+  OPEN_ENDED_SURVEY
+  CLOSED_ENDED_SURVEY
+  KEY_INFORMANT_INTERVIEW
+  AUTOMATIC
+}
+
+enum QberEnumeratorSkillTypeEnum {
+  BASIC
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum QberMetaDataPriorityLevelTypeEnum {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum QberQuestionTypeEnum {
+  INTEGER
+  DECIMAL
+  TEXT
+  SELECT_ONE
+  SELECT_MULTIPLE
+  RANK
+  RANGE
+  NOTE
+  DATE
+  TIME
+  DATETIME
+  IMAGE
+  AUDIO
+  VIDEO
+  FILE
+  BARCODE
+  ACKNOWLEDGE
+}
+
 type Query {
   public: PublicQuery!
   private: PrivateQuery!
   enums: AppEnumCollection!
+}
+
+input QuestionBankFilter {
+  id: IDFilterLookup
+  title: StrFilterLookup
+}
+
+input QuestionBankOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type QuestionBankType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  title: String!
+  createdBy: UserType!
+  leafGroups: [QBLeafGroupType!]!
+  modifiedBy: UserType!
+  totalQuestions: Int!
+}
+
+type QuestionBankTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionBankType!]!
 }
 
 input QuestionChoiceCollectionCreateInput {
@@ -494,15 +663,20 @@ type QuestionChoiceType {
   collectionId: ID!
 }
 
+type QuestionCount {
+  total: Int!
+  visible: Int!
+}
+
 input QuestionCreateInput {
   questionnaire: ID!
   leafGroup: ID!
-  type: QuestionTypeEnum!
+  type: QberQuestionTypeEnum!
   name: String!
   label: String!
-  priorityLevel: QuestionnairePriorityLevelTypeEnum
-  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
-  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
   requiredDuration: Int
   hint: String
   choiceCollection: ID
@@ -527,7 +701,7 @@ input QuestionFilter {
   id: IDFilterLookup
   questionnaire: DjangoModelFilterInput
   choiceCollection: DjangoModelFilterInput
-  type: QuestionTypeEnum
+  type: QberQuestionTypeEnum
   name: StrFilterLookup
   label: StrFilterLookup
   leafGroup: DjangoModelFilterInput
@@ -536,109 +710,136 @@ input QuestionFilter {
 
 enum QuestionLeafGroupCategory1TypeEnum {
   CONTEXT
-  EVENT_SHOCK
+  EVENT_AND_SHOCK
   DISPLACEMENT
   CASUALTIES
   INFORMATION_AND_COMMUNICATION
   HUMANITARIAN_ACCESS
+  INTRODUCTION
+  CONCLUSION
   IMPACT
-  HUMANITARIAN_CONDITIONS
+  HUMANITARIAN_CONDITION
   AT_RISK
-  PRIORITIES
-  CAPACITIES_RESPONSE
+  PRIORITY_NEEDS
+  PRIORITY_INTERVENTIONS
+  CAPACITIES_AND_RESPONSE
 }
 
 enum QuestionLeafGroupCategory2TypeEnum {
   POLITICS
-  DEMOGRAPHY
-  SOCIO_CULTURAL
-  ENVIRONMENT
-  SECURITY_AND_STABILITY
   ECONOMICS
-  EVENT_SHOCK_CHARACTERISTICS
-  DRIVERS_AND_AGGRAVATING_FACTORS
+  ENVIRONMENT
+  SOCIO_CULTURAL
+  DEMOGRAPHIC
+  SECURITY_AND_STABILITY
+  TYPE_AND_CHARACTERISTICS
+  AGGRAVATING_FACTORS
   MITIGATING_FACTORS
   HAZARDS_AND_THREATS
   DISPLACEMENT_CHARACTERISTICS
-  PUSH_FACTORS
   PULL_FACTORS
+  PUSH_FACTORS
   INTENTIONS
   LOCAL_INTEGRATION
   DEAD
   INJURED
   MISSING
-  SOURCE_AND_MEANS
-  CHALLENDGES_AND_BARRIERS
-  KNOWLEDGE_AND_INFO_GAPS_HUMANITARIAN
-  KNOWLEDGE_AND_INFO_GAPS_POPULATION
+  COMMUNICATION_SOURCES_AND_MEANS
+  INFORMATION_CHALLENGES_AND_BARRIERS
+  KNOWLEDGE_AND_INFO_GAPS_POP
+  KNOWLEDGE_AND_INFO_GAPS_HUM
   POPULATION_TO_RELIEF
   RELIEF_TO_POPULATION
-  PHYSICAL_AND_SECURITY
-  NUMBER_OF_PEOPLE_FACING_HUMANITARIN_ACCESS_CONSTRAINTS
+  PHYSICAL_CONSTRAINTS
+  SECURITY_CONSTRAINTS
+  PEOPLE_FACING_HUMANITARIAN_ACCESS_CONSTRAINT_HUMANITARIAN_ACCESS_GAPS
+  INTRODUCTION
+  QUESTIONNAIRE_CHARACTERISTICS
+  ENUMERATOR_CHARACTERISTICS
+  RESPONDENT_CHARACTERISTICS
+  AREA_CHARACTERISTICS
+  AFFECTED_GROUP_CHARACTERISTICS
+  CROSS
   DRIVERS
   IMPACT_ON_PEOPLE
-  IMPACT_ON_SYSTEMS_SERVICES_NETWORK
+  IMPACT_ON_SYSTEMS_SERVICES_AND_NETWORKS
+  NUMBER_OF_PEOPLE_AFFECTED
   LIVING_STANDARDS
   COPING_MECHANISMS
-  PHYSICAL_AND_MENTAL_WELLBEING
+  PHYSICAL_AND_MENTAL_WELL_BEING
+  NUMBER_OF_PEOPLE_IN_NEED
   PEOPLE_AT_RISK
-  PRIORITY_ISSUES_POP
-  PRIORITY_ISSUES_HUM
-  PRIORITY_INTERVENTIONS_POP
-  PRIORITY_INTERVENTIONS_HUM
-  GOVERNMENT_LOCAL_AUTHORITIES
-  INTERNATIONAL_ORGANISATIONS
-  NATION_AND_LOCAL_ORGANISATIONS
+  NUMBER_OF_PEOPLE_AT_RISK
+  EXPRESSED_BY_POPULATION
+  EXPRESSED_BY_HUMANITARIAN_STAFF
+  GOVERNMENT_AND_LOCAL_AUTHORITIES
+  INTERNATIONAL_ORGANIZATIONS
+  NATIONAL_AND_LOCAL_ORGANIZATIONS
   RED_CROSS_RED_CRESCENT
   HUMANITARIAN_COORDINATION
+  PEOPLE_REACHED_AND_RESPONSE_GAPS
 }
 
 enum QuestionLeafGroupCategory3TypeEnum {
   CROSS
-  FOOD
-  WASH
   HEALTH
-  PROTECTION
-  EDUCATION
-  LIVELIHOOD
-  NUTRITION
-  AGRICULTURE
-  LOGISTICS
+  WASH
   SHELTER
-  ANALYTICAL_OUTPUTS
+  FOOD_SECURITY
+  LIVELIHOODS
+  NUTRITION
+  EDUCATION
+  PROTECTION
+  AGRICULTURE
+  LOGISTIC
 }
 
 enum QuestionLeafGroupCategory4TypeEnum {
-  WATER
-  SANITATION
-  HYGIENE
-  WASTE_MANAGEMENT
-  VECTOR_CONTROL
+  CROSS
   HEALTH_CARE
   HEALTH_STATUS
+  WATER_SUPPLY
+  excreta_management_sanitation
+  SOLID_WASTE_MANAGEMENT
+  HYGIENE_FACILITIES_AND_PRODUCTS
+  WASH_IN_SCHOOLS
+  WASH_IN_HEALTH_CARE_FACILITIES
+  VECTOR_CONTROL
+  DWELLING_ENVELOPE
+  DOMESTIC_LIVING_SPACE
+  NON_FOOD_HOUSEHOLD_ITEMS
+  HOUSING_LAND_AND_PROPERTY_HLP
+  SETTLEMENT
+  FOOD
+  NON_FOOD_ITEMS
+  NATURAL_CAPITAL
+  HUMAN_CAPITAL
+  SOCIAL_CAPITAL
+  PHYSICAL_CAPITAL
+  FINANCIAL_CAPITAL
+  OCCUPATION
+  NUTRITION_STATUS
+  NUTRITION_SERVICES
+  PROVISION
+  LEARNING_ENVIRONMENT
+  TEACHING_AND_LEARNING
+  TEACHERS_AND_OTHER_EDUCATION_PERSONNEL
+  EDUCATION_POLICY
   DOCUMENTATION
-  CIVIL_AND_POLITICAL_RIGHTS
+  HUMAN_CIVIL_AND_POLITICAL_RIGHTS
+  JUSTICE_AND_RULE_OF_LAW
   PHYSICAL_SAFETY_AND_SECURITY
   FREEDOM_OF_MOVEMENT
-  LIBERTY
   CHILD_PROTECTION
-  SGBV
-  HOUSING_LAND_AND_PROPERTY
-  JUSTICE_AND_RULE_OF_LAW
-  MINES
-  HUMAN_TRAFFICKING
-  LEARNING_ENVIRONMENT
-  FACILITIES_AND_AMENITIES
-  TEACHER_AND_LEARNING
-  TEACHERS_AND_EDUCATION_PERSONNEL
-  INCOME
-  EXPENDITURES
-  PRODUCTIVE_ASSETS
-  SKILLS_AND_QUALIFICATIONS
-  NUTRITION_GOODS_AND_SERVICES
-  NUTRITION_STATUS
-  DWELLING_ENVELOPPE
-  INTERIOR_DOMENSTIC_LIFE
+  SEXUAL_AND_GENDER_BASED_VIOLENCE
+  MINES_UXOS_AND_IEDS
+  PRODUCTION
+  AGRICULTURAL_INPUTS
+  AGRICULTURAL_INFRASTRUCTURE
+  NATURAL_RESOURCE_MANAGEMENT
+  TRANSPORT
+  INFORMATION_AND_COMMUNICATION_TECHNOLOGIES_ICT
+  ENERGY
 }
 
 input QuestionLeafGroupOrderInputType {
@@ -665,6 +866,7 @@ type QuestionLeafGroupType {
   createdBy: UserType!
   modifiedBy: UserType!
   questionnaireId: ID!
+  totalQuestions: QuestionCount!
   type: QuestionLeafGroupTypeEnum!
   typeDisplay: String!
 }
@@ -717,16 +919,16 @@ type QuestionType {
   requiredDuration: Int
   choiceCollection: QuestionChoiceCollectionType
   createdBy: UserType!
-  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
   dataCollectionMethodDisplay: String
-  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
   enumeratorSkillDisplay: String
   leafGroupId: ID
   modifiedBy: UserType!
-  priorityLevel: QuestionnairePriorityLevelTypeEnum
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
   priorityLevelDisplay: String
   questionnaireId: ID!
-  type: QuestionTypeEnum!
+  type: QberQuestionTypeEnum!
   typeDisplay: String!
 }
 
@@ -742,26 +944,6 @@ type QuestionTypeCountList {
   items: [QuestionType!]!
 }
 
-enum QuestionTypeEnum {
-  INTEGER
-  DECIMAL
-  TEXT
-  SELECT_ONE
-  SELECT_MULTIPLE
-  RANK
-  RANGE
-  NOTE
-  DATE
-  TIME
-  DATETIME
-  IMAGE
-  AUDIO
-  VIDEO
-  FILE
-  BARCODE
-  ACKNOWLEDGE
-}
-
 type QuestionTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
@@ -771,11 +953,11 @@ type QuestionTypeMutationResponseType {
 input QuestionUpdateInput {
   questionnaire: ID
   leafGroup: ID
-  priorityLevel: QuestionnairePriorityLevelTypeEnum
-  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
-  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
   requiredDuration: Int
-  type: QuestionTypeEnum
+  type: QberQuestionTypeEnum
   name: String
   label: String
   hint: String
@@ -799,25 +981,10 @@ input QuestionUpdateInput {
 
 input QuestionnaireCreateInput {
   title: String!
-  priorityLevel: QuestionnairePriorityLevelTypeEnum
-  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
-  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
   requiredDuration: Int
-}
-
-enum QuestionnaireDataCollectionMethodTypeEnum {
-  DIRECT
-  FOCUS_GROUP
-  ONE_ON_ONE_INTERVIEW
-  OPEN_ENDED_SURVEY
-  CLOSED_ENDED_SURVEY
-  KEY_INFORMANT_INTERVIEW
-}
-
-enum QuestionnaireEnumeratorSkillTypeEnum {
-  BASIC
-  MEDIUM
-  ADVANCED
 }
 
 input QuestionnaireExportCreateInput {
@@ -882,12 +1049,6 @@ input QuestionnaireOrder {
   createdAt: Ordering
 }
 
-enum QuestionnairePriorityLevelTypeEnum {
-  HIGH
-  MEDIUM
-  LOW
-}
-
 type QuestionnaireType {
   createdAt: DateTime!
   modifiedAt: DateTime!
@@ -895,15 +1056,16 @@ type QuestionnaireType {
   title: String!
   requiredDuration: Int
   createdBy: UserType!
-  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
   dataCollectionMethodDisplay: String
-  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
   enumeratorSkillDisplay: String
   leafGroups: [QuestionLeafGroupType!]!
   modifiedBy: UserType!
-  priorityLevel: QuestionnairePriorityLevelTypeEnum
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
   priorityLevelDisplay: String
   projectId: ID!
+  totalQuestions: QuestionCount!
 }
 
 type QuestionnaireTypeCountList {
@@ -921,9 +1083,9 @@ type QuestionnaireTypeMutationResponseType {
 
 input QuestionnaireUpdateInput {
   title: String
-  priorityLevel: QuestionnairePriorityLevelTypeEnum
-  enumeratorSkill: QuestionnaireEnumeratorSkillTypeEnum
-  dataCollectionMethod: QuestionnaireDataCollectionMethodTypeEnum
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
   requiredDuration: Int
 }
 

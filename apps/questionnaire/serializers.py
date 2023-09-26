@@ -8,9 +8,11 @@ from apps.common.serializers import (
     TempClientIdMixin,
 )
 
+from apps.qbank.models import QuestionBank
 from .models import (
     Questionnaire,
     Question,
+    QuestionLeafGroup,
     Choice,
     ChoiceCollection,
 )
@@ -29,6 +31,22 @@ class QuestionnaireSerializer(UserResourceSerializer):
         )
 
     instance: Questionnaire
+
+    def validate(self, data):
+        qbank = QuestionBank.objects.filter(is_draft=False).order_by('-id').first()
+        if qbank is None:
+            raise serializers.ValidationError('No available Question Bank. Please ask admin to add one.')
+        data['qbank'] = qbank
+        return data
+
+    def create(self, data):
+        instance = super().create(data)
+        # Create initial leaf groups using qbank
+        QuestionLeafGroup.clone_from_qbank(
+            instance,
+            self.context['request'].user,
+        )
+        return instance
 
 
 class QuestionChoiceSerializer(TempClientIdMixin, ProjectScopeSerializerMixin, serializers.ModelSerializer):

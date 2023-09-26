@@ -68,7 +68,8 @@ def get_enum_name_from_django_field(
     raise Exception(f'{serializer_name=} should have a value')
 
 
-def enum_display_field(field: DjangoBaseField) -> typing.Callable[..., str]:
+def enum_display_field(field) -> typing.Callable[..., str]:
+    field: DjangoBaseField
     _field = field
     if isinstance(field, models.query_utils.DeferredAttribute):
         _field = field.field
@@ -114,7 +115,9 @@ def enum_display_field(field: DjangoBaseField) -> typing.Callable[..., str]:
     return field_
 
 
-def enum_field(field: DjangoBaseField):
+def enum_field(field):
+    field: DjangoBaseField
+
     # NOTE: To avoid circular import
     from main.enums import ENUM_TO_STRAWBERRY_ENUM_MAP
 
