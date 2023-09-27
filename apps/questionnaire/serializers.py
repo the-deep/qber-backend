@@ -33,10 +33,12 @@ class QuestionnaireSerializer(UserResourceSerializer):
     instance: Questionnaire
 
     def validate(self, data):
-        qbank = QuestionBank.get_active()
-        if qbank is None:
-            raise serializers.ValidationError('No available Question Bank. Please ask admin to add one.')
-        data['qbank'] = qbank
+        # For Create. Attach latest QuestionBank
+        if self.instance is None:
+            qbank = QuestionBank.get_active()
+            if qbank is None:
+                raise serializers.ValidationError('No available Question Bank. Please ask admin to add one.')
+            data['qbank'] = qbank
         return data
 
     def create(self, data):

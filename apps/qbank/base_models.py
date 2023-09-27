@@ -74,7 +74,7 @@ class BaseQuestionLeafGroup(models.Model):
         LOCAL_INTEGRATION = 10307, 'Local integration'
         # -- CASUALTIES
         # -- -- CONTEXT - INTRODUCTION
-        CROSS = 10401, 'Dead'
+        CROSS = 10401, 'Cross'
         DEAD = 10402, 'Dead'
         INJURED = 10403, 'Injured'
         MISSING = 10404, 'Missing'
