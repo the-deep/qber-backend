@@ -1,6 +1,5 @@
 import strawberry
 import strawberry_django
-from asgiref.sync import sync_to_async
 
 from strawberry.types import Info
 
@@ -33,6 +32,5 @@ class PrivateQuery:
             .afirst()
 
     @strawberry_django.field
-    @sync_to_async
     def active_question_bank(self) -> QuestionBankType | None:
         return QuestionBank.get_active()

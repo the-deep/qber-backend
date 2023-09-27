@@ -36,6 +36,9 @@ class QuestionBank(UserResource):
         max_length=255,
     )
 
+    def __str__(self):
+        return f'{self.pk}: {self.title}'
+
     def activate(self):
         if self.status != self.Status.SUCCESS:
             raise ValidationError('QuestionBank status should be success')
@@ -44,11 +47,8 @@ class QuestionBank(UserResource):
         self.save(update_fields=('is_active',))
 
     @classmethod
-    def get_active(cls, queryset: models.QuerySet[typing.Self] | None = None) -> typing.Self | None:
-        _queryset = queryset
-        if _queryset is None:
-            _queryset = cls.objects
-        return _queryset.filter(is_active=True).order_by('-id').first()
+    def get_active(cls) -> typing.Self | None:
+        return cls.objects.filter(is_active=True).order_by('-id').first()
 
 
 class QBChoiceCollection(BaseChoiceCollection):
