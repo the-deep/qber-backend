@@ -26,9 +26,9 @@ enum_map = {
     get_enum_name_from_django_field(field): enum
     for field, enum in (
         # Questionnaire
-        (Questionnaire.priority_level, QberPriorityLevelTypeEnum),
-        (Questionnaire.enumerator_skill, QberEnumeratorSkillTypeEnum),
-        (Questionnaire.data_collection_method, QberDataCollectionMethodTypeEnum),
+        (Questionnaire.priority_levels, QberPriorityLevelTypeEnum),
+        (Questionnaire.enumerator_skills, QberEnumeratorSkillTypeEnum),
+        (Questionnaire.data_collection_methods, QberDataCollectionMethodTypeEnum),
         # Question
         (Question.type, QuestionTypeEnum),
         (Question.priority_level, QberPriorityLevelTypeEnum),

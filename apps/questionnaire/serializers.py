@@ -24,9 +24,9 @@ class QuestionnaireSerializer(UserResourceSerializer):
         fields = (
             'title',
             # Qber Metadata
-            'priority_level',
-            'enumerator_skill',
-            'data_collection_method',
+            'priority_levels',
+            'enumerator_skills',
+            'data_collection_methods',
             'required_duration',
         )
 

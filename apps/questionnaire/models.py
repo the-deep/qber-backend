@@ -1,5 +1,6 @@
 import typing
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 from utils.common import get_queryset_for_model
 from apps.user.models import User
@@ -31,6 +32,27 @@ class Questionnaire(QberMetaData, UserResource):
         QuestionBank,
         on_delete=models.PROTECT,
         related_name='+',
+    )
+
+    # QberMetaData
+    priority_level = None
+    enumerator_skills = None
+    data_collection_methods = None
+    # -- Multiple
+    priority_levels = ArrayField(
+        models.PositiveSmallIntegerField(choices=QberMetaData.PriorityLevel.choices),
+        blank=True,
+        default=list,
+    )
+    enumerator_skills = ArrayField(
+        models.PositiveSmallIntegerField(choices=QberMetaData.EnumeratorSkill.choices),
+        blank=True,
+        default=list,
+    )
+    data_collection_methods = ArrayField(
+        models.PositiveSmallIntegerField(choices=QberMetaData.DataCollectionMethod.choices),
+        blank=True,
+        default=list,
     )
 
     project_id: int

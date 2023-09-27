@@ -71,12 +71,13 @@ class QuestionnaireType(UserResourceTypeMixin):
     id: strawberry.ID
     title: strawberry.auto
     # Qber Metadata
-    priority_level = enum_field(Questionnaire.priority_level)
-    priority_level_display = enum_display_field(Questionnaire.priority_level)
-    enumerator_skill = enum_field(Questionnaire.enumerator_skill)
-    enumerator_skill_display = enum_display_field(Questionnaire.enumerator_skill)
-    data_collection_method = enum_field(Questionnaire.data_collection_method)
-    data_collection_method_display = enum_display_field(Questionnaire.data_collection_method)
+    priority_levels = enum_field(Questionnaire.priority_levels)
+    priority_levels_display = enum_display_field(Questionnaire.priority_levels)
+    enumerator_skills = enum_field(Questionnaire.enumerator_skills)
+    enumerator_skills_display = enum_display_field(Questionnaire.enumerator_skills)
+    data_collection_methods = enum_field(Questionnaire.data_collection_methods)
+    data_collection_methods_display = enum_display_field(Questionnaire.data_collection_methods)
+
     required_duration: strawberry.auto
 
     @staticmethod

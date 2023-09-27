@@ -986,9 +986,9 @@ input QuestionUpdateInput {
 
 input QuestionnaireCreateInput {
   title: String!
-  priorityLevel: QberMetaDataPriorityLevelTypeEnum
-  enumeratorSkill: QberEnumeratorSkillTypeEnum
-  dataCollectionMethod: QberDataCollectionMethodTypeEnum
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
   requiredDuration: Int
 }
 
@@ -1062,14 +1062,14 @@ type QuestionnaireType {
   requiredDuration: Int
   choiceCollections: [QuestionChoiceCollectionType!]!
   createdBy: UserType!
-  dataCollectionMethod: QberDataCollectionMethodTypeEnum
-  dataCollectionMethodDisplay: String
-  enumeratorSkill: QberEnumeratorSkillTypeEnum
-  enumeratorSkillDisplay: String
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]!
+  dataCollectionMethodsDisplay: [String!]!
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]!
+  enumeratorSkillsDisplay: [String!]!
   leafGroups: [QuestionLeafGroupType!]!
   modifiedBy: UserType!
-  priorityLevel: QberMetaDataPriorityLevelTypeEnum
-  priorityLevelDisplay: String
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]!
+  priorityLevelsDisplay: [String!]!
   projectId: ID!
   qbank: QuestionBankType!
   totalQuestions: QuestionCount!
@@ -1090,9 +1090,9 @@ type QuestionnaireTypeMutationResponseType {
 
 input QuestionnaireUpdateInput {
   title: String
-  priorityLevel: QberMetaDataPriorityLevelTypeEnum
-  enumeratorSkill: QberEnumeratorSkillTypeEnum
-  dataCollectionMethod: QberDataCollectionMethodTypeEnum
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
   requiredDuration: Int
 }
 
