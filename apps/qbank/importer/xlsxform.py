@@ -179,7 +179,7 @@ class XlsFormImport:
 
                 _categories[_index] = (
                     self.CUSTOM_CATEGORY_MAP[CategoryN].get(raw_value) or
-                    CategoryN[raw_value].value
+                    CategoryN[raw_value]
                 )
             categories: tuple[str, str, str | None, str | None] = tuple(_categories)
             del _categories
@@ -192,7 +192,7 @@ class XlsFormImport:
             )
             return
         if categories not in self.leaf_group_map:
-            self.log_error(f'Invalid categories: {categories}')
+            self.log_error(f'{self.qber_debug_index(data)} Invalid categories: {categories}')
             return
         return self.leaf_group_map[categories]
 

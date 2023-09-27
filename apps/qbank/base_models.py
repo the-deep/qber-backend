@@ -32,88 +32,103 @@ class BaseQuestionLeafGroup(models.Model):
     class Category1(models.IntegerChoices):
         # MATRIX 1D (ROWS)
         CONTEXT = 101, 'Context'
-        EVENT_AND_SHOCK = 102, 'Event and shock'
+        SHOCKS_AND_EVENTS = 102, 'Shocks and events'
         DISPLACEMENT = 103, 'Displacement'
         CASUALTIES = 104, 'Casualties'
         INFORMATION_AND_COMMUNICATION = 105, 'Information and communication'
         HUMANITARIAN_ACCESS = 106, 'Humanitarian access'
         INTRODUCTION = 107, 'Introduction'
         CONCLUSION = 108, 'Conclusion'
+        MARKET = 109, 'Market'
 
         # Matrix 2D (ROWS) - Pillar
         IMPACT = 201, 'Impact'
         HUMANITARIAN_CONDITION = 202, 'Humanitarian condition'
         AT_RISK = 203, 'At Risk'
-        PRIORITY_NEEDS = 204, 'Priority needs'
-        PRIORITY_INTERVENTIONS = 205, 'Priority Interventions'
-        CAPACITIES_AND_RESPONSE = 206, 'Capacities and response'
+        PRIORITIES_AND_PREFERENCES = 204, 'Priorities and preferences'
+        CAPACITIES_AND_RESPONSE = 205, 'Capacities and response'
 
     class Category2(models.IntegerChoices):
         # MATRIX 1D (SUB-ROWS)
         # -- CONTEXT
-        POLITICS = 10001, 'Politics'
-        ECONOMICS = 10002, 'Economics'
-        ENVIRONMENT = 10003, 'Environment'
-        SOCIO_CULTURAL = 10004, 'Socio-cultural'
-        DEMOGRAPHIC = 10005, 'Demographic'
-        SECURITY_AND_STABILITY = 10006, 'Security and stability'
-        # -- EVENT_AND_SHOCK
-        TYPE_AND_CHARACTERISTICS = 10101, 'Type and characteristics'
-        AGGRAVATING_FACTORS = 10102, 'Aggravating factors'
-        MITIGATING_FACTORS = 10103, 'Mitigating factors'
-        HAZARDS_AND_THREATS = 10104, 'Hazards & threats'
+        INTRODUCTION = 10101, 'Introduction'
+        POLITICS = 10102, 'Politics'
+        ECONOMICS = 10103, 'Economics'
+        ENVIRONMENT = 10104, 'Environment'
+        SOCIO_CULTURAL = 10105, 'Socio-cultural'
+        DEMOGRAPHICS = 10106, 'Demographics'
+        SECURITY_AND_STABILITY = 10107, 'Security and stability'
+        # -- SHOCKS_AND_EVENTS
+        # -- -- CONTEXT - INTRODUCTION
+        TYPE_AND_CHARACTERISTICS = 10201, 'Type and characteristics'
+        AGGRAVATING_FACTORS = 10202, 'Aggravating factors'
+        MITIGATING_FACTORS = 10203, 'Mitigating factors'
+        THREATS_AND_HAZARDS = 10204, 'Threats and hazards'
         # -- DISPLACEMENT
-        DISPLACEMENT_CHARACTERISTICS = 10201, 'Displacement characteristics'
-        PULL_FACTORS = 10202, 'Pull factors'
-        PUSH_FACTORS = 10203, 'Push factors'
-        INTENTIONS = 10204, 'Intentions'
-        LOCAL_INTEGRATION = 10205, 'Local integration'
+        INTRODUCTION_PEOPLE_ARRIVING = 10301, 'Introduction people arriving'
+        INTRODUCTION_PEOPLE_LEAVING = 10302, 'Introduction people leaving'
+        # -- -- CONTEXT - TYPE_AND_CHARACTERISTICS
+        PULL_FACTORS = 10304, 'Pull factors'
+        PUSH_FACTORS = 10305, 'Push factors'
+        INTENTIONS = 10306, 'Intentions'
+        LOCAL_INTEGRATION = 10307, 'Local integration'
         # -- CASUALTIES
-        DEAD = 10301, 'Dead'
-        INJURED = 10302, 'Injured'
-        MISSING = 10303, 'Missing'
+        # -- -- CONTEXT - INTRODUCTION
+        CROSS = 10401, 'Dead'
+        DEAD = 10402, 'Dead'
+        INJURED = 10403, 'Injured'
+        MISSING = 10404, 'Missing'
         # -- INFORMATION_AND_COMMUNICATION
-        COMMUNICATION_SOURCES_AND_MEANS = 10401, 'Communication sources and means'
-        INFORMATION_CHALLENGES_AND_BARRIERS = 10402, 'Information challenges and barriers'
-        KNOWLEDGE_AND_INFO_GAPS_POP = 10403, 'Knowledge and info gaps (Pop)'
-        KNOWLEDGE_AND_INFO_GAPS_HUM = 10404, 'Knowledge and info gaps (Hum)'
+        # -- -- CONTEXT - INTRODUCTION
+        # -- -- CASUALTIES - CROSS
+        COMMUNICATION_SOURCES_AND_MEANS = 10501, 'Communication sources and means'
+        CHALLENGES_AND_BARRIERS = 10502, 'Challenges and barriers'
+        KNOWLEDGE_AND_INFORMATION_GAPS_POPULATION = 10503, 'Knowledge and information gaps (population)'
+        KNOWLEDGE_AND_INFORMATION_GAPS_HUMANITARIANS = 10504, 'Knowledge and information gaps (humanitarians)'
         # -- HUMANITARIAN_ACCESS
-        POPULATION_TO_RELIEF = 10501, 'Population to relief'
-        RELIEF_TO_POPULATION = 10502, 'Relief to population'
-        PHYSICAL_CONSTRAINTS = 10503, 'Physical constraints'
-        SECURITY_CONSTRAINTS = 10504, 'Security constraints'
+        INTRODUCTION_HUMANITARIAN_ACTORS_BARRIERS = 10601, 'Introduction humanitarian actors barriers'
+        INTRODUCTION_PEOPLE_AFFECTED_BARRIERS = 10602, 'Introduction people affected barriers'
+        POPULATION_TO_RELIEF = 10603, 'Population to relief'
+        RELIEF_TO_POPULATION = 10604, 'Relief to population'
+        PHYSICAL_AND_SECURITY_CONSTRAINTS = 10605, 'Physical and security constraints'
         PEOPLE_FACING_HUMANITARIAN_ACCESS_CONSTRAINT_HUMANITARIAN_ACCESS_GAPS = (
-            10505,
+            10606,
             'People facing humanitarian access constraints/Humanitarian access gaps'
         )
         # -- Introduction
-        INTRODUCTION = 10601, 'Introduction'
-        QUESTIONNAIRE_CHARACTERISTICS = 10602, 'Questionnaire characteristics'
-        ENUMERATOR_CHARACTERISTICS = 10603, 'Enumerator characteristics'
-        RESPONDENT_CHARACTERISTICS = 10604, 'Respondent characteristics'
-        AREA_CHARACTERISTICS = 10605, 'Area characteristics'
-        AFFECTED_GROUP_CHARACTERISTICS = 10606, 'Affected group characteristics'
+        # -- -- CONTEXT - INTRODUCTION
+        QUESTIONNAIRE_CHARACTERISTICS = 10701, 'Questionnaire characteristics'
+        ENUMERATOR_CHARACTERISTICS = 10702, 'Enumerator characteristics'
+        RESPONDENT_CHARACTERISTICS = 10703, 'Respondent characteristics'
+        AREA_CHARACTERISTICS = 10704, 'Area characteristics'
+        AFFECTED_GROUP_CHARACTERISTICS = 10705, 'Affected group characteristics'
         # -- Conclusion
-        CROSS = 10701, 'Cross'
+        # -- -- CONTEXT - INTRODUCTION
+        # -- -- CASUALTIES - CROSS
+        # -- Market
+        # -- -- CONTEXT - INTRODUCTION
+        FOOD = 10901, 'Food'
+        WASH = 10902, 'Wash'
+        SHELTER_AND_DOMESTIC_ITEMS = 10903, 'Shelter and domestic items'
 
         # Matrix 2D (Sub-ROWS) - Sub-Pillar
         # -- Impact
-        DRIVERS = 20001, 'Drivers'
-        IMPACT_ON_PEOPLE = 20002, 'Impact on people'
-        IMPACT_ON_SYSTEMS_SERVICES_AND_NETWORKS = 20003, 'Impact on systems, services and networks'
-        NUMBER_OF_PEOPLE_AFFECTED = 20004, 'Number of people affected'
+        DRIVERS = 20101, 'Drivers'
+        IMPACT_ON_PEOPLE = 20102, 'Impact on people'
+        IMPACT_ON_SYSTEMS_SERVICES_AND_NETWORKS = 20103, 'Impact on systems, services and networks'
+        NUMBER_OF_PEOPLE_AFFECTED = 20104, 'Number of people affected'
         # -- Humanitarian condition
-        LIVING_STANDARDS = 20101, 'Living standards'
-        COPING_MECHANISMS = 20102, 'Coping mechanisms'
-        PHYSICAL_AND_MENTAL_WELL_BEING = 20103, 'Physical and mental well being'
-        NUMBER_OF_PEOPLE_IN_NEED = 20104, 'Number of people in need'
+        LIVING_STANDARDS = 20201, 'Living standards'
+        COPING_MECHANISMS = 20202, 'Coping mechanisms'
+        PHYSICAL_AND_MENTAL_WELL_BEING = 20203, 'Physical and mental well being'
+        NUMBER_OF_PEOPLE_IN_NEED = 20204, 'Number of people in need'
         # -- At Risk
-        PEOPLE_AT_RISK = 20201, 'People at risk'
-        NUMBER_OF_PEOPLE_AT_RISK = 20202, 'Number of people at risk'
-        # -- Priority needs / Priority interventions
-        EXPRESSED_BY_POPULATION = 20301, 'Expressed by population'
-        EXPRESSED_BY_HUMANITARIAN_STAFF = 20302, 'Expressed by humanitarian staff'
-        # -- Capacities and response XXX: Using 205XX in case we need saperate ENUM for Priority interventions
+        PEOPLE_AT_RISK = 20301, 'People at risk'
+        NUMBER_OF_PEOPLE_AT_RISK = 20302, 'Number of people at risk'
+        # -- PRIORITIES_AND_PREFERENCES
+        PRIORITY_NEEDS = 20401, 'Priority needs'
+        PRIORITY_INTERVENTIONS = 20402, 'Priority interventions'
+        # -- Capacities and response
         GOVERNMENT_AND_LOCAL_AUTHORITIES = 20501, 'Government and local authorities'
         INTERNATIONAL_ORGANIZATIONS = 20502, 'International organizations'
         NATIONAL_AND_LOCAL_ORGANIZATIONS = 20503, 'National and local organizations'
@@ -123,118 +138,161 @@ class BaseQuestionLeafGroup(models.Model):
 
     class Category3(models.IntegerChoices):
         # MATRIX 2D (SUB-COLUMNS) - Sector
-        CROSS = 1000, 'Cross'
-        HEALTH = 1001, 'Health'
-        WASH = 1002, 'WASH'
-        SHELTER = 1003, 'Shelter'
-        FOOD_SECURITY = 1004, 'Food security'
-        LIVELIHOODS = 1005, 'Livelihoods'
-        NUTRITION = 1006, 'Nutrition'
-        EDUCATION = 1007, 'Education'
-        PROTECTION = 1008, 'Protection'
-        AGRICULTURE = 1009, 'Agriculture'
-        LOGISTIC = 1010, 'Logistic'
+        INTER_SECTOR = 1001, 'Inter sector'
+        HEALTH = 1002, 'Health'
+        WASH = 1003, 'WASH'
+        SHELTER = 1004, 'Shelter'
+        FOOD_SECURITY = 1005, 'Food security'
+        LIVELIHOODS = 1006, 'Livelihoods'
+        NUTRITION = 1007, 'Nutrition'
+        EDUCATION = 1008, 'Education'
+        PROTECTION = 1009, 'Protection'
+        AGRICULTURE = 1010, 'Agriculture'
+        LOGISTIC = 1011, 'Logistic'
 
     class Category4(models.IntegerChoices):
         # MATRIX 2D (SUB-COLUMNS) - Sub Sector
-        # -- Cross
-        CROSS = 10001, 'Cross'
-        # -- Health
-        HEALTH_CARE = 10101, 'Health care'
-        HEALTH_STATUS = 10102, 'Health status'
+        # -- INTER_SECTOR
+        INTRODUCTION = 10101, 'Introduction'
+        CROSS = 10102, 'Cross'
+        # -- HEALTH
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        HEALTH_CARE = 10201, 'Health care'
+        HEALTH_STATUS = 10202, 'Health status'
         # -- WASH
-        WATER_SUPPLY = 10201, 'Water supply'
-        excreta_management_sanitation = 10202, 'Excreta management /sanitation'
-        SOLID_WASTE_MANAGEMENT = 10203, 'Solid waste management'
-        HYGIENE_FACILITIES_AND_PRODUCTS = 10204, 'Hygiene facilities and products'
-        WASH_IN_SCHOOLS = 10205, 'WASH in schools'
-        WASH_IN_HEALTH_CARE_FACILITIES = 10206, 'WASH in health care facilities'
-        VECTOR_CONTROL = 10207, 'Vector control'
-        # -- Shelter
-        DWELLING_ENVELOPE = 10301, 'Dwelling envelope'
-        DOMESTIC_LIVING_SPACE = 10302, 'Domestic living space'
-        NON_FOOD_HOUSEHOLD_ITEMS = 10303, 'Non-food household items'
-        HOUSING_LAND_AND_PROPERTY_HLP = 10304, 'Housing, Land and Property (HLP)'
-        SETTLEMENT = 10305, 'Settlement'
-        # -- Food security
-        FOOD = 10401, 'Food'
-        NON_FOOD_ITEMS = 10402, 'Non Food Items'
-        # -- Livelihoods
-        NATURAL_CAPITAL = 10501, 'Natural capital'
-        HUMAN_CAPITAL = 10502, 'Human capital'
-        SOCIAL_CAPITAL = 10503, 'Social capital'
-        PHYSICAL_CAPITAL = 10504, 'Physical capital'
-        FINANCIAL_CAPITAL = 10505, 'Financial capital'
-        OCCUPATION = 10506, 'Occupation'
-        # -- Nutrition
-        NUTRITION_STATUS = 10601, 'Nutrition status'
-        NUTRITION_SERVICES = 10602, 'Nutrition services'
-        # -- Education
-        PROVISION = 10701, 'Provision'
-        LEARNING_ENVIRONMENT = 10702, 'Learning environment'
-        TEACHING_AND_LEARNING = 10703, 'Teaching and learning'
-        TEACHERS_AND_OTHER_EDUCATION_PERSONNEL = 10704, 'Teachers and other education personnel'
-        EDUCATION_POLICY = 10705, 'Education policy'
-        # -- Protection
-        DOCUMENTATION = 10801, 'Documentation'
-        HUMAN_CIVIL_AND_POLITICAL_RIGHTS = 10802, 'Human, civil and political rights'
-        JUSTICE_AND_RULE_OF_LAW = 10803, 'Justice and rule of law'
-        PHYSICAL_SAFETY_AND_SECURITY = 10804, 'Physical safety and security'
-        FREEDOM_OF_MOVEMENT = 10805, 'Freedom of movement'
-        CHILD_PROTECTION = 10806, 'Child Protection'
-        SEXUAL_AND_GENDER_BASED_VIOLENCE = 10807, 'Sexual and Gender-Based Violence'
-        # XXX: HOUSING_LAND_AND_PROPERTY_HLP Use Shelter - HOUSING_LAND_AND_PROPERTY_HLP
-        MINES_UXOS_AND_IEDS = 10809, 'Mines, UXOS and IEDs'
-        # -- Agriculture
-        PRODUCTION = 10901, 'Production'
-        AGRICULTURAL_INPUTS = 10902, 'Agricultural inputs'
-        AGRICULTURAL_INFRASTRUCTURE = 10903, 'Agricultural infrastructure'
-        NATURAL_RESOURCE_MANAGEMENT = 10904, 'Natural resource management'
-        # -- Logistic
-        TRANSPORT = 11001, 'Transport'
-        INFORMATION_AND_COMMUNICATION_TECHNOLOGIES_ICT = 11002, 'Information and communication technologies (ICT)'
-        ENERGY = 11003, 'Energy'
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        WATER_SUPPLY = 10301, 'Water supply'
+        SANITATION = 10302, 'Sanitation'
+        SOLID_WASTE_MANAGEMENT = 10303, 'Solid waste management'
+        HYGIENE = 10304, 'Hygiene'
+        WASH_IN_SCHOOLS = 10305, 'WASH in schools'
+        WASH_IN_HEALTH_CARE_FACILITIES = 10306, 'WASH in health care facilities'
+        VECTOR_CONTROL = 10307, 'Vector control'
+        # -- SHELTER
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        DWELLING_ENVELOPE = 10401, 'Dwelling envelope'
+        DOMESTIC_LIVING_SPACE = 10402, 'Domestic living space'
+        NON_FOOD_HOUSEHOLD_ITEMS = 10403, 'Non-food household items'
+        HOUSING_LAND_AND_PROPERTY_HLP = 10404, 'Housing, Land and Property (HLP)'
+        SETTLEMENT = 10405, 'Settlement'
+        # -- FOOD_SECURITY
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        FOOD_COMMODITIES = 10501, 'Food commodities'
+        NON_FOOD_ITEMS = 10502, 'Non Food Items'
+        # -- LIVELIHOODS
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        INCOME = 10601, 'Income'
+        CASH = 10602, 'Cash'
+        # -- NUTRITION
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        NUTRITION_STATUS = 10701, 'Nutrition status'
+        NUTRITION_SERVICES = 10702, 'Nutrition services'
+        # -- EDUCATION
+        # -- -- INTER_SECTOR - INTRODUCTION
+        PROVISION = 10801, 'Provision'
+        LEARNING_ENVIRONMENT = 10802, 'Learning environment'
+        TEACHING_AND_LEARNING = 10803, 'Teaching and learning'
+        TEACHERS_AND_OTHER_EDUCATION_PERSONNEL = 10804, 'Teachers and other education personnel'
+        EDUCATION_POLICY = 10805, 'Education policy'
+        # -- PROTECTION
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        DOCUMENTATION = 10901, 'Documentation'
+        HUMAN_CIVIL_AND_POLITICAL_RIGHTS = 10902, 'Human, civil and political rights'
+        JUSTICE_AND_RULE_OF_LAW = 10903, 'Justice and rule of law'
+        PHYSICAL_SAFETY_AND_SECURITY = 10904, 'Physical safety and security'
+        FREEDOM_OF_MOVEMENT = 10905, 'Freedom of movement'
+        CHILD_PROTECTION = 10906, 'Child Protection'
+        SEXUAL_AND_GENDER_BASED_VIOLENCE = 10907, 'Sexual and Gender-Based Violence'
+        # -- -- SHELTER - HOUSING_LAND_AND_PROPERTY_HLP
+        MINES_UXOS_AND_IEDS = 10908, 'Mines, UXOS and IEDs'
+        # -- AGRICULTURE
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        PRODUCTION = 11001, 'Production'
+        AGRICULTURAL_INPUTS = 11002, 'Agricultural inputs'
+        AGRICULTURAL_INFRASTRUCTURE = 11003, 'Agricultural infrastructure'
+        NATURAL_RESOURCE_MANAGEMENT = 11004, 'Natural resource management'
+        # -- LOGISTIC
+        # -- -- INTER_SECTOR - INTRODUCTION
+        # -- -- INTER_SECTOR - CROSS
+        TRANSPORT = 11101, 'Transport'
+        INFORMATION_AND_COMMUNICATION_TECHNOLOGIES_ICT = 11102, 'Information and communication technologies (ICT)'
+        ENERGY = 11103, 'Energy'
 
     TYPE_CATEGORY_MAP = {
         Type.MATRIX_1D: {
             Category1.CONTEXT: {
+                Category2.INTRODUCTION,
                 Category2.POLITICS,
                 Category2.ECONOMICS,
                 Category2.ENVIRONMENT,
                 Category2.SOCIO_CULTURAL,
-                Category2.DEMOGRAPHIC,
+                Category2.DEMOGRAPHICS,
                 Category2.SECURITY_AND_STABILITY,
             },
-            Category1.EVENT_AND_SHOCK: {
+            Category1.SHOCKS_AND_EVENTS: {
+                Category2.INTRODUCTION,
                 Category2.TYPE_AND_CHARACTERISTICS,
                 Category2.AGGRAVATING_FACTORS,
                 Category2.MITIGATING_FACTORS,
-                Category2.HAZARDS_AND_THREATS,
+                Category2.THREATS_AND_HAZARDS,
             },
             Category1.DISPLACEMENT: {
-                Category2.DISPLACEMENT_CHARACTERISTICS,
+                Category2.INTRODUCTION_PEOPLE_ARRIVING,
+                Category2.INTRODUCTION_PEOPLE_LEAVING,
+                Category2.TYPE_AND_CHARACTERISTICS,
                 Category2.PULL_FACTORS,
                 Category2.PUSH_FACTORS,
                 Category2.INTENTIONS,
                 Category2.LOCAL_INTEGRATION,
             },
             Category1.CASUALTIES: {
+                Category2.INTRODUCTION,
+                Category2.CROSS,
                 Category2.DEAD,
                 Category2.INJURED,
                 Category2.MISSING,
             },
             Category1.INFORMATION_AND_COMMUNICATION: {
+                Category2.INTRODUCTION,
+                Category2.CROSS,
                 Category2.COMMUNICATION_SOURCES_AND_MEANS,
-                Category2.INFORMATION_CHALLENGES_AND_BARRIERS,
-                Category2.KNOWLEDGE_AND_INFO_GAPS_POP,
-                Category2.KNOWLEDGE_AND_INFO_GAPS_HUM,
+                Category2.CHALLENGES_AND_BARRIERS,
+                Category2.KNOWLEDGE_AND_INFORMATION_GAPS_POPULATION,
+                Category2.KNOWLEDGE_AND_INFORMATION_GAPS_HUMANITARIANS,
             },
             Category1.HUMANITARIAN_ACCESS: {
+                Category2.INTRODUCTION_HUMANITARIAN_ACTORS_BARRIERS,
+                Category2.INTRODUCTION_PEOPLE_AFFECTED_BARRIERS,
                 Category2.POPULATION_TO_RELIEF,
                 Category2.RELIEF_TO_POPULATION,
-                Category2.PHYSICAL_CONSTRAINTS,
-                Category2.SECURITY_CONSTRAINTS,
+                Category2.PHYSICAL_AND_SECURITY_CONSTRAINTS,
                 Category2.PEOPLE_FACING_HUMANITARIAN_ACCESS_CONSTRAINT_HUMANITARIAN_ACCESS_GAPS,
+            },
+            Category1.INTRODUCTION: {
+                Category2.INTRODUCTION,
+                Category2.QUESTIONNAIRE_CHARACTERISTICS,
+                Category2.ENUMERATOR_CHARACTERISTICS,
+                Category2.RESPONDENT_CHARACTERISTICS,
+                Category2.AREA_CHARACTERISTICS,
+                Category2.AFFECTED_GROUP_CHARACTERISTICS,
+            },
+            Category1.CONCLUSION: {
+                Category2.INTRODUCTION,
+                Category2.CROSS,
+            },
+            Category1.MARKET: {
+                Category2.INTRODUCTION,
+                Category2.FOOD,
+                Category2.WASH,
+                Category2.SHELTER_AND_DOMESTIC_ITEMS,
             },
         },
 
@@ -257,13 +315,9 @@ class BaseQuestionLeafGroup(models.Model):
                     Category2.PEOPLE_AT_RISK,
                     Category2.NUMBER_OF_PEOPLE_AT_RISK,
                 },
-                Category1.PRIORITY_NEEDS: {
-                    Category2.EXPRESSED_BY_POPULATION,
-                    Category2.EXPRESSED_BY_HUMANITARIAN_STAFF,
-                },
-                Category1.PRIORITY_INTERVENTIONS: {
-                    Category2.EXPRESSED_BY_POPULATION,
-                    Category2.EXPRESSED_BY_HUMANITARIAN_STAFF,
+                Category1.PRIORITIES_AND_PREFERENCES: {
+                    Category2.PRIORITY_NEEDS,
+                    Category2.PRIORITY_INTERVENTIONS,
                 },
                 Category1.CAPACITIES_AND_RESPONSE: {
                     Category2.GOVERNMENT_AND_LOCAL_AUTHORITIES,
@@ -276,23 +330,30 @@ class BaseQuestionLeafGroup(models.Model):
             },
             # columns: sub-columns <-> sector: sub-sector
             'columns': {
-                Category3.CROSS: {
+                Category3.INTER_SECTOR: {
+                    Category4.INTRODUCTION,
                     Category4.CROSS,
                 },
                 Category3.HEALTH: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
                     Category4.HEALTH_CARE,
                     Category4.HEALTH_STATUS,
                 },
                 Category3.WASH: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
                     Category4.WATER_SUPPLY,
-                    Category4.excreta_management_sanitation,
+                    Category4.SANITATION,
                     Category4.SOLID_WASTE_MANAGEMENT,
-                    Category4.HYGIENE_FACILITIES_AND_PRODUCTS,
+                    Category4.HYGIENE,
                     Category4.WASH_IN_SCHOOLS,
                     Category4.WASH_IN_HEALTH_CARE_FACILITIES,
                     Category4.VECTOR_CONTROL,
                 },
                 Category3.SHELTER: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
                     Category4.DWELLING_ENVELOPE,
                     Category4.DOMESTIC_LIVING_SPACE,
                     Category4.NON_FOOD_HOUSEHOLD_ITEMS,
@@ -300,22 +361,25 @@ class BaseQuestionLeafGroup(models.Model):
                     Category4.SETTLEMENT,
                 },
                 Category3.FOOD_SECURITY: {
-                    Category4.FOOD,
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                    Category4.FOOD_COMMODITIES,
                     Category4.NON_FOOD_ITEMS,
                 },
                 Category3.LIVELIHOODS: {
-                    Category4.NATURAL_CAPITAL,
-                    Category4.HUMAN_CAPITAL,
-                    Category4.SOCIAL_CAPITAL,
-                    Category4.PHYSICAL_CAPITAL,
-                    Category4.FINANCIAL_CAPITAL,
-                    Category4.OCCUPATION,
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                    Category4.INCOME,
+                    Category4.CASH,
                 },
                 Category3.NUTRITION: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
                     Category4.NUTRITION_STATUS,
                     Category4.NUTRITION_SERVICES,
                 },
                 Category3.EDUCATION: {
+                    Category4.INTRODUCTION,
                     Category4.PROVISION,
                     Category4.LEARNING_ENVIRONMENT,
                     Category4.TEACHING_AND_LEARNING,
@@ -323,6 +387,8 @@ class BaseQuestionLeafGroup(models.Model):
                     Category4.EDUCATION_POLICY,
                 },
                 Category3.PROTECTION: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
                     Category4.DOCUMENTATION,
                     Category4.HUMAN_CIVIL_AND_POLITICAL_RIGHTS,
                     Category4.JUSTICE_AND_RULE_OF_LAW,
@@ -334,12 +400,16 @@ class BaseQuestionLeafGroup(models.Model):
                     Category4.MINES_UXOS_AND_IEDS,
                 },
                 Category3.AGRICULTURE: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
                     Category4.PRODUCTION,
                     Category4.AGRICULTURAL_INPUTS,
                     Category4.AGRICULTURAL_INFRASTRUCTURE,
                     Category4.NATURAL_RESOURCE_MANAGEMENT,
                 },
                 Category3.LOGISTIC: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
                     Category4.TRANSPORT,
                     Category4.INFORMATION_AND_COMMUNICATION_TECHNOLOGIES_ICT,
                     Category4.ENERGY,
