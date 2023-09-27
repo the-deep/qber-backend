@@ -495,7 +495,7 @@ type QBQuestionType {
   video: String!
   isOrOther: Boolean!
   requiredDuration: Int
-  choiceCollectionId: Int
+  choiceCollectionId: ID
   dataCollectionMethod: QberDataCollectionMethodTypeEnum
   dataCollectionMethodDisplay: String
   enumeratorSkill: QberEnumeratorSkillTypeEnum
@@ -920,7 +920,7 @@ type QuestionType {
   video: String!
   isOrOther: Boolean!
   requiredDuration: Int
-  choiceCollectionId: Int
+  choiceCollectionId: ID
   createdBy: UserType!
   dataCollectionMethod: QberDataCollectionMethodTypeEnum
   dataCollectionMethodDisplay: String

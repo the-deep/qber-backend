@@ -209,5 +209,6 @@ class QuestionType(UserResourceTypeMixin):
             return strawberry.ID(str(self.leaf_group_id))
 
     @strawberry.field
-    def choice_collection_id(self) -> typing.Optional[int]:
-        return self.choice_collection_id
+    def choice_collection_id(self) -> typing.Optional[strawberry.ID]:
+        if self.choice_collection_id:
+            return strawberry.ID(str(self.choice_collection_id))
