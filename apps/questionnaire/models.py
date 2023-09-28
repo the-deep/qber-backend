@@ -155,6 +155,9 @@ class QuestionLeafGroup(BaseQuestionLeafGroup, UserResource):
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     is_hidden = models.BooleanField(default=False)
 
+    # Type
+    qbank_leaf_group_id: int
+
     class Meta:
         unique_together = [
             ('questionnaire', 'name'),

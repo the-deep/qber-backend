@@ -517,13 +517,9 @@ type QBQuestionTypeCountList {
 }
 
 enum QberDataCollectionMethodTypeEnum {
-  DIRECT
-  FOCUS_GROUP
-  ONE_ON_ONE_INTERVIEW
-  OPEN_ENDED_SURVEY
-  CLOSED_ENDED_SURVEY
   KEY_INFORMANT_INTERVIEW
-  AUTOMATIC
+  DIRECT_OBSERVATION
+  ATOMIC_OBSERVATION
 }
 
 enum QberEnumeratorSkillTypeEnum {
@@ -871,7 +867,9 @@ type QuestionLeafGroupType {
   category4Display: String
   createdBy: UserType!
   modifiedBy: UserType!
+  qbankLeafGroupId: ID
   questionnaireId: ID!
+  totalQbankQuestions: Int
   totalQuestions: QuestionCount!
   type: QuestionLeafGroupTypeEnum!
   typeDisplay: String!
@@ -1073,6 +1071,7 @@ type QuestionnaireType {
   priorityLevelsDisplay: [String!]!
   projectId: ID!
   qbank: QuestionBankType!
+  totalQbankQuestions: Int!
   totalQuestions: QuestionCount!
 }
 

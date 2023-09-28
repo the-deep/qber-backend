@@ -10,7 +10,7 @@ from apps.questionnaire.models import Question, Choice
 from apps.questionnaire.types import QuestionCount
 
 
-def total_questions_by_questionnare(keys: list[int]) -> list[QuestionCount]:
+def total_questions_by_questionnaire(keys: list[int]) -> list[QuestionCount]:
     qs = (
         Question.objects
         .filter(questionnaire__in=keys)
@@ -78,8 +78,8 @@ def load_choices(keys: list[int]) -> list[list[Choice]]:
 
 class QuestionnaireDataLoader():
     @cached_property
-    def total_questions_by_questionnare(self) -> list[QuestionCount]:
-        return DataLoader(load_fn=sync_to_async(total_questions_by_questionnare))
+    def total_questions_by_questionnaire(self) -> list[QuestionCount]:
+        return DataLoader(load_fn=sync_to_async(total_questions_by_questionnaire))
 
     @cached_property
     def total_questions_by_leaf_group(self) -> list[QuestionCount]:

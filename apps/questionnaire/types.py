@@ -62,6 +62,16 @@ class QuestionLeafGroupType(UserResourceTypeMixin):
         return qs.none()
 
     @strawberry.field
+    def qbank_leaf_group_id(self) -> strawberry.ID | None:
+        if self.qbank_leaf_group_id:
+            return strawberry.ID(str(self.qbank_leaf_group_id))
+
+    @strawberry.field
+    def total_qbank_questions(self, info: Info) -> int | None:
+        if self.qbank_leaf_group_id:
+            return info.context.dl.qbank.total_questions_by_leaf_group.load(self.qbank_leaf_group_id)
+
+    @strawberry.field
     def total_questions(self, info: Info) -> QuestionCount:
         return info.context.dl.questionnaire.total_questions_by_leaf_group.load(self.id)
 
@@ -106,7 +116,7 @@ class QuestionnaireType(UserResourceTypeMixin):
 
     @strawberry.field
     def total_questions(self, info: Info) -> QuestionCount:
-        return info.context.dl.questionnaire.total_questions_by_questionnare.load(self.id)
+        return info.context.dl.questionnaire.total_questions_by_questionnaire.load(self.id)
 
     @strawberry.field
     def qbank(self, info: Info) -> QuestionBankType:
@@ -115,6 +125,10 @@ class QuestionnaireType(UserResourceTypeMixin):
             'qbank',
             info.context.dl.questionnaire.load_qbank.load,
         )
+
+    @strawberry.field
+    def total_qbank_questions(self, info: Info) -> int:
+        return info.context.dl.qbank.total_questions_by_qbank.load(self.qbank_id)
 
 
 @strawberry_django.type(Choice)
