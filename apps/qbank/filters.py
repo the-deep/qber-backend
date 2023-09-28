@@ -15,11 +15,17 @@ class QberMetaQuestionFilterMixin:
     enumerator_skills: list[QberEnumeratorSkillTypeEnum]
     data_collection_methods: list[QberDataCollectionMethodTypeEnum]
 
-    def filter(self, queryset):
+    def filter_priority_levels(self, queryset):
         if self.priority_levels:
             queryset = queryset.filter(priority_level__in=self.priority_levels)
+        return queryset
+
+    def filter_enumerator_skills(self, queryset):
         if self.enumerator_skills:
             queryset = queryset.filter(enumerator_skill__in=self.enumerator_skills)
+        return queryset
+
+    def filter_data_collection_methods(self, queryset):
         if self.data_collection_methods:
             queryset = queryset.filter(data_collection_method__in=self.data_collection_methods)
         return queryset
