@@ -203,7 +203,11 @@ class XlsFormImport:
         leaf_groups = [
             QBLeafGroup(
                 qbank=self.qbank,
-                name='-'.join([str(c) for c in [c1, c2] if c is not None]),
+                name=(
+                    'qbank_' + '-'.join(
+                        [str(c) for c in [c1, c2] if c is not None]
+                    )
+                ),
                 type=QBLeafGroup.Type.MATRIX_1D,
                 category_1=c1,
                 category_2=c2,
@@ -219,7 +223,11 @@ class XlsFormImport:
         leaf_groups.extend([
             QBLeafGroup(
                 qbank=self.qbank,
-                name='-'.join([str(c) for c in [c1, c2, c3, c4] if c is not None]),
+                name=(
+                    'qbank_' + '-'.join(
+                        [str(c) for c in [c1, c2, c3, c4] if c is not None]
+                    )
+                ),
                 type=QBLeafGroup.Type.MATRIX_2D,
                 category_1=c1,
                 category_2=c2,
