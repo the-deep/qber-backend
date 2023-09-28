@@ -464,6 +464,9 @@ type QBLeafGroupType {
 }
 
 input QBQuestionFilter {
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
   id: IDFilterLookup
   qbank: DjangoModelFilterInput
   leafGroup: DjangoModelFilterInput
@@ -698,6 +701,9 @@ input QuestionCreateInput {
 }
 
 input QuestionFilter {
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
   id: IDFilterLookup
   questionnaire: DjangoModelFilterInput
   choiceCollection: DjangoModelFilterInput
@@ -1073,6 +1079,7 @@ type QuestionnaireType {
   qbank: QuestionBankType!
   totalQbankQuestions: Int!
   totalQuestions: QuestionCount!
+  totalRequiredDuration: Float!
 }
 
 type QuestionnaireTypeCountList {

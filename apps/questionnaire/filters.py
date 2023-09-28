@@ -1,6 +1,7 @@
 import strawberry
 import strawberry_django
 
+from apps.qbank.filters import QberMetaQuestionFilterMixin
 from .enums import (
     QuestionTypeEnum,
 )
@@ -27,7 +28,7 @@ class QuestionChoiceCollectionFilter:
 
 
 @strawberry_django.filters.filter(Question, lookups=True)
-class QuestionFilter:
+class QuestionFilter(QberMetaQuestionFilterMixin):
     id: strawberry.auto
     questionnaire: strawberry.auto
     choice_collection: strawberry.auto

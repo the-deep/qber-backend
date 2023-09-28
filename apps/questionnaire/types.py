@@ -104,6 +104,10 @@ class QuestionnaireType(UserResourceTypeMixin):
     def project_id(self) -> strawberry.ID:
         return strawberry.ID(str(self.project_id))
 
+    @strawberry.field
+    def total_required_duration(self, info: Info) -> float:
+        return info.context.dl.questionnaire.total_required_duration_by_questionnaire.load(self.pk)
+
     @strawberry_django.field
     async def leaf_groups(self, info: Info) -> list[QuestionLeafGroupType]:
         queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(questionnaire=self.pk)

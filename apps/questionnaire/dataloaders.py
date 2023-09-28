@@ -76,6 +76,27 @@ def load_choices(keys: list[int]) -> list[list[Choice]]:
     return [_map.get(key, []) for key in keys]
 
 
+def total_required_duration_by_questionnaire(keys: list[int]) -> list[float]:
+    qs = (
+        Question.objects
+        .filter(questionnaire__in=keys)
+        .order_by().values('questionnaire')
+        .annotate(
+            total_required_duration=models.Sum(
+                'required_duration',
+                filter=models.Q(is_hidden=False) & models.Q(leaf_group__is_hidden=False)
+            )
+        )
+    )
+    _map = {
+        questionnaire_id: (total_required_duration or 0)
+        for questionnaire_id, total_required_duration in (
+            qs.values_list('questionnaire', 'total_required_duration')
+        )
+    }
+    return [_map.get(key, 0) for key in keys]
+
+
 class QuestionnaireDataLoader():
     @cached_property
     def total_questions_by_questionnaire(self) -> list[QuestionCount]:
@@ -92,3 +113,7 @@ class QuestionnaireDataLoader():
     @cached_property
     def load_choices(self) -> list[list[Choice]]:
         return DataLoader(load_fn=sync_to_async(load_choices))
+
+    @cached_property
+    def total_required_duration_by_questionnaire(self) -> list[float]:
+        return DataLoader(load_fn=sync_to_async(total_required_duration_by_questionnaire))
