@@ -70,6 +70,7 @@ class QBChoice(BaseChoice):
 
 class QBLeafGroup(BaseQuestionLeafGroup):
     qbank = models.ForeignKey(QuestionBank, on_delete=models.CASCADE)
+    hide_in_framework = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('qbank', 'name')

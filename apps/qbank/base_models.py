@@ -2,6 +2,7 @@ import typing
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 
 from utils.common import validate_xlsform_name
 
@@ -43,10 +44,10 @@ class BaseQuestionLeafGroup(models.Model):
 
         # Matrix 2D (ROWS) - Pillar
         IMPACT = 201, 'Impact'
-        HUMANITARIAN_CONDITION = 202, 'Humanitarian condition'
+        HUMANITARIAN_CONDITIONS = 202, 'Humanitarian conditions'
         AT_RISK = 203, 'At Risk'
         PRIORITIES_AND_PREFERENCES = 204, 'Priorities and preferences'
-        CAPACITIES_AND_RESPONSE = 205, 'Capacities and response'
+        RESPONSE_AND_CAPACITIES = 205, 'Response and capacities'
 
     class Category2(models.IntegerChoices):
         # MATRIX 1D (SUB-ROWS)
@@ -95,40 +96,40 @@ class BaseQuestionLeafGroup(models.Model):
             10606,
             'People facing humanitarian access constraints/Humanitarian access gaps'
         )
-        # -- Introduction
+        # -- INTRODUCTION
         # -- -- CONTEXT - INTRODUCTION
         QUESTIONNAIRE_CHARACTERISTICS = 10701, 'Questionnaire characteristics'
         ENUMERATOR_CHARACTERISTICS = 10702, 'Enumerator characteristics'
         RESPONDENT_CHARACTERISTICS = 10703, 'Respondent characteristics'
         AREA_CHARACTERISTICS = 10704, 'Area characteristics'
         AFFECTED_GROUP_CHARACTERISTICS = 10705, 'Affected group characteristics'
-        # -- Conclusion
+        # -- CONCLUSION
         # -- -- CONTEXT - INTRODUCTION
         # -- -- CASUALTIES - CROSS
-        # -- Market
+        # -- MARKET
         # -- -- CONTEXT - INTRODUCTION
         FOOD = 10901, 'Food'
         WASH = 10902, 'Wash'
         SHELTER_AND_DOMESTIC_ITEMS = 10903, 'Shelter and domestic items'
 
         # Matrix 2D (Sub-ROWS) - Sub-Pillar
-        # -- Impact
+        # -- IMPACT
         DRIVERS = 20101, 'Drivers'
         IMPACT_ON_PEOPLE = 20102, 'Impact on people'
         IMPACT_ON_SYSTEMS_SERVICES_AND_NETWORKS = 20103, 'Impact on systems, services and networks'
         NUMBER_OF_PEOPLE_AFFECTED = 20104, 'Number of people affected'
-        # -- Humanitarian condition
+        # -- HUMANITARIAN_CONDITIONS
         LIVING_STANDARDS = 20201, 'Living standards'
         COPING_MECHANISMS = 20202, 'Coping mechanisms'
         PHYSICAL_AND_MENTAL_WELL_BEING = 20203, 'Physical and mental well being'
         NUMBER_OF_PEOPLE_IN_NEED = 20204, 'Number of people in need'
-        # -- At Risk
+        # -- AT_RISK
         PEOPLE_AT_RISK = 20301, 'People at risk'
         NUMBER_OF_PEOPLE_AT_RISK = 20302, 'Number of people at risk'
         # -- PRIORITIES_AND_PREFERENCES
         PRIORITY_NEEDS = 20401, 'Priority needs'
         PRIORITY_INTERVENTIONS = 20402, 'Priority interventions'
-        # -- Capacities and response
+        # -- RESPONSE_AND_CAPACITIES
         GOVERNMENT_AND_LOCAL_AUTHORITIES = 20501, 'Government and local authorities'
         INTERNATIONAL_ORGANIZATIONS = 20502, 'International organizations'
         NATIONAL_AND_LOCAL_ORGANIZATIONS = 20503, 'National and local organizations'
@@ -148,7 +149,7 @@ class BaseQuestionLeafGroup(models.Model):
         EDUCATION = 1008, 'Education'
         PROTECTION = 1009, 'Protection'
         AGRICULTURE = 1010, 'Agriculture'
-        LOGISTIC = 1011, 'Logistic'
+        LOGISTICS = 1011, 'Logistics'
 
     class Category4(models.IntegerChoices):
         # MATRIX 2D (SUB-COLUMNS) - Sub Sector
@@ -176,7 +177,7 @@ class BaseQuestionLeafGroup(models.Model):
         DWELLING_ENVELOPE = 10401, 'Dwelling envelope'
         DOMESTIC_LIVING_SPACE = 10402, 'Domestic living space'
         NON_FOOD_HOUSEHOLD_ITEMS = 10403, 'Non-food household items'
-        HOUSING_LAND_AND_PROPERTY_HLP = 10404, 'Housing, Land and Property (HLP)'
+        HOUSING_LAND_AND_PROPERTY = 10404, 'Housing, land and property'
         SETTLEMENT = 10405, 'Settlement'
         # -- FOOD_SECURITY
         # -- -- INTER_SECTOR - INTRODUCTION
@@ -210,7 +211,7 @@ class BaseQuestionLeafGroup(models.Model):
         FREEDOM_OF_MOVEMENT = 10905, 'Freedom of movement'
         CHILD_PROTECTION = 10906, 'Child Protection'
         SEXUAL_AND_GENDER_BASED_VIOLENCE = 10907, 'Sexual and Gender-Based Violence'
-        # -- -- SHELTER - HOUSING_LAND_AND_PROPERTY_HLP
+        # -- -- SHELTER - HOUSING_LAND_AND_PROPERTY
         MINES_UXOS_AND_IEDS = 10908, 'Mines, UXOS and IEDs'
         # -- AGRICULTURE
         # -- -- INTER_SECTOR - INTRODUCTION
@@ -219,11 +220,11 @@ class BaseQuestionLeafGroup(models.Model):
         AGRICULTURAL_INPUTS = 11002, 'Agricultural inputs'
         AGRICULTURAL_INFRASTRUCTURE = 11003, 'Agricultural infrastructure'
         NATURAL_RESOURCE_MANAGEMENT = 11004, 'Natural resource management'
-        # -- LOGISTIC
+        # -- LOGISTICS
         # -- -- INTER_SECTOR - INTRODUCTION
         # -- -- INTER_SECTOR - CROSS
         TRANSPORT = 11101, 'Transport'
-        INFORMATION_AND_COMMUNICATION_TECHNOLOGIES_ICT = 11102, 'Information and communication technologies (ICT)'
+        INFORMATION_AND_COMMUNICATION_TECHNOLOGIES = 11102, 'Information and communication technologies'
         ENERGY = 11103, 'Energy'
 
     TYPE_CATEGORY_MAP = {
@@ -305,7 +306,7 @@ class BaseQuestionLeafGroup(models.Model):
                     Category2.IMPACT_ON_SYSTEMS_SERVICES_AND_NETWORKS,
                     Category2.NUMBER_OF_PEOPLE_AFFECTED,
                 },
-                Category1.HUMANITARIAN_CONDITION: {
+                Category1.HUMANITARIAN_CONDITIONS: {
                     Category2.LIVING_STANDARDS,
                     Category2.COPING_MECHANISMS,
                     Category2.PHYSICAL_AND_MENTAL_WELL_BEING,
@@ -319,7 +320,7 @@ class BaseQuestionLeafGroup(models.Model):
                     Category2.PRIORITY_NEEDS,
                     Category2.PRIORITY_INTERVENTIONS,
                 },
-                Category1.CAPACITIES_AND_RESPONSE: {
+                Category1.RESPONSE_AND_CAPACITIES: {
                     Category2.GOVERNMENT_AND_LOCAL_AUTHORITIES,
                     Category2.INTERNATIONAL_ORGANIZATIONS,
                     Category2.NATIONAL_AND_LOCAL_ORGANIZATIONS,
@@ -357,7 +358,7 @@ class BaseQuestionLeafGroup(models.Model):
                     Category4.DWELLING_ENVELOPE,
                     Category4.DOMESTIC_LIVING_SPACE,
                     Category4.NON_FOOD_HOUSEHOLD_ITEMS,
-                    Category4.HOUSING_LAND_AND_PROPERTY_HLP,
+                    Category4.HOUSING_LAND_AND_PROPERTY,
                     Category4.SETTLEMENT,
                 },
                 Category3.FOOD_SECURITY: {
@@ -396,7 +397,7 @@ class BaseQuestionLeafGroup(models.Model):
                     Category4.FREEDOM_OF_MOVEMENT,
                     Category4.CHILD_PROTECTION,
                     Category4.SEXUAL_AND_GENDER_BASED_VIOLENCE,
-                    Category4.HOUSING_LAND_AND_PROPERTY_HLP,
+                    Category4.HOUSING_LAND_AND_PROPERTY,
                     Category4.MINES_UXOS_AND_IEDS,
                 },
                 Category3.AGRICULTURE: {
@@ -407,15 +408,108 @@ class BaseQuestionLeafGroup(models.Model):
                     Category4.AGRICULTURAL_INFRASTRUCTURE,
                     Category4.NATURAL_RESOURCE_MANAGEMENT,
                 },
-                Category3.LOGISTIC: {
+                Category3.LOGISTICS: {
                     Category4.INTRODUCTION,
                     Category4.CROSS,
                     Category4.TRANSPORT,
-                    Category4.INFORMATION_AND_COMMUNICATION_TECHNOLOGIES_ICT,
+                    Category4.INFORMATION_AND_COMMUNICATION_TECHNOLOGIES,
                     Category4.ENERGY,
                 },
             },
         }
+    }
+
+    CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP = {
+        Type.MATRIX_1D: {
+            Category1.CONTEXT: {
+                Category2.INTRODUCTION,
+            },
+            Category1.SHOCKS_AND_EVENTS: {
+                Category2.INTRODUCTION,
+            },
+            Category1.DISPLACEMENT: {
+                Category2.INTRODUCTION_PEOPLE_ARRIVING,
+                Category2.INTRODUCTION_PEOPLE_LEAVING,
+            },
+            Category1.CASUALTIES: {
+                Category2.INTRODUCTION,
+            },
+            Category1.INFORMATION_AND_COMMUNICATION: {
+                Category2.INTRODUCTION,
+                Category2.CROSS,
+            },
+            Category1.HUMANITARIAN_ACCESS: {
+                Category2.INTRODUCTION_HUMANITARIAN_ACTORS_BARRIERS,
+                Category2.INTRODUCTION_PEOPLE_AFFECTED_BARRIERS,
+            },
+            Category1.INTRODUCTION: {
+                Category2.INTRODUCTION,
+                Category2.QUESTIONNAIRE_CHARACTERISTICS,
+                Category2.ENUMERATOR_CHARACTERISTICS,
+                Category2.RESPONDENT_CHARACTERISTICS,
+                Category2.AREA_CHARACTERISTICS,
+                Category2.AFFECTED_GROUP_CHARACTERISTICS,
+            },
+            Category1.CONCLUSION: {
+                Category2.INTRODUCTION,
+                Category2.CROSS,
+            },
+            Category1.MARKET: {
+                Category2.INTRODUCTION,
+                Category2.FOOD,
+                Category2.WASH,
+                Category2.SHELTER_AND_DOMESTIC_ITEMS,
+            },
+        },
+
+        Type.MATRIX_2D: {
+            'rows': {},
+            'columns': {
+                Category3.INTER_SECTOR: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.HEALTH: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.WASH: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.SHELTER: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.FOOD_SECURITY: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.LIVELIHOODS: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.NUTRITION: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.EDUCATION: {
+                    Category4.INTRODUCTION,
+                },
+                Category3.PROTECTION: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.AGRICULTURE: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+                Category3.LOGISTICS: {
+                    Category4.INTRODUCTION,
+                    Category4.CROSS,
+                },
+            }
+        },
     }
 
     # TODO: Make sure this is unique within questions and groups
@@ -529,19 +623,19 @@ class QberMetaData(models.Model):
         ADVANCED = 3, 'Advanced'
 
     class DataCollectionMethod(models.IntegerChoices):
-        # TODO: Incomplete
-        DIRECT = 1, 'Direct observation'
-        FOCUS_GROUP = 2, 'Focus group'
-        ONE_ON_ONE_INTERVIEW = 3, '1-on-1 interviews'
-        OPEN_ENDED_SURVEY = 4, 'Open-ended survey'
-        CLOSED_ENDED_SURVEY = 5, 'Closed-ended survey'
-        KEY_INFORMANT_INTERVIEW = 6, 'Key Informant Interview'
-        AUTOMATIC = 7, 'Automatic'
+        KEY_INFORMANT_INTERVIEW = 1, 'Key informant interview'
+        DIRECT_OBSERVATION = 2, 'Direct observation'
+        ATOMIC_OBSERVATION = 3, 'Automatic observation'
 
     priority_level = models.PositiveSmallIntegerField(choices=PriorityLevel.choices, null=True, blank=True)
     enumerator_skill = models.PositiveSmallIntegerField(choices=EnumeratorSkill.choices, null=True, blank=True)
     data_collection_method = models.PositiveSmallIntegerField(choices=DataCollectionMethod.choices, null=True, blank=True)
-    required_duration = models.PositiveIntegerField(null=True, blank=True, help_text='In seconds')
+    required_duration = models.FloatField(
+        validators=[MinValueValidator(0.0)],
+        null=True,
+        blank=True,
+        help_text='In minutes',
+    )
 
     class Meta:
         abstract = True

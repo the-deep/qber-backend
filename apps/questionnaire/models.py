@@ -193,6 +193,7 @@ class QuestionLeafGroup(BaseQuestionLeafGroup, UserResource):
                             '_state',
                             'id',
                             'qbank_id',
+                            'hide_in_framework',
                         }
                     },
                     is_hidden=True,

@@ -29,6 +29,8 @@ class Parser:
     def label(label_data):
         if label := label_data.get('default'):
             return label
+        if label := label_data.get('English (en)'):
+            return label
         return list(label_data.values())[0]
 
     @staticmethod
@@ -57,8 +59,8 @@ class Parser:
             return
         _value = value.upper()
         override = {
-            'DIRECT OBSERVATION': QBQuestion.DataCollectionMethod.DIRECT,
-            '1-ON-1 INTERVIEWS': QBQuestion.DataCollectionMethod.ONE_ON_ONE_INTERVIEW,
+            'DIRECT': QBQuestion.DataCollectionMethod.DIRECT_OBSERVATION,
+            'AUTOMATIC': QBQuestion.DataCollectionMethod.ATOMIC_OBSERVATION,
         }
         return override.get(_value) or QBQuestion.DataCollectionMethod[
             _value.strip().replace(' ', '_').replace('-', '_')
@@ -196,7 +198,7 @@ class XlsFormImport:
             return
         return self.leaf_group_map[categories]
 
-    def create_leaf_group(self):
+    def create_leaf_groups(self):
         # Matrix 1D
         leaf_groups = [
             QBLeafGroup(
@@ -205,6 +207,9 @@ class XlsFormImport:
                 type=QBLeafGroup.Type.MATRIX_1D,
                 category_1=c1,
                 category_2=c2,
+                hide_in_framework=(
+                    c2 in QBLeafGroup.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP[QBLeafGroup.Type.MATRIX_1D].get(c1, {})
+                )
             )
             for c1, c2_list in QBLeafGroup.TYPE_CATEGORY_MAP[QBLeafGroup.Type.MATRIX_1D].items()
             for c2 in c2_list
@@ -219,6 +224,10 @@ class XlsFormImport:
                 category_2=c2,
                 category_3=c3,
                 category_4=c4,
+                hide_in_framework=(
+                    c2 in QBLeafGroup.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP[QBLeafGroup.Type.MATRIX_2D]['rows'].get(c1, {}) or
+                    c4 in QBLeafGroup.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP[QBLeafGroup.Type.MATRIX_2D]['columns'].get(c3, {})
+                )
             )
             for c1, c2_list in QBLeafGroup.TYPE_CATEGORY_MAP[QBLeafGroup.Type.MATRIX_2D]['rows'].items()
             for c2 in c2_list
@@ -285,7 +294,7 @@ class XlsFormImport:
 
         if required_duration_raw := data.get('Time(min)'):
             try:
-                kwargs['required_duration'] = int(float(required_duration_raw) * 60)
+                kwargs['required_duration'] = float(required_duration_raw)
             except ValueError:
                 logger.error('Failed to parse required_duration', exc_info=True)
                 self.log_error(f'{self.qber_debug_index(data)} Time(min) should be float value: {required_duration_raw}')
@@ -312,7 +321,7 @@ class XlsFormImport:
     def process(self):
         # TODO: Run only once
         self.choice_collection_map = {}
-        self.leaf_group_map = self.create_leaf_group()
+        self.leaf_group_map = self.create_leaf_groups()
         self.questions = []
         self.errors = []
         self.process_each(self.validate_xlsform(self.qbank.import_file))

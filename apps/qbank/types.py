@@ -24,6 +24,7 @@ class QBLeafGroupType:
     type = enum_field(QBLeafGroup.type)
     type_display = enum_display_field(QBLeafGroup.type)
     order: strawberry.auto
+    hide_in_framework: strawberry.auto
     # Categories
     # -- For Matrix1D/Matrix2D
     category_1 = enum_field(QBLeafGroup.category_1)

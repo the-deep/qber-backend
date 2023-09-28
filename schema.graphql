@@ -447,6 +447,7 @@ type QBLeafGroupType {
   id: ID!
   name: String!
   order: Int!
+  hideInFramework: Boolean!
   relevant: String!
   category1: QuestionLeafGroupCategory1TypeEnum!
   category1Display: String!
@@ -494,7 +495,7 @@ type QBQuestionType {
   image: String!
   video: String!
   isOrOther: Boolean!
-  requiredDuration: Int
+  requiredDuration: Float
   choiceCollectionId: ID
   dataCollectionMethod: QberDataCollectionMethodTypeEnum
   dataCollectionMethodDisplay: String
@@ -680,7 +681,7 @@ input QuestionCreateInput {
   priorityLevel: QberMetaDataPriorityLevelTypeEnum
   enumeratorSkill: QberEnumeratorSkillTypeEnum
   dataCollectionMethod: QberDataCollectionMethodTypeEnum
-  requiredDuration: Int
+  requiredDuration: Float
   hint: String
   choiceCollection: ID
   default: String
@@ -722,10 +723,10 @@ enum QuestionLeafGroupCategory1TypeEnum {
   CONCLUSION
   MARKET
   IMPACT
-  HUMANITARIAN_CONDITION
+  HUMANITARIAN_CONDITIONS
   AT_RISK
   PRIORITIES_AND_PREFERENCES
-  CAPACITIES_AND_RESPONSE
+  RESPONSE_AND_CAPACITIES
 }
 
 enum QuestionLeafGroupCategory2TypeEnum {
@@ -799,7 +800,7 @@ enum QuestionLeafGroupCategory3TypeEnum {
   EDUCATION
   PROTECTION
   AGRICULTURE
-  LOGISTIC
+  LOGISTICS
 }
 
 enum QuestionLeafGroupCategory4TypeEnum {
@@ -817,7 +818,7 @@ enum QuestionLeafGroupCategory4TypeEnum {
   DWELLING_ENVELOPE
   DOMESTIC_LIVING_SPACE
   NON_FOOD_HOUSEHOLD_ITEMS
-  HOUSING_LAND_AND_PROPERTY_HLP
+  HOUSING_LAND_AND_PROPERTY
   SETTLEMENT
   FOOD_COMMODITIES
   NON_FOOD_ITEMS
@@ -843,7 +844,7 @@ enum QuestionLeafGroupCategory4TypeEnum {
   AGRICULTURAL_INFRASTRUCTURE
   NATURAL_RESOURCE_MANAGEMENT
   TRANSPORT
-  INFORMATION_AND_COMMUNICATION_TECHNOLOGIES_ICT
+  INFORMATION_AND_COMMUNICATION_TECHNOLOGIES
   ENERGY
 }
 
@@ -921,7 +922,7 @@ type QuestionType {
   image: String!
   video: String!
   isOrOther: Boolean!
-  requiredDuration: Int
+  requiredDuration: Float
   choiceCollectionId: ID
   createdBy: UserType!
   dataCollectionMethod: QberDataCollectionMethodTypeEnum
@@ -961,7 +962,7 @@ input QuestionUpdateInput {
   priorityLevel: QberMetaDataPriorityLevelTypeEnum
   enumeratorSkill: QberEnumeratorSkillTypeEnum
   dataCollectionMethod: QberDataCollectionMethodTypeEnum
-  requiredDuration: Int
+  requiredDuration: Float
   type: QberQuestionTypeEnum
   name: String
   label: String
@@ -989,7 +990,7 @@ input QuestionnaireCreateInput {
   priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
   enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
   dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
-  requiredDuration: Int
+  requiredDuration: Float
 }
 
 input QuestionnaireExportCreateInput {
@@ -1059,7 +1060,7 @@ type QuestionnaireType {
   modifiedAt: DateTime!
   id: ID!
   title: String!
-  requiredDuration: Int
+  requiredDuration: Float
   choiceCollections: [QuestionChoiceCollectionType!]!
   createdBy: UserType!
   dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]!
@@ -1093,7 +1094,7 @@ input QuestionnaireUpdateInput {
   priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
   enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
   dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
-  requiredDuration: Int
+  requiredDuration: Float
 }
 
 input RegisterInput {
