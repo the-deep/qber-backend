@@ -207,8 +207,9 @@ class XlsFormImport:
                 type=QBLeafGroup.Type.MATRIX_1D,
                 category_1=c1,
                 category_2=c2,
-                hide_in_framework=(
-                    c2 in QBLeafGroup.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP[QBLeafGroup.Type.MATRIX_1D].get(c1, {})
+                hide_in_framework=QBLeafGroup.check_if_hidden_in_framework(
+                    QBLeafGroup.Type.MATRIX_1D,
+                    c1, c2, None, None
                 )
             )
             for c1, c2_list in QBLeafGroup.TYPE_CATEGORY_MAP[QBLeafGroup.Type.MATRIX_1D].items()
@@ -224,9 +225,9 @@ class XlsFormImport:
                 category_2=c2,
                 category_3=c3,
                 category_4=c4,
-                hide_in_framework=(
-                    c2 in QBLeafGroup.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP[QBLeafGroup.Type.MATRIX_2D]['rows'].get(c1, {}) or
-                    c4 in QBLeafGroup.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP[QBLeafGroup.Type.MATRIX_2D]['columns'].get(c3, {})
+                hide_in_framework=QBLeafGroup.check_if_hidden_in_framework(
+                    QBLeafGroup.Type.MATRIX_2D,
+                    c1, c2, c3, c4
                 )
             )
             for c1, c2_list in QBLeafGroup.TYPE_CATEGORY_MAP[QBLeafGroup.Type.MATRIX_2D]['rows'].items()

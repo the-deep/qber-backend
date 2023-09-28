@@ -73,6 +73,10 @@ class Command(BaseCommand):
                 category_3=categories[2],
                 category_4=categories[3],
                 order=group_order_by_type[_type],
+                hide_in_framework=QBLeafGroup.check_if_hidden_in_framework(
+                    _type,
+                    *categories,
+                ),
             )
             group_order_by_type[_type] += 1
             # Questions

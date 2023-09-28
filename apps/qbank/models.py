@@ -82,6 +82,29 @@ class QBLeafGroup(BaseQuestionLeafGroup):
             qbank=self.qbank,
         )
 
+    @classmethod
+    def check_if_hidden_in_framework(cls, _type, c1, c2, c3, c4) -> bool:
+        if _type == cls.Type.MATRIX_1D:
+            return c2 in (
+                cls.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP[_type].get(c1, {})
+            )
+        elif _type == cls.Type.MATRIX_2D:
+            return (
+                c2 in (
+                    cls.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP
+                    [cls.Type.MATRIX_2D]
+                    ['rows']
+                    .get(c1, {})
+                ) or
+                c4 in (
+                    cls.CATEGORIES_HIDDEN_IN_FRAMEWORK_MAP
+                    [cls.Type.MATRIX_2D]
+                    ['columns']
+                    .get(c3, {})
+                )
+            )
+        return False
+
 
 class QBQuestion(BaseQuestion):
     qbank = models.ForeignKey(QuestionBank, on_delete=models.CASCADE)

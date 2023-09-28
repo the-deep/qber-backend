@@ -97,6 +97,7 @@ class QBLeafGroupAdmin(ReadOnlyMixin, admin.ModelAdmin):
     list_filter = (
         AutocompleteFilterFactory('QuestionBank', 'qbank'),
         'type',
+        'hide_in_framework',
         'category_1',
         'category_2',
         'category_3',
