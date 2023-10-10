@@ -8,6 +8,7 @@ from apps.questionnaire.models import Question
 from apps.export.factories import QuestionnaireExportFactory
 from apps.export.tasks import export_task
 from apps.export.models import QuestionnaireExport
+from apps.qbank.factories import QuestionBankFactory
 from apps.questionnaire.factories import (
     QuestionnaireFactory,
     QuestionFactory,
@@ -21,10 +22,11 @@ class TestExportTaskQuery(TestCase):
     def test_questionnaire_export(self):
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project = ProjectFactory.create(**user_resource_params)
         project.add_member(user)
         # TODO: Add more cases
-        q1, _ = QuestionnaireFactory.create_batch(2, project=project, **user_resource_params)
+        q1, _ = QuestionnaireFactory.create_batch(2, project=project, **user_resource_params, qbank=qbank)
         # For q1 only
         choice_collections = ChoiceCollectionFactory.create_batch(
             2,

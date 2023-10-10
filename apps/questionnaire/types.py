@@ -110,7 +110,7 @@ class QuestionnaireType(UserResourceTypeMixin):
 
     @strawberry_django.field
     async def leaf_groups(self, info: Info) -> list[QuestionLeafGroupType]:
-        queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(questionnaire=self.pk)
+        queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(questionnaire=self.pk).order_by('order', 'id')
         return [q async for q in queryset]
 
     @strawberry_django.field

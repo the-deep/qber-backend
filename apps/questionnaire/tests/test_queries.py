@@ -3,6 +3,7 @@ from main.tests import TestCase
 from apps.user.factories import UserFactory
 from apps.project.factories import ProjectFactory
 from apps.questionnaire.models import Question
+from apps.qbank.factories import QuestionBankFactory
 from apps.questionnaire.factories import (
     QuestionnaireFactory,
     QuestionFactory,
@@ -69,12 +70,13 @@ class TestQuestionnaireQuery(TestCase):
         # Create some users
         user, user2 = UserFactory.create_batch(2)
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project1, project2 = ProjectFactory.create_batch(2, **user_resource_params)
         project1.add_member(user)
         project2.add_member(user2)
 
-        p1_questionnaires = QuestionnaireFactory.create_batch(3, **user_resource_params, project=project1)
-        p2_questionnaires = QuestionnaireFactory.create_batch(2, **user_resource_params, project=project2)
+        p1_questionnaires = QuestionnaireFactory.create_batch(3, **user_resource_params, project=project1, qbank=qbank)
+        p2_questionnaires = QuestionnaireFactory.create_batch(2, **user_resource_params, project=project2, qbank=qbank)
 
         # Without authentication -----
         content = self.query_check(
@@ -128,10 +130,11 @@ class TestQuestionnaireQuery(TestCase):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project, project2 = ProjectFactory.create_batch(2, **user_resource_params)
 
-        questionnaires = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params)
-        q2 = QuestionnaireFactory.create(project=project2, **user_resource_params)
+        questionnaires = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params, qbank=qbank)
+        q2 = QuestionnaireFactory.create(project=project2, **user_resource_params, qbank=qbank)
 
         variables = {'projectId': self.gID(project.id)}
         # Without authentication -----
@@ -267,10 +270,11 @@ class TestQuestionGroupQuery(TestCase):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project = ProjectFactory.create(**user_resource_params)
         project.add_member(user)
 
-        q1, q2, q3 = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params)
+        q1, q2, q3 = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params, qbank=qbank)
 
         q1_groups = QuestionLeafGroupFactory.static_generator(2, **user_resource_params, questionnaire=q1)
         q2_groups = QuestionLeafGroupFactory.static_generator(3, **user_resource_params, questionnaire=q2)
@@ -333,10 +337,11 @@ class TestQuestionGroupQuery(TestCase):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project, project2 = ProjectFactory.create_batch(2, **user_resource_params)
 
-        q1 = QuestionnaireFactory.create(project=project, **user_resource_params)
-        q2 = QuestionnaireFactory.create(project=project2, **user_resource_params)
+        q1 = QuestionnaireFactory.create(project=project, **user_resource_params, qbank=qbank)
+        q2 = QuestionnaireFactory.create(project=project2, **user_resource_params, qbank=qbank)
         q1_group, *_ = QuestionLeafGroupFactory.static_generator(4, **user_resource_params, questionnaire=q1)
         [q2_group] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q2)
 
@@ -464,10 +469,11 @@ class TestChoiceCollectionQuery(TestCase):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project = ProjectFactory.create(**user_resource_params)
         project.add_member(user)
 
-        q1, q2, q3 = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params)
+        q1, q2, q3 = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params, qbank=qbank)
 
         q1_choice_collections = ChoiceCollectionFactory.create_batch(
             2,
@@ -533,10 +539,11 @@ class TestChoiceCollectionQuery(TestCase):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project, project2 = ProjectFactory.create_batch(2, **user_resource_params)
 
-        q1 = QuestionnaireFactory.create(project=project, **user_resource_params)
-        q2 = QuestionnaireFactory.create(project=project2, **user_resource_params)
+        q1 = QuestionnaireFactory.create(project=project, **user_resource_params, qbank=qbank)
+        q2 = QuestionnaireFactory.create(project=project2, **user_resource_params, qbank=qbank)
         q1_question_choice_collection, *_ = ChoiceCollectionFactory.create_batch(4, **user_resource_params, questionnaire=q1)
         q2_question_choice_collection = ChoiceCollectionFactory.create(**user_resource_params, questionnaire=q2)
 
@@ -648,16 +655,7 @@ class TestQuestionQuery(TestCase):
                     modifiedBy {
                       id
                     }
-                    choiceCollection {
-                      id
-                      name
-                      label
-                      choices {
-                        id
-                        name
-                        label
-                      }
-                    }
+                    choiceCollectionId
                     type
                     name
                     label
@@ -672,10 +670,11 @@ class TestQuestionQuery(TestCase):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project = ProjectFactory.create(**user_resource_params)
         project.add_member(user)
 
-        q1, q2, q3 = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params)
+        q1, q2, q3 = QuestionnaireFactory.create_batch(3, project=project, **user_resource_params, qbank=qbank)
 
         [group1] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q1)
         [group2] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q2)
@@ -744,11 +743,12 @@ class TestQuestionQuery(TestCase):
         # Create some users
         user = UserFactory.create()
         user_resource_params = {'created_by': user, 'modified_by': user}
+        qbank = QuestionBankFactory.create(**user_resource_params)
         project, project2 = ProjectFactory.create_batch(2, **user_resource_params)
 
         question_params = {**user_resource_params, 'type': Question.Type.DATE}
-        q1 = QuestionnaireFactory.create(project=project, **user_resource_params)
-        q2 = QuestionnaireFactory.create(project=project2, **user_resource_params)
+        q1 = QuestionnaireFactory.create(project=project, **user_resource_params, qbank=qbank)
+        q2 = QuestionnaireFactory.create(project=project2, **user_resource_params, qbank=qbank)
 
         [group1] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q1)
         [group2] = QuestionLeafGroupFactory.static_generator(1, **user_resource_params, questionnaire=q2)
@@ -763,20 +763,6 @@ class TestQuestionQuery(TestCase):
             choice_collection=q1_choice_collection,
         )
         question2 = QuestionFactory.create(**question_params, questionnaire=q2, leaf_group=group2)
-
-        choice_collection_response = {
-            'id': self.gID(q1_choice_collection.pk),
-            'name': self.gID(q1_choice_collection.name),
-            'label': self.gID(q1_choice_collection.label),
-            'choices': [
-                {
-                    'id': self.gID(choice.pk),
-                    'name': self.gID(choice.name),
-                    'label': self.gID(choice.label),
-                }
-                for choice in q1_choice_collection.choice_set.all()
-            ],
-        }
 
         variables = {
             'projectId': self.gID(project.id),
@@ -814,7 +800,7 @@ class TestQuestionQuery(TestCase):
             'type': self.genum(question.type),
             'label': question.label,
             'hint': question.hint,
-            'choiceCollection': choice_collection_response,
+            'choiceCollectionId': self.gID(q1_choice_collection.pk),
         }, content
 
         # Another project question

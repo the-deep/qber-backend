@@ -354,7 +354,7 @@ class ModelMutation:
 
         # Delete - First
         deleted_instances = []
-        delete_qs = base_queryset.filter(id__in=delete_ids)
+        delete_qs = base_queryset.filter(id__in=delete_ids).order_by('id')
         async for item in delete_qs.all():
             _errors, _saved_instance = await self.handle_delete(item)
             if _errors:

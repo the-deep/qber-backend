@@ -7,6 +7,7 @@ from apps.user.factories import UserFactory
 from apps.project.factories import ProjectFactory
 from apps.export.factories import QuestionnaireExportFactory
 from apps.questionnaire.factories import QuestionnaireFactory
+from apps.qbank.factories import QuestionBankFactory
 
 
 class TestExportQuery(TestCase):
@@ -78,11 +79,12 @@ class TestExportQuery(TestCase):
         cls.user1, cls.user2, cls.other_user = UserFactory.create_batch(3)
 
         user_resource_params = {'created_by': cls.user1, 'modified_by': cls.user1}
+        cls.qbank = QuestionBankFactory.create(**user_resource_params)
         cls.project = ProjectFactory.create(**user_resource_params)
         cls.project.add_member(cls.user1)
         cls.project.add_member(cls.user2)
 
-        q1, _ = QuestionnaireFactory.create_batch(2, project=cls.project, **user_resource_params)
+        q1, _ = QuestionnaireFactory.create_batch(2, project=cls.project, qbank=cls.qbank, **user_resource_params)
 
         cls.exports = QuestionnaireExportFactory.create_batch(3, exported_by=cls.user1, questionnaire=q1)
 

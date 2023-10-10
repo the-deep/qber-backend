@@ -9,6 +9,8 @@ from apps.questionnaire.models import (
     ChoiceCollection,
 )
 from apps.user.factories import UserFactory
+from apps.qbank.models import QuestionBank
+from apps.qbank.factories import QuestionBankFactory
 from apps.questionnaire.factories import (
     QuestionnaireFactory,
     QuestionFactory,
@@ -79,6 +81,8 @@ class TestQuestionnaireMutation(TestCase):
     def test_create_questionnaire(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory.create(**ur_params, status=QuestionBank.Status.SUCCESS)
+        qbank.activate()
         # Create some projects
         project = ProjectFactory.create(**ur_params)
 
@@ -127,10 +131,11 @@ class TestQuestionnaireMutation(TestCase):
     def test_update_questionnaire(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory.create(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         # Without login
         variables = {
@@ -178,10 +183,11 @@ class TestQuestionnaireMutation(TestCase):
     def test_delete_questionnaire(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory.create(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1_1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1_1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
         # Create some questions, groups and choice collections
         [group1_1_1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_1)
         [group1_2_1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_2)
@@ -398,10 +404,11 @@ class TestQuestionMutation(TestCase):
     def test_create_question(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         [q1_group] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
         [q2_group] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
@@ -485,10 +492,11 @@ class TestQuestionMutation(TestCase):
     def test_update_question(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
         [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
@@ -569,10 +577,11 @@ class TestQuestionMutation(TestCase):
     def test_delete_question(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
         [group2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q2)
@@ -625,11 +634,12 @@ class TestQuestionMutation(TestCase):
     def test_question_visibility(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
         # Questionnaires
-        q1_1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1_1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
         # Leaf groups
         [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_1)
         [group1_2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_2)
@@ -708,12 +718,13 @@ class TestQuestionMutation(TestCase):
     def test_question_order_update(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
         # Questionnaire
-        q1_1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q1_2 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2_1 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1_1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q1_2 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2_1 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
         # Groups
         [
             group1_1_1,
@@ -807,9 +818,10 @@ class TestQuestionTypeMutation(TestCase):
         super().setUpClass()
         cls.user = UserFactory.create()
         cls.ur_params = dict(created_by=cls.user, modified_by=cls.user)
+        cls.qbank = QuestionBankFactory(**cls.ur_params)
         # Create some projects
         cls.project = ProjectFactory.create(**cls.ur_params)
-        cls.q1 = QuestionnaireFactory.create(**cls.ur_params, project=cls.project)
+        cls.q1 = QuestionnaireFactory.create(**cls.ur_params, project=cls.project, qbank=cls.qbank)
         cls.project.add_member(cls.user, role=ProjectMembership.Role.MEMBER)
         cls.choice_collection = ChoiceCollectionFactory.create(**cls.ur_params, questionnaire=cls.q1)
 
@@ -905,10 +917,11 @@ class TestQuestionGroupMutation(TestCase):
     def test_question_leaf_group_visibility(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1, q1_2 = QuestionnaireFactory.create_batch(2, **ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         [group1] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1)
         [group1_2] = QuestionLeafGroupFactory.static_generator(1, **ur_params, questionnaire=q1_2)
@@ -973,11 +986,12 @@ class TestQuestionGroupMutation(TestCase):
     def test_question_leaf_group_order_update(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1_1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q1_2 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2_1 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1_1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q1_2 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2_1 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         [
             group1_1_1,
@@ -1136,10 +1150,11 @@ class TestChoiceCollectionMutation(TestCase):
     def test_create_choice_collection(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         choice_collection_count = ChoiceCollection.objects.count()
         # Without login
@@ -1233,10 +1248,11 @@ class TestChoiceCollectionMutation(TestCase):
     def test_update_choice_collection(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         ChoiceCollectionFactory.create(**ur_params, questionnaire=q1, name='choice_collection_01')
         choice_collection_12 = ChoiceCollectionFactory.create(**ur_params, questionnaire=q1, name='choice_collection_02')
@@ -1313,10 +1329,11 @@ class TestChoiceCollectionMutation(TestCase):
     def test_delete_choice_collection(self):
         user = UserFactory.create()
         ur_params = dict(created_by=user, modified_by=user)
+        qbank = QuestionBankFactory(**ur_params)
         # Create some projects
         project, project2 = ProjectFactory.create_batch(2, **ur_params)
-        q1 = QuestionnaireFactory.create(**ur_params, project=project)
-        q2 = QuestionnaireFactory.create(**ur_params, project=project2)
+        q1 = QuestionnaireFactory.create(**ur_params, project=project, qbank=qbank)
+        q2 = QuestionnaireFactory.create(**ur_params, project=project2, qbank=qbank)
 
         question1 = ChoiceCollectionFactory.create(**ur_params, questionnaire=q1, name='choice_collection_0101')
         choice_collection_2 = ChoiceCollectionFactory.create(**ur_params, questionnaire=q2, name='choice_collection_0201')

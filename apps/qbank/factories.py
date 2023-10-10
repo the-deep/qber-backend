@@ -104,6 +104,7 @@ class QBLeafGroupFactory(DjangoModelFactory):
         if len(collections) < count:
             raise Exception('Provided count is higher then available iteration')
         leaf_groups = []
+        order = 1
         for group_data in collections[:count]:
             leaf_groups.append(
                 cls(
@@ -112,9 +113,11 @@ class QBLeafGroupFactory(DjangoModelFactory):
                     category_2=group_data['category_2'],
                     category_3=group_data.get('category_3'),
                     category_4=group_data.get('category_4'),
+                    order=order,
                     **kwargs,
                 )
             )
+            order += 1
         return leaf_groups
 
 

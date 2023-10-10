@@ -7,6 +7,7 @@ from apps.project.factories import ProjectFactory
 from apps.project.models import ProjectMembership
 from apps.export.models import QuestionnaireExport
 from apps.questionnaire.factories import QuestionnaireFactory
+from apps.qbank.factories import QuestionBankFactory
 
 
 class TestExportMutation(TestCase):
@@ -94,11 +95,12 @@ class TestExportMutation(TestCase):
         cls.user, cls.ro_user, cls.other_user = UserFactory.create_batch(3)
 
         user_resource_params = {'created_by': cls.user, 'modified_by': cls.user}
+        cls.qbank = QuestionBankFactory.create(**user_resource_params)
         cls.project = ProjectFactory.create(**user_resource_params)
         cls.project.add_member(cls.user)
         cls.project.add_member(cls.ro_user, role=ProjectMembership.Role.VIEWER)
 
-        cls.q1, _ = QuestionnaireFactory.create_batch(2, project=cls.project, **user_resource_params)
+        cls.q1, _ = QuestionnaireFactory.create_batch(2, project=cls.project, qbank=cls.qbank, **user_resource_params)
 
     @patch('apps.export.serializers.export_task.delay')
     def test_export(self, export_task_mock):
