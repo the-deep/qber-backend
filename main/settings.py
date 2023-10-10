@@ -120,6 +120,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
 
     # External apps
+    'prettyjson',
     'admin_auto_filters',
     'django_premailer',
     'storages',

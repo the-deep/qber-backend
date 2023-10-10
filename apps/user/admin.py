@@ -9,6 +9,7 @@ from .models import (
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
+    search_fields = ('email', 'first_name', 'last_name',)
     fieldsets = (
         (None, {
             'fields': (

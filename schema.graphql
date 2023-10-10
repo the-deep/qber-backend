@@ -1,4 +1,5 @@
 type AppEnumCollection {
+  GlobalPermissionType: [AppEnumCollectionGlobalPermissionType!]!
   UserEmailOptOuts: [AppEnumCollectionUserEmailOptOuts!]!
   ProjectMembershipRole: [AppEnumCollectionProjectMembershipRole!]!
   QBQuestionType: [AppEnumCollectionQBQuestionType!]!
@@ -23,6 +24,11 @@ type AppEnumCollection {
   QuestionLeafGroupCategory3: [AppEnumCollectionQuestionLeafGroupCategory3!]!
   QuestionLeafGroupCategory4: [AppEnumCollectionQuestionLeafGroupCategory4!]!
   QuestionnaireExportStatus: [AppEnumCollectionQuestionnaireExportStatus!]!
+}
+
+type AppEnumCollectionGlobalPermissionType {
+  key: GlobalPermissionTypeEnum!
+  label: String!
 }
 
 type AppEnumCollectionProjectMembershipRole {
@@ -145,6 +151,12 @@ type AppEnumCollectionUserEmailOptOuts {
   label: String!
 }
 
+input CreateQuestionBankInput {
+  title: String!
+  importFile: Upload!
+  description: String
+}
+
 """A generic type to return error messages"""
 scalar CustomErrorType
 
@@ -178,6 +190,11 @@ input DjangoModelFilterInput {
 type FileFieldType {
   name: String!
   url: String!
+}
+
+enum GlobalPermissionTypeEnum {
+  UPLOAD_QBANK
+  ACTIVATE_QBANK
 }
 
 input IDFilterLookup {
@@ -249,6 +266,8 @@ input PasswordResetTriggerInput {
 type PrivateMutation {
   changeUserPassword(data: PasswordChangeInput!): MutationEmptyResponseType!
   updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
+  createQuestionBank(data: CreateQuestionBankInput!): QuestionBankTypeMutationResponseType!
+  activateQuestionBank(id: ID!): QuestionBankTypeMutationResponseType!
   createProject(data: ProjectCreateInput!): ProjectTypeMutationResponseType!
   projectScope(pk: ID!): ProjectScopeMutation
   id: ID!
@@ -579,6 +598,7 @@ type QuestionBankType {
   id: ID!
   title: String!
   isActive: Boolean!
+  errors: [String!]!
   choiceCollections: [QBChoiceCollectionType!]!
   createdBy: UserType!
   leafGroups: [QBLeafGroupType!]!
@@ -591,6 +611,12 @@ type QuestionBankTypeCountList {
   offset: Int!
   count: Int!
   items: [QuestionBankType!]!
+}
+
+type QuestionBankTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionBankType
 }
 
 input QuestionChoiceCollectionCreateInput {
@@ -1130,6 +1156,8 @@ input StrFilterLookup {
   iRegex: String
 }
 
+scalar Upload
+
 input UserFilter {
   id: IDFilterLookup
   search: String
@@ -1151,6 +1179,7 @@ type UserMeType {
   email: String!
   emailOptOuts: [OptEmailNotificationTypeEnum!]!
   emailOptOutsDisplay: [String!]!
+  globalPermissions: [GlobalPermissionTypeEnum!]!
 }
 
 type UserMeTypeMutationResponseType {

@@ -9,11 +9,13 @@ import utils.strawberry.transformers  # noqa: 403
 
 from main.enums import AppEnumCollection, AppEnumCollectionData
 from apps.project.models import Project
+from apps.common.enums import GlobalPermissionTypeEnum
+from apps.user.models import User
 
 from apps.user import queries as user_queries, mutations as user_mutations
 from apps.project import queries as project_queries
 from apps.project import mutations as project_mutations
-from apps.qbank import queries as qbank_queries
+from apps.qbank import queries as qbank_queries, mutations as qbank_mutations
 
 from .permissions import IsAuthenticated
 from .dataloaders import GlobalDataLoader
@@ -28,6 +30,7 @@ class ProjectContext:
 @dataclass
 class GraphQLContext(StrawberryDjangoContext):
     dl: GlobalDataLoader
+    global_permissions: set[GlobalPermissionTypeEnum]
     active_project: ProjectContext | None = None
 
     @sync_to_async
@@ -49,12 +52,25 @@ class GraphQLContext(StrawberryDjangoContext):
             raise Exception('There is no active project to select permissions from.')
         return permission in self.active_project.permissions
 
+    def has_global_perm(self, permission) -> str | None:
+        if permission not in self.global_permissions:
+            return f"You don't have permission for {permission.label}"
+
 
 class CustomAsyncGraphQLView(AsyncGraphQLView):
-    async def get_context(self, *args, **kwargs) -> GraphQLContext:
+    @staticmethod
+    @sync_to_async
+    def get_global_permissions(user: User) -> set[GlobalPermissionTypeEnum]:
+        if not user.is_anonymous:
+            return user.get_global_permissions()
+        return set()
+
+    async def get_context(self, request, **kwargs) -> GraphQLContext:
+        global_permissions = await self.get_global_permissions(request.user)
         return GraphQLContext(
-            *args,
+            request,
             **kwargs,
+            global_permissions=global_permissions,
             dl=GlobalDataLoader(),
         )
 
@@ -86,6 +102,7 @@ class PublicMutation(
 @strawberry.type
 class PrivateMutation(
     user_mutations.PrivateMutation,
+    qbank_mutations.PrivateMutation,
     project_mutations.PrivateMutation,
 ):
     id: strawberry.ID = strawberry.ID('private')

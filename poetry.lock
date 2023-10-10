@@ -482,6 +482,22 @@ files = [
 premailer = "3.0.0"
 
 [[package]]
+name = "django-prettyjson"
+version = "0.4.1"
+description = "Enables pretty JSON viewer in Django forms, admin, or templates"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-prettyjson-0.4.1.tar.gz", hash = "sha256:b758a5f3c073db93e17485b4eb9cb19e9838f6e5d6cb91096d795e015e28d3bd"},
+    {file = "django_prettyjson-0.4.1-py2.py3-none-any.whl", hash = "sha256:f9f4d73899947f17a67f61b57216612373195937fa936ba9335549fe878b3355"},
+]
+
+[package.dependencies]
+django = ">=1.8"
+six = ">=1.10.0"
+standardjson = ">=0.3.1"
+
+[[package]]
 name = "django-redis"
 version = "5.3.0"
 description = "Full featured redis cache backend for Django."
@@ -1582,6 +1598,17 @@ pure-eval = "*"
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
+name = "standardjson"
+version = "0.3.1"
+description = "JSON encoder that aims to be fully compliant with specifications ECMA-262 and ECMA-404."
+optional = false
+python-versions = "*"
+files = [
+    {file = "standardjson-0.3.1-py2.py3-none-any.whl", hash = "sha256:69e79b090d3f7dd887ae4a9db226ea79cd3fd3d7cfa8491d23ec6b06126e24b0"},
+    {file = "standardjson-0.3.1.tar.gz", hash = "sha256:71b7b0a649d5e3bd343a02737e752c054c218242dcaa739abab98086e537fbab"},
+]
+
+[[package]]
 name = "strawberry-django-plus"
 version = "2.6.4"
 description = "Enhanced Strawberry GraphQL integration with Django"
@@ -1819,4 +1846,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.3"
-content-hash = "88baec7c5267420f44eaddfe27f66f1a23545d8a03c70c8e972c1a1346a05e64"
+content-hash = "211c958a76058b2a6ae3d56e3465a0cb11c4a58b5ffdaa00650e0eb652412fd2"

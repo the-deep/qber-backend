@@ -391,3 +391,7 @@ class ModelMutation:
             results=results,
             deleted=deleted_instances,
         )
+
+
+def generate_error_message(message: str = _CustomErrorType.DEFAULT_ERROR_MESSAGE) -> CustomErrorType:
+    return _CustomErrorType.generate_message(message)

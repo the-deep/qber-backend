@@ -5,6 +5,9 @@ from django.test import TestCase as BaseTestCase, override_settings
 from django.conf import settings
 from django.db import models
 
+from apps.common.models import GlobalPermission
+from apps.common.factories import GlobalPermissionFactory
+
 
 TEST_CACHES = {
     'default': {
@@ -60,11 +63,20 @@ S3_TEST_STORAGES_CONFIGS = dict(
     CELERY_TASK_ALWAYS_EAGER=True,
 )
 class TestCase(BaseTestCase):
+    global_permissions: dict[GlobalPermission.Type, GlobalPermission]
+
     def setUp(self):
         from django.core.cache import cache
         # Clear all test cache
         cache.clear()
+        self.setup_global_permissions()
         super().setUp()
+
+    def setup_global_permissions(self):
+        self.global_permissions = {
+            _type: GlobalPermissionFactory.create(type=_type)
+            for _type in GlobalPermission.Type
+        }
 
     def force_login(self, user):
         self.client.force_login(user)
@@ -77,17 +89,35 @@ class TestCase(BaseTestCase):
         query: str,
         assert_errors: bool = False,
         variables: dict | None = None,
+        files: dict | None = None,
         **kwargs,
     ) -> Dict:
-        response = self.client.post(
-            "/graphql/",
-            data={
-                "query": query,
-                "variables": variables,
-            },
-            content_type="application/json",
-            **kwargs,
-        )
+        import json
+        if files:
+            # Request type: form data
+            response = self.client.post(
+                "/graphql/",
+                data={
+                    'operations': json.dumps({
+                        'query': query,
+                        'variables': variables,
+                    }),
+                    **files,
+                    'map': json.dumps(kwargs.pop('map')),
+                },
+                **kwargs
+            )
+        else:
+            # Request type: json
+            response = self.client.post(
+                "/graphql/",
+                data={
+                    'query': query,
+                    'variables': variables,
+                },
+                content_type="application/json",
+                **kwargs,
+            )
         if assert_errors:
             self.assertResponseHasErrors(response)
         else:

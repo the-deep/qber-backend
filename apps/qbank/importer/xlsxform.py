@@ -3,7 +3,7 @@ import logging
 from django.core.files.temp import NamedTemporaryFile
 from django.conf import settings
 from django.db import transaction
-from pyxform.xls2json import parse_file_to_json
+from pyxform.xls2json import parse_file_to_json, PyXFormError
 
 from apps.qbank.base_models import BaseQuestion, BaseQuestionLeafGroup
 from apps.qbank.models import (
@@ -15,6 +15,13 @@ from apps.qbank.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class XlsFormValidationError(Exception):
+    def __init__(self, errors):
+        self.errors = errors
+        self.message = 'Invalid XLSForm: ' + ';; '.join(errors)
+        super().__init__(self.message)
 
 
 class Parser:
@@ -255,6 +262,10 @@ class XlsFormImport:
         }
 
     def process_each(self, data):
+        # XXX: This is added by PyXForm which we don't need for now
+        if data == {'name': 'instanceID', 'bind': {'readonly': 'true()', 'jr:preload': 'uid'}, 'type': 'calculate'}:
+            return
+
         _type = data['type'].lower()
 
         # Groups (Ignoring groups for now as we have our own grouping using custom column)
@@ -333,9 +344,13 @@ class XlsFormImport:
         self.leaf_group_map = self.create_leaf_groups()
         self.questions = []
         self.errors = []
-        self.process_each(self.validate_xlsform(self.qbank.import_file))
+        try:
+            self.process_each(
+                self.validate_xlsform(self.qbank.import_file)
+            )
+        except PyXFormError as e:
+            # It only sends one error at a time
+            raise XlsFormValidationError([str(e)])
         QBQuestion.objects.bulk_create(self.questions)
         if self.errors:
-            print(f'----------------------------- ERRORS ({len(self.errors)}) -----------------------------')
-            for error in self.errors:
-                print(error)
+            raise XlsFormValidationError(self.errors)

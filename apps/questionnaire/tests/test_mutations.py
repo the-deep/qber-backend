@@ -1,5 +1,4 @@
 from main.tests import TestCase
-
 from apps.project.models import ProjectMembership
 from apps.project.factories import ProjectFactory
 from apps.questionnaire.enums import VisibilityActionEnum

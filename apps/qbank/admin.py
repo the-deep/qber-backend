@@ -1,6 +1,8 @@
-from django.contrib import admin
-from django.contrib import messages
+from django.contrib import admin, messages
+from django.db import models
+
 from admin_auto_filters.filters import AutocompleteFilterFactory
+from prettyjson import PrettyJSONWidget
 
 from apps.common.admin import ReadOnlyMixin
 from .models import (
@@ -24,6 +26,9 @@ class QuestionBankAdmin(ReadOnlyMixin, admin.ModelAdmin):
         AutocompleteFilterFactory('Created By', 'created_by'),
         'is_active',
     )
+    formfield_overrides = {
+        models.JSONField: {'widget': PrettyJSONWidget}
+    }
 
     def save_model(self, request, obj, form, change):
         if change and form.initial.get('is_active') != obj.is_active and obj.is_active:

@@ -1,8 +1,13 @@
+# from __future__ import annotations
+import typing
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from .managers import CustomUserManager
+
+if typing.TYPE_CHECKING:
+    from apps.common.models import GlobalPermission
 
 
 class EmailNotificationType(models.IntegerChoices):
@@ -69,3 +74,13 @@ class User(AbstractUser):
         ):
             return False
         return True
+
+    def get_global_permissions(self) -> set['GlobalPermission.Type']:
+        # Circular depencency
+        from apps.common.models import GlobalPermission
+
+        types = GlobalPermission.objects.filter(users=self).values_list('type', flat=True).distinct()
+        return set([
+            GlobalPermission.Type(_type)
+            for _type in types
+        ])

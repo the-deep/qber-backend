@@ -28,6 +28,8 @@ class QuestionBank(UserResource):
 
     title = models.CharField(max_length=255)
     status = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.PENDING)
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=False)
     import_file = models.FileField(
@@ -35,6 +37,11 @@ class QuestionBank(UserResource):
         help_text='XLSForm',
         max_length=255,
     )
+
+    errors = models.JSONField(default=list)
+
+    # Types
+    get_status_display: typing.Callable[..., str]
 
     def __str__(self):
         return f'{self.pk}: {self.title}'

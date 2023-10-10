@@ -2,6 +2,7 @@ import strawberry
 import dataclasses
 
 from apps.user.enums import enum_map as user_enum_map
+from apps.common.enums import enum_map as common_enum_map
 from apps.project.enums import enum_map as project_enum_map
 from apps.qbank.enums import enum_map as qbank_enum_map
 from apps.questionnaire.enums import enum_map as questionnaire_enum_map
@@ -9,6 +10,7 @@ from apps.export.enums import enum_map as export_enum_map
 
 
 ENUM_TO_STRAWBERRY_ENUM_MAP: dict[str, type] = {
+    **common_enum_map,
     **user_enum_map,
     **project_enum_map,
     **qbank_enum_map,

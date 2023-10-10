@@ -57,6 +57,7 @@ class QuestionBankType(UserResourceTypeMixin):
     id: strawberry.ID
     title: strawberry.auto
     is_active: strawberry.auto
+    errors: list[str]
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):

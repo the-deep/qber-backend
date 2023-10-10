@@ -9,6 +9,7 @@ from collections import OrderedDict
 from functools import singledispatch
 from rest_framework import serializers, fields as drf_fields
 from strawberry.field import StrawberryField
+from strawberry.file_uploads import Upload as StrawberryUploadField
 from strawberry.annotation import StrawberryAnnotation
 from django.core.exceptions import ImproperlyConfigured
 
@@ -105,6 +106,11 @@ def convert_serializer_field_to_date_time(_):
 @get_strawberry_type_from_serializer_field.register(serializers.TimeField)
 def convert_serializer_field_to_time(_):
     return datetime.time
+
+
+@get_strawberry_type_from_serializer_field.register(serializers.FileField)
+def convert_serializer_field_to_file_field(_):
+    return StrawberryUploadField
 
 
 @get_strawberry_type_from_serializer_field.register(serializers.ChoiceField)
