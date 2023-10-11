@@ -9,6 +9,7 @@ from collections import OrderedDict
 from functools import singledispatch
 from rest_framework import serializers, fields as drf_fields
 from strawberry.field import StrawberryField
+from strawberry.file_uploads import Upload as StrawberryUploadField
 from strawberry.annotation import StrawberryAnnotation
 from django.core.exceptions import ImproperlyConfigured
 
@@ -40,8 +41,6 @@ def get_strawberry_type_from_serializer_field(field):
 @get_strawberry_type_from_serializer_field.register(serializers.MultipleChoiceField)
 def convert_list_serializer_to_field(field):
     child_type = get_strawberry_type_from_serializer_field(field.child)
-    if not field.child.required:
-        return list[typing.Optional[child_type]]
     return list[child_type]
 
 
@@ -70,7 +69,7 @@ def convert_serializer_field_to_generic_scalar(_):
 
 
 @get_strawberry_type_from_serializer_field.register(serializers.Field)
-def convert_serializer_field_to_string(_):
+def convert_serializer_field_to_string(field):
     return str
 
 
@@ -109,6 +108,11 @@ def convert_serializer_field_to_time(_):
     return datetime.time
 
 
+@get_strawberry_type_from_serializer_field.register(serializers.FileField)
+def convert_serializer_field_to_file_field(_):
+    return StrawberryUploadField
+
+
 @get_strawberry_type_from_serializer_field.register(serializers.ChoiceField)
 def convert_serializer_field_to_enum(field):
     # Try normal TextChoices/IntegerChoices enum
@@ -121,32 +125,25 @@ def convert_serializer_field_to_enum(field):
     return ENUM_TO_STRAWBERRY_ENUM_MAP[custom_name]
 
 
-def convert_serializer_to_type(serializer_class):
+def convert_serializer_to_type(serializer_class, name=None, partial=False):
     """
     graphene_django.rest_framework.serializer_converter.convert_serializer_to_type
     """
-    cached_type = convert_serializer_to_type.cache.get(
-        serializer_class.__name__, None
-    )
+    # Generate naming
+    ref_name = name
+    if ref_name is None:
+        serializer_name = serializer_class.__name__
+        serializer_name = ''.join(''.join(serializer_name.split('ModelSerializer')).split('Serializer'))
+        ref_name = f'{serializer_name}NestInputType'
+        if partial:
+            ref_name = f'{serializer_name}NestUpdateInputType'
+
+    cached_type = convert_serializer_to_type.cache.get(ref_name, None)
     if cached_type:
         return cached_type
-    serializer = serializer_class()
 
-    items = {
-        name: convert_serializer_field(field)
-        for name, field in serializer.fields.items()
-    }
-    # Alter naming
-    serializer_name = serializer.__class__.__name__
-    serializer_name = ''.join(''.join(serializer_name.split('ModelSerializer')).split('Serializer'))
-    ref_name = f'{serializer_name}Type'
-
-    ret_type = type(
-        ref_name,
-        (),
-        items,
-    )
-    convert_serializer_to_type.cache[serializer_class.__name__] = ret_type
+    ret_type = generate_type_for_serializer(ref_name, serializer_class, partial=partial)
+    convert_serializer_to_type.cache[ref_name] = ret_type
     return ret_type
 
 
@@ -159,11 +156,6 @@ def convert_serializer_field(field, convert_choices_to_enum=True, force_optional
     and marks the field as required if we are creating an type
     and the field itself is required
     """
-
-    if isinstance(field, serializers.ChoiceField) and not convert_choices_to_enum:
-        graphql_type = str
-    else:
-        graphql_type = get_strawberry_type_from_serializer_field(field)
 
     kwargs = {
         "description": field.help_text,  # XXX: NOT WORKING
@@ -179,6 +171,15 @@ def convert_serializer_field(field, convert_choices_to_enum=True, force_optional
     else:
         kwargs['default'] = dataclasses.MISSING
 
+    if isinstance(field, serializers.ChoiceField) and not convert_choices_to_enum:
+        graphql_type = str
+    else:
+        graphql_type = get_strawberry_type_from_serializer_field(field)
+        # if graphql_type == str:
+        #   is_required = not field.null and not field.blank
+        #   kwargs['parse_value'] -> null -> '' -- when not is_required
+        #   XXX: does UNSET has any issue here?
+
     # if it is a tuple or a list it means that we are returning
     # the graphql type and the child type
     if isinstance(graphql_type, (list, tuple)):
@@ -189,7 +190,8 @@ def convert_serializer_field(field, convert_choices_to_enum=True, force_optional
         pass
     elif isinstance(field, serializers.ListSerializer):
         field = field.child
-        kwargs["of_type"] = convert_serializer_to_type(field.__class__)
+        of_type = convert_serializer_to_type(field.__class__, partial=force_optional)
+        graphql_type = list[of_type]
 
     if not is_required:
         if 'default' not in kwargs or 'default_factory' not in kwargs:
@@ -234,6 +236,9 @@ def generate_type_for_serializer(
     serializer_class,
     partial=False,
 ) -> type:
+    """
+    Don't use this directly, use convert_serializer_to_type instead
+    """
     data_members = fields_for_serializer(
         serializer_class(),
         only_fields=[],

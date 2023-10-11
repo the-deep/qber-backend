@@ -1,8 +1,12 @@
 import re
 import copy
 import typing
+from asgiref.sync import sync_to_async
 from user_agents import parse
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
 
 
 # Adapted from this response in Stackoverflow
@@ -45,3 +49,52 @@ def get_queryset_for_model(
     if queryset is not None:
         return copy.deepcopy(queryset)
     return model.objects.all()
+
+
+def validate_xlsform_name(name):
+    """
+    Validate Name
+    Names can only contain letters, digits, hyphens, underscores, and periods.
+    Names are case-sensitive.
+    """
+    pattern = r'^[a-zA-Z0-9_\-\.]+$'
+    if not bool(re.match(pattern, name)):
+        raise ValidationError(
+            (
+                "%(name)s is not an valid name."
+                " Names can only contain letters, digits, hyphens, underscores, and periods."
+                " Names are case-sensitive."
+            ),
+            params={"name": name}
+        )
+
+
+@sync_to_async
+def get_object_or_404_async(queryset, **kwargs):
+    return get_object_or_404(queryset, **kwargs)
+
+
+def get_current_datetime_str():
+    return timezone.now().strftime('%Y-%m-%d-%H:%M:%S')
+
+
+def has_select_related(obj, field):
+    """
+    Checks if field is select_related.
+    """
+    if field in obj._state.fields_cache:
+        return True
+    return False
+
+
+def resolve_field_relation(
+    root: models.Model,
+    field: str,
+    dataloader: typing.Callable
+):
+    # Check if it is already fetched.
+    if has_select_related(root, field):
+        return getattr(root, field)
+    # Use Dataloader to load the data
+    # - Pass ID to dataloader
+    return dataloader(getattr(root, f"{field}_id"))

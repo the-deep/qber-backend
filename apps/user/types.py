@@ -1,7 +1,11 @@
 import strawberry
 import strawberry_django
+from strawberry.types import Info
+
+from utils.strawberry.enums import enum_field, enum_display_field
+
+from apps.common.enums import GlobalPermissionTypeEnum
 from .models import User
-from .enums import OptEmailNotificationTypeEnum
 
 
 @strawberry_django.ordering.order(User)
@@ -23,4 +27,9 @@ class UserType:
 @strawberry_django.type(User)
 class UserMeType(UserType):
     email: strawberry.auto
-    email_opt_outs: list[OptEmailNotificationTypeEnum]
+    email_opt_outs = enum_field(User.email_opt_outs)
+    email_opt_outs_display = enum_display_field(User.email_opt_outs)
+
+    @strawberry.field
+    def global_permissions(self, info: Info) -> list[GlobalPermissionTypeEnum]:
+        return info.context.global_permissions

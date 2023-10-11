@@ -10,7 +10,7 @@ from apps.user.types import UserType
 
 from .models import Project, ProjectMembership
 from .filters import ProjectMembershipFilter
-from .enums import ProjectMembershipRoleTypeEnum
+from .enums import ProjectMembershipRoleTypeEnum, ProjectPermissionTypeEnum
 
 
 @strawberry_django.ordering.order(ProjectMembership)
@@ -67,6 +67,12 @@ class ProjectType(UserResourceTypeMixin):
     def current_user_role(self) -> typing.Optional[ProjectMembershipRoleTypeEnum]:
         # Annotated by Project.get_for
         return getattr(self, 'current_user_role', None)
+
+    @strawberry.field
+    def allowed_permissions(self, info: Info) -> list[ProjectPermissionTypeEnum]:
+        return info.context.dl.project.load_user_permissions.load(
+            (info.context.request.user.pk, self.pk)
+        )
 
     def get_queryset(self, queryset, info: Info):
         return Project.get_for(

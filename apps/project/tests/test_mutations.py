@@ -125,7 +125,7 @@ class TestProjectMutation(TestCase):
         latest_project = Project.objects.last()
         content_response = content['data']['private']['createProject']
         assert content_response['ok'] is True
-        self.assertEqual(content_response['result']['id'], str(latest_project.id), content)
+        self.assertEqual(content_response['result']['id'], self.gID(latest_project.id), content)
         self.assertEqual(content_response['result']['title'], latest_project.title, content)
 
     def test_update_project(self):
@@ -171,7 +171,7 @@ class TestProjectMutation(TestCase):
 
             content_response = content['data']['private']['projectScope']['updateProject']
             assert content_response['ok'] is True, content_response
-            self.assertEqual(content_response['result']['id'], str(project.id), content)
+            self.assertEqual(content_response['result']['id'], self.gID(project.id), content)
             self.assertEqual(content_response['result']['title'], variables['data']['title'], content)
             assert project.title != project_title
 
@@ -204,13 +204,13 @@ class TestProjectMutation(TestCase):
                 },
                 {  # Valid
                     'clientId': 'client-new-id',
-                    'member': str(to_be_member_user.id),
+                    'member': self.gID(to_be_member_user.id),
                     'role': self.genum(ProjectMembership.Role.MEMBER),
                 },
                 # Existing
                 *[
                     {
-                        'id': str(membership.id),
+                        'id': self.gID(membership.id),
                         'clientId': f'client-id-existings-{membership.id}',
                         'member': membership.member_id,
                         'role': self.genum(ProjectMembership.Role.ADMIN),  # Make everyone admin
@@ -219,7 +219,7 @@ class TestProjectMutation(TestCase):
                 ],
             ],
             'delete_ids': [
-                str(membership.id)
+                self.gID(membership.id)
                 for membership in to_be_deleted_memberships
             ],
         }
@@ -263,21 +263,21 @@ class TestProjectMutation(TestCase):
                 ],
                 'results': [
                     {
-                        'id': str(
+                        'id': self.gID(
                             ProjectMembership.objects.filter(
                                 project=project,
                                 member=to_be_member_user.id,
                             ).first().id
                         ),
                         'clientId': 'client-new-id',
-                        'memberId': str(to_be_member_user.id),
+                        'memberId': self.gID(to_be_member_user.id),
                         'role': 'MEMBER'
                     },
                     *[
                         {
-                            'id': str(membership.id),
+                            'id': self.gID(membership.id),
                             'clientId': f'client-id-existings-{membership.id}',
-                            'memberId': str(membership.member_id),
+                            'memberId': self.gID(membership.member_id),
                             'role': self.genum(ProjectMembership.Role.ADMIN),
                         }
                         for membership in to_be_modified_memberships
@@ -285,9 +285,9 @@ class TestProjectMutation(TestCase):
                 ],
                 'deleted': [
                     {
-                        'id': str(membership.id),
-                        'clientId': str(membership.id),
-                        'memberId': str(membership.member_id),
+                        'id': self.gID(membership.id),
+                        'clientId': self.gID(membership.id),
+                        'memberId': self.gID(membership.member_id),
                         'role': self.genum(ProjectMembership.Role(membership.role)),
                     }
                     for membership in to_be_deleted_memberships
@@ -317,7 +317,7 @@ class TestProjectMutation(TestCase):
                     'role': self.genum(ProjectMembership.Role.MEMBER),
                 },
             ],
-            'delete_ids': [str(self_membership.id)],
+            'delete_ids': [self.gID(self_membership.id)],
         }
 
         self.force_login(user)

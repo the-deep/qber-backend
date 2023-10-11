@@ -28,6 +28,11 @@ env = environ.Env(
     DJANGO_DB_HOST=str,
     DJANGO_DB_PORT=int,
     DJANGO_CORS_ORIGIN_REGEX_WHITELIST=(list, []),
+    # Redis
+    CELERY_REDIS_URL=str,
+    DJANGO_CACHE_REDIS_URL=str,
+    # -- For running test (Optional)
+    TEST_DJANGO_CACHE_REDIS_URL=(str, None),
     # Static, Media configs
     DJANGO_STATIC_URL=(str, '/static/'),
     DJANGO_MEDIA_URL=(str, '/media/'),
@@ -36,6 +41,8 @@ env = environ.Env(
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, 'assets/media')),  # Where to store
     # -- S3
     DJANGO_USE_S3=(bool, False),
+    MEDIA_FILE_CACHE_URL_TTL=(int, 86400),  # 1 day default
+    TEMP_FILE_DIR=(str, '/tmp/'),
     AWS_S3_BUCKET_STATIC=str,
     AWS_S3_BUCKET_MEDIA=str,
     AWS_S3_QUERYSTRING_EXPIRE=(int, 60 * 60 * 24 * 2),  # Default 2 days
@@ -75,8 +82,12 @@ env = environ.Env(
     SMTP_EMAIL_PORT=int,
     SMTP_EMAIL_USERNAME=str,
     SMTP_EMAIL_PASSWORD=str,
+    # Enketo
+    ENKETO_DOMAIN=str,  # https://enketo.qber.com
+    # MISC
+    ALLOW_DUMMY_DATA_SCRIPT=(bool, False),  # WARNING
+    ENABLE_BREAKING_MODE=(bool, False),  # Only enable if you know what you are doing
 )
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -97,7 +108,6 @@ APP_FRONTEND_HOST = env('APP_FRONTEND_HOST')
 APP_ENVIRONMENT = env('APP_ENVIRONMENT')
 APP_TYPE = env('APP_TYPE')
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -107,7 +117,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+
     # External apps
+    'prettyjson',
+    'admin_auto_filters',
     'django_premailer',
     'storages',
     'corsheaders',
@@ -116,6 +130,8 @@ INSTALLED_APPS = [
     'apps.user',
     'apps.project',
     'apps.questionnaire',
+    'apps.export',
+    'apps.qbank',
 ]
 
 MIDDLEWARE = [
@@ -161,7 +177,7 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'HOST': env('DJANGO_DB_HOST'),
         'PORT': env('DJANGO_DB_PORT'),
         'NAME': env('DJANGO_DB_NAME'),
@@ -219,6 +235,8 @@ STORAGES = {
     },
 }
 
+TEMP_FILE_DIR = env('TEMP_FILE_DIR')
+MEDIA_FILE_CACHE_URL_TTL = env('MEDIA_FILE_CACHE_URL_TTL')
 
 if env('DJANGO_USE_S3'):
     # AWS S3 Bucket Credentials
@@ -289,21 +307,20 @@ SENTRY_DSN = env('SENTRY_DSN')
 SENTRY_SAMPLE_RATE = env('SENTRY_SAMPLE_RATE')
 SENTRY_ENABLED = False
 
+SENTRY_CONFIG = {
+    'app_type': APP_TYPE,
+    'dsn': SENTRY_DSN,
+    'send_default_pii': True,
+    'release': env('RELEASE'),
+    'environment': APP_ENVIRONMENT,
+    'debug': DEBUG,
+    'tags': {
+        'site': ','.join(set(ALLOWED_HOSTS)),
+    },
+}
+
 if SENTRY_DSN:
-    SENTRY_CONFIG = {
-        'dsn': SENTRY_DSN,
-        'send_default_pii': True,
-        'release': env('RELEASE'),
-        'environment': APP_ENVIRONMENT,
-        'debug': DEBUG,
-        'tags': {
-            'site': ','.join(set(ALLOWED_HOSTS)),
-        },
-    }
-    sentry.init_sentry(
-        app_type=APP_TYPE,
-        **SENTRY_CONFIG,
-    )
+    sentry.init_sentry(**SENTRY_CONFIG)
     SENTRY_ENABLED = True
 
 # See if we are inside a test environment (pytest)
@@ -343,6 +360,7 @@ if APP_HTTP_PROTOCOL == 'https':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     CSRF_TRUSTED_ORIGINS = [
         APP_FRONTEND_HOST,
+        f'{APP_HTTP_PROTOCOL}://{APP_DOMAIN}',
     ]
 
 # https://docs.djangoproject.com/en/3.2/ref/settings/#std:setting-SESSION_COOKIE_DOMAIN
@@ -382,15 +400,37 @@ else:
 DEFAULT_PAGINATION_LIMIT = 50
 MAX_PAGINATION_LIMIT = 100
 
+# Redis
+CELERY_REDIS_URL = env('CELERY_REDIS_URL')
+DJANGO_CACHE_REDIS_URL = env('DJANGO_CACHE_REDIS_URL')
+TEST_DJANGO_CACHE_REDIS_URL = env('TEST_DJANGO_CACHE_REDIS_URL')
+
 # Caches
 CACHES = {
     'default': {
-        # XXX: Use redis if needed
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'local-memory-01',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': DJANGO_CACHE_REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'dj_cache-',
     },
     'local-memory': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'local-memory-02',
     }
 }
+
+# Celery
+CELERY_BROKER_URL = CELERY_REDIS_URL
+CELERY_RESULT_BACKEND = CELERY_REDIS_URL
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_EVENT_QUEUE_PREFIX = 'qber-celery-'
+CELERY_ACKS_LATE = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Misc
+ENKETO_DOMAIN = env('ENKETO_DOMAIN')
+
+ALLOW_DUMMY_DATA_SCRIPT = env('ALLOW_DUMMY_DATA_SCRIPT')
+ENABLE_BREAKING_MODE = env('ENABLE_BREAKING_MODE')

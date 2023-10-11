@@ -2,6 +2,8 @@ import sentry_sdk
 from django.conf import settings
 from strawberry.permission import BasePermission
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
 IGNORED_ERRORS = [
@@ -18,6 +20,8 @@ for _logger in IGNORED_LOGGERS:
 def init_sentry(app_type, tags={}, **config):
     integrations = [
         DjangoIntegration(),
+        CeleryIntegration(),
+        RedisIntegration(),
     ]
     sentry_sdk.init(
         **config,

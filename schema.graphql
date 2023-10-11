@@ -1,15 +1,200 @@
+type AppEnumCollection {
+  GlobalPermissionType: [AppEnumCollectionGlobalPermissionType!]!
+  UserEmailOptOuts: [AppEnumCollectionUserEmailOptOuts!]!
+  ProjectMembershipRole: [AppEnumCollectionProjectMembershipRole!]!
+  QBQuestionType: [AppEnumCollectionQBQuestionType!]!
+  QBQuestionPriorityLevel: [AppEnumCollectionQBQuestionPriorityLevel!]!
+  QBQuestionEnumeratorSkill: [AppEnumCollectionQBQuestionEnumeratorSkill!]!
+  QBQuestionDataCollectionMethod: [AppEnumCollectionQBQuestionDataCollectionMethod!]!
+  QBLeafGroupType: [AppEnumCollectionQBLeafGroupType!]!
+  QBLeafGroupCategory1: [AppEnumCollectionQBLeafGroupCategory1!]!
+  QBLeafGroupCategory2: [AppEnumCollectionQBLeafGroupCategory2!]!
+  QBLeafGroupCategory3: [AppEnumCollectionQBLeafGroupCategory3!]!
+  QBLeafGroupCategory4: [AppEnumCollectionQBLeafGroupCategory4!]!
+  QuestionnairePriorityLevels: [AppEnumCollectionQuestionnairePriorityLevels!]!
+  QuestionnaireEnumeratorSkills: [AppEnumCollectionQuestionnaireEnumeratorSkills!]!
+  QuestionnaireDataCollectionMethods: [AppEnumCollectionQuestionnaireDataCollectionMethods!]!
+  QuestionType: [AppEnumCollectionQuestionType!]!
+  QuestionPriorityLevel: [AppEnumCollectionQuestionPriorityLevel!]!
+  QuestionEnumeratorSkill: [AppEnumCollectionQuestionEnumeratorSkill!]!
+  QuestionDataCollectionMethod: [AppEnumCollectionQuestionDataCollectionMethod!]!
+  QuestionLeafGroupType: [AppEnumCollectionQuestionLeafGroupType!]!
+  QuestionLeafGroupCategory1: [AppEnumCollectionQuestionLeafGroupCategory1!]!
+  QuestionLeafGroupCategory2: [AppEnumCollectionQuestionLeafGroupCategory2!]!
+  QuestionLeafGroupCategory3: [AppEnumCollectionQuestionLeafGroupCategory3!]!
+  QuestionLeafGroupCategory4: [AppEnumCollectionQuestionLeafGroupCategory4!]!
+  QuestionnaireExportStatus: [AppEnumCollectionQuestionnaireExportStatus!]!
+}
+
+type AppEnumCollectionGlobalPermissionType {
+  key: GlobalPermissionTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionProjectMembershipRole {
+  key: ProjectMembershipRoleTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupCategory1 {
+  key: QuestionLeafGroupCategory1TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupCategory2 {
+  key: QuestionLeafGroupCategory2TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupCategory3 {
+  key: QuestionLeafGroupCategory3TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupCategory4 {
+  key: QuestionLeafGroupCategory4TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBLeafGroupType {
+  key: QuestionLeafGroupTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBQuestionDataCollectionMethod {
+  key: QberDataCollectionMethodTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBQuestionEnumeratorSkill {
+  key: QberEnumeratorSkillTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBQuestionPriorityLevel {
+  key: QberMetaDataPriorityLevelTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQBQuestionType {
+  key: QberQuestionTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionDataCollectionMethod {
+  key: QberDataCollectionMethodTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionEnumeratorSkill {
+  key: QberEnumeratorSkillTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupCategory1 {
+  key: QuestionLeafGroupCategory1TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupCategory2 {
+  key: QuestionLeafGroupCategory2TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupCategory3 {
+  key: QuestionLeafGroupCategory3TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupCategory4 {
+  key: QuestionLeafGroupCategory4TypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionLeafGroupType {
+  key: QuestionLeafGroupTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionPriorityLevel {
+  key: QberMetaDataPriorityLevelTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionType {
+  key: QberQuestionTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionnaireDataCollectionMethods {
+  key: QberDataCollectionMethodTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionnaireEnumeratorSkills {
+  key: QberEnumeratorSkillTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionnaireExportStatus {
+  key: QuestionnaireExportStatusEnum!
+  label: String!
+}
+
+type AppEnumCollectionQuestionnairePriorityLevels {
+  key: QberMetaDataPriorityLevelTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionUserEmailOptOuts {
+  key: OptEmailNotificationTypeEnum!
+  label: String!
+}
+
+input CreateQuestionBankInput {
+  title: String!
+  importFile: Upload!
+  description: String
+}
+
 """A generic type to return error messages"""
 scalar CustomErrorType
 
 """Date with time (isoformat)"""
 scalar DateTime
 
+input DatetimeFilterLookup {
+  exact: DateTime
+  iExact: DateTime
+  contains: DateTime
+  iContains: DateTime
+  inList: [DateTime!]
+  gt: DateTime
+  gte: DateTime
+  lt: DateTime
+  lte: DateTime
+  startsWith: DateTime
+  iStartsWith: DateTime
+  endsWith: DateTime
+  iEndsWith: DateTime
+  range: [DateTime!]
+  isNull: Boolean
+  regex: String
+  iRegex: String
+}
+
 input DjangoModelFilterInput {
   pk: ID!
 }
 
-type DjangoModelType {
-  pk: ID!
+type FileFieldType {
+  name: String!
+  url: String!
+}
+
+enum GlobalPermissionTypeEnum {
+  UPLOAD_QBANK
+  ACTIVATE_QBANK
 }
 
 input IDFilterLookup {
@@ -81,6 +266,8 @@ input PasswordResetTriggerInput {
 type PrivateMutation {
   changeUserPassword(data: PasswordChangeInput!): MutationEmptyResponseType!
   updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
+  createQuestionBank(data: CreateQuestionBankInput!): QuestionBankTypeMutationResponseType!
+  activateQuestionBank(id: ID!): QuestionBankTypeMutationResponseType!
   createProject(data: ProjectCreateInput!): ProjectTypeMutationResponseType!
   projectScope(pk: ID!): ProjectScopeMutation
   id: ID!
@@ -91,6 +278,10 @@ type PrivateQuery {
   users(filters: UserFilter, order: UserOrder, pagination: OffsetPaginationInput): UserTypeCountList!
   projects(filters: ProjectFilter, order: ProjectOrder, pagination: OffsetPaginationInput): ProjectTypeCountList!
   projectScope(pk: ID!): ProjectScopeType
+  questionBanks(filters: QuestionBankFilter, order: QuestionBankOrder, pagination: OffsetPaginationInput): QuestionBankTypeCountList!
+  qbQuestions(filters: QBQuestionFilter, order: QBQuestionOrder, pagination: OffsetPaginationInput): QBQuestionTypeCountList!
+  questionBank(pk: ID!): QuestionBankType
+  activeQuestionBank: QuestionBankType
   id: ID!
 }
 
@@ -116,6 +307,7 @@ input ProjectMembershipOrder {
 enum ProjectMembershipRoleTypeEnum {
   ADMIN
   MEMBER
+  VIEWER
 }
 
 type ProjectMembershipType {
@@ -125,7 +317,7 @@ type ProjectMembershipType {
   memberId: ID!
   addedById: ID
   addedBy: UserType
-  clientId: String!
+  clientId: ID!
   member: UserType!
 }
 
@@ -144,7 +336,7 @@ type ProjectMembershipTypeCountList {
 
 input ProjectMembershipUpdateInput {
   id: ID
-  clientId: String
+  clientId: ID
   member: ID
   role: ProjectMembershipRoleTypeEnum
 }
@@ -154,19 +346,60 @@ input ProjectOrder {
   createdAt: Ordering
 }
 
+enum ProjectPermissionTypeEnum {
+  UPDATE_PROJECT
+  UPDATE_MEMBERSHIPS
+  VIEW_QUESTIONNAIRE
+  EXPORT_QUESTIONNAIRE
+  CREATE_QUESTIONNAIRE
+  UPDATE_QUESTIONNAIRE
+  DELETE_QUESTIONNAIRE
+  VIEW_QUESTION
+  CREATE_QUESTION
+  UPDATE_QUESTION
+  DELETE_QUESTION
+  VIEW_QUESTION_GROUP
+  CREATE_QUESTION_GROUP
+  UPDATE_QUESTION_GROUP
+  DELETE_QUESTION_GROUP
+  VIEW_QUESTION_CHOICE
+  CREATE_QUESTION_CHOICE
+  UPDATE_QUESTION_CHOICE
+  DELETE_QUESTION_CHOICE
+}
+
 type ProjectScopeMutation {
-  id: ID!
   createQuestionnaire(data: QuestionnaireCreateInput!): QuestionnaireTypeMutationResponseType!
-  updateQuestionnaire(data: QuestionnaireUpdateInput!): QuestionnaireTypeMutationResponseType!
-  deleteQuestionnaire(id: ID!): QuestionnaireTypeListMutationResponseType!
+  updateQuestionnaire(id: ID!, data: QuestionnaireUpdateInput!): QuestionnaireTypeMutationResponseType!
+  deleteQuestionnaire(id: ID!): QuestionnaireTypeMutationResponseType!
+  createQuestion(data: QuestionCreateInput!): QuestionTypeMutationResponseType!
+  updateQuestion(id: ID!, data: QuestionUpdateInput!): QuestionTypeMutationResponseType!
+  deleteQuestion(id: ID!): QuestionTypeMutationResponseType!
+  bulkUpdateQuestionnaireQuestionGroupsLeafOrder(questionnaireId: ID!, data: [QuestionLeafGroupOrderInputType!]!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
+  updateQuestionGroupsLeafVisibility(questionnaireId: ID!, ids: [ID!]!, visibility: VisibilityActionEnum!): QuestionLeafGroupTypeBulkBasicMutationResponseType!
+  bulkUpdateQuestionsOrder(questionnaireId: ID!, leafGroupId: ID!, data: [QuestionOrderInputType!]!): QuestionTypeBulkBasicMutationResponseType!
+  updateQuestionsVisibility(questionnaireId: ID!, ids: [ID!]!, visibility: VisibilityActionEnum!): QuestionTypeBulkBasicMutationResponseType!
+  createQuestionChoiceCollection(data: QuestionChoiceCollectionCreateInput!): QuestionChoiceCollectionTypeMutationResponseType!
+  updateQuestionChoiceCollection(id: ID!, data: QuestionChoiceCollectionUpdateInput!): QuestionChoiceCollectionTypeMutationResponseType!
+  deleteQuestionChoiceCollection(id: ID!): QuestionChoiceCollectionTypeMutationResponseType!
+  createQuestionnaireExport(data: QuestionnaireExportCreateInput!): QuestionnaireExportTypeMutationResponseType!
+  deleteQuestionnaireExport(id: ID!): QuestionnaireExportTypeMutationResponseType!
+  id: ID!
   updateProject(data: ProjectUpdateInput!): ProjectTypeMutationResponseType!
   leaveProject(confirmPassword: String!): MutationEmptyResponseType!
   updateMemberships(items: [ProjectMembershipUpdateInput!] = [], deleteIds: [ID!] = []): ProjectMembershipTypeBulkMutationResponseType!
 }
 
 type ProjectScopeType {
-  questionnaires(filters: QuestionnaireFilter, pagination: OffsetPaginationInput): QuestionnaireTypeCountList!
+  questionnaires(filters: QuestionnaireFilter, order: QuestionnaireOrder, pagination: OffsetPaginationInput): QuestionnaireTypeCountList!
+  choiceCollections(filters: QuestionChoiceCollectionFilter, order: QuestionChoiceCollectionOrder, pagination: OffsetPaginationInput): QuestionChoiceCollectionTypeCountList!
+  questions(filters: QuestionFilter, order: QuestionOrder, pagination: OffsetPaginationInput): QuestionTypeCountList!
   questionnaire(pk: ID!): QuestionnaireType
+  leafGroup(pk: ID!): QuestionLeafGroupType
+  choiceCollection(pk: ID!): QuestionChoiceCollectionType
+  question(pk: ID!): QuestionType
+  questionnaireExports(filters: QuestionnaireExportFilter, order: QuestionnaireExportOrder, pagination: OffsetPaginationInput): QuestionnaireExportTypeCountList!
+  questionnaireExport(pk: ID!): QuestionnaireExportType
   id: ID!
   project: ProjectType!
 }
@@ -177,6 +410,7 @@ type ProjectType {
   id: ID!
   title: String!
   members(filters: ProjectMembershipFilter, order: ProjectMembershipOrder, pagination: OffsetPaginationInput): ProjectMembershipTypeCountList!
+  allowedPermissions: [ProjectPermissionTypeEnum!]!
   createdBy: UserType!
   currentUserRole: ProjectMembershipRoleTypeEnum
   modifiedBy: UserType!
@@ -213,29 +447,665 @@ type PublicQuery {
   id: ID!
 }
 
+type QBChoiceCollectionType {
+  id: ID!
+  name: String!
+  label: String!
+  choices: [QBChoiceType!]!
+  qbankId: ID!
+}
+
+type QBChoiceType {
+  id: ID!
+  name: String!
+  label: String!
+  collectionId: ID!
+}
+
+type QBLeafGroupType {
+  id: ID!
+  name: String!
+  order: Int!
+  hideInFramework: Boolean!
+  relevant: String!
+  category1: QuestionLeafGroupCategory1TypeEnum!
+  category1Display: String!
+  category2: QuestionLeafGroupCategory2TypeEnum!
+  category2Display: String!
+  category3: QuestionLeafGroupCategory3TypeEnum
+  category3Display: String
+  category4: QuestionLeafGroupCategory4TypeEnum
+  category4Display: String
+  qbankId: ID!
+  totalQuestions: Int!
+  type: QuestionLeafGroupTypeEnum!
+  typeDisplay: String!
+}
+
+input QBQuestionFilter {
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
+  id: IDFilterLookup
+  qbank: DjangoModelFilterInput
+  leafGroup: DjangoModelFilterInput
+}
+
+input QBQuestionOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type QBQuestionType {
+  id: ID!
+  name: String!
+  label: String!
+  hint: String!
+  order: Int!
+  default: String!
+  guidanceHint: String!
+  trigger: String!
+  readonly: String!
+  required: Boolean!
+  requiredMessage: String!
+  relevant: String!
+  constraint: String!
+  appearance: String!
+  calculation: String!
+  parameters: String!
+  choiceFilter: String!
+  image: String!
+  video: String!
+  isOrOther: Boolean!
+  requiredDuration: Float
+  choiceCollectionId: ID
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
+  dataCollectionMethodDisplay: String
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  enumeratorSkillDisplay: String
+  leafGroupId: ID
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  priorityLevelDisplay: String
+  qbankId: ID!
+  type: QberQuestionTypeEnum!
+  typeDisplay: String!
+}
+
+type QBQuestionTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QBQuestionType!]!
+}
+
+enum QberDataCollectionMethodTypeEnum {
+  KEY_INFORMANT_INTERVIEW
+  DIRECT_OBSERVATION
+  ATOMIC_OBSERVATION
+}
+
+enum QberEnumeratorSkillTypeEnum {
+  BASIC
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum QberMetaDataPriorityLevelTypeEnum {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum QberQuestionTypeEnum {
+  INTEGER
+  DECIMAL
+  TEXT
+  SELECT_ONE
+  SELECT_MULTIPLE
+  RANK
+  RANGE
+  NOTE
+  DATE
+  TIME
+  DATETIME
+  IMAGE
+  AUDIO
+  VIDEO
+  FILE
+  BARCODE
+  ACKNOWLEDGE
+}
+
 type Query {
   public: PublicQuery!
   private: PrivateQuery!
+  enums: AppEnumCollection!
+}
+
+input QuestionBankFilter {
+  id: IDFilterLookup
+  title: StrFilterLookup
+}
+
+input QuestionBankOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type QuestionBankType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  title: String!
+  isActive: Boolean!
+  errors: [String!]!
+  choiceCollections: [QBChoiceCollectionType!]!
+  createdBy: UserType!
+  leafGroups: [QBLeafGroupType!]!
+  modifiedBy: UserType!
+  totalQuestions: Int!
+}
+
+type QuestionBankTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionBankType!]!
+}
+
+type QuestionBankTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionBankType
+}
+
+input QuestionChoiceCollectionCreateInput {
+  questionnaire: ID!
+  name: String!
+  label: String!
+  choices: [QuestionChoiceNestInputType!]!
+}
+
+input QuestionChoiceCollectionFilter {
+  id: IDFilterLookup
+  questionnaire: DjangoModelFilterInput
+  name: StrFilterLookup
+  label: StrFilterLookup
+}
+
+input QuestionChoiceCollectionOrder {
+  id: Ordering
+  createdAt: Ordering
+}
+
+type QuestionChoiceCollectionType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  name: String!
+  label: String!
+  choices: [QuestionChoiceType!]!
+  createdBy: UserType!
+  modifiedBy: UserType!
+  questionnaireId: ID!
+}
+
+type QuestionChoiceCollectionTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionChoiceCollectionType!]!
+}
+
+type QuestionChoiceCollectionTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionChoiceCollectionType
+}
+
+input QuestionChoiceCollectionUpdateInput {
+  questionnaire: ID
+  name: String
+  label: String
+  choices: [QuestionChoiceNestUpdateInputType!]
+}
+
+input QuestionChoiceNestInputType {
+  name: String!
+  label: String!
+  id: ID
+  clientId: ID
+}
+
+input QuestionChoiceNestUpdateInputType {
+  id: ID
+  clientId: ID
+  name: String
+  label: String
+}
+
+type QuestionChoiceType {
+  id: ID!
+  name: String!
+  label: String!
+  clientId: ID!
+  collectionId: ID!
+}
+
+type QuestionCount {
+  total: Int!
+  visible: Int!
+}
+
+input QuestionCreateInput {
+  questionnaire: ID!
+  leafGroup: ID!
+  type: QberQuestionTypeEnum!
+  name: String!
+  label: String!
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
+  requiredDuration: Float
+  hint: String
+  choiceCollection: ID
+  default: String
+  guidanceHint: String
+  trigger: String
+  readonly: String
+  required: Boolean
+  requiredMessage: String
+  relevant: String
+  constraint: String
+  appearance: String
+  calculation: String
+  parameters: String
+  choiceFilter: String
+  image: String
+  video: String
+  isOrOther: Boolean
+}
+
+input QuestionFilter {
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
+  id: IDFilterLookup
+  questionnaire: DjangoModelFilterInput
+  choiceCollection: DjangoModelFilterInput
+  type: QberQuestionTypeEnum
+  name: StrFilterLookup
+  label: StrFilterLookup
+  leafGroup: DjangoModelFilterInput
+  isHidden: Boolean
+}
+
+enum QuestionLeafGroupCategory1TypeEnum {
+  CONTEXT
+  SHOCKS_AND_EVENTS
+  DISPLACEMENT
+  CASUALTIES
+  INFORMATION_AND_COMMUNICATION
+  HUMANITARIAN_ACCESS
+  INTRODUCTION
+  CONCLUSION
+  MARKET
+  IMPACT
+  HUMANITARIAN_CONDITIONS
+  AT_RISK
+  PRIORITIES_AND_PREFERENCES
+  RESPONSE_AND_CAPACITIES
+}
+
+enum QuestionLeafGroupCategory2TypeEnum {
+  INTRODUCTION
+  POLITICS
+  ECONOMICS
+  ENVIRONMENT
+  SOCIO_CULTURAL
+  DEMOGRAPHICS
+  SECURITY_AND_STABILITY
+  TYPE_AND_CHARACTERISTICS
+  AGGRAVATING_FACTORS
+  MITIGATING_FACTORS
+  THREATS_AND_HAZARDS
+  INTRODUCTION_PEOPLE_ARRIVING
+  INTRODUCTION_PEOPLE_LEAVING
+  PULL_FACTORS
+  PUSH_FACTORS
+  INTENTIONS
+  LOCAL_INTEGRATION
+  CROSS
+  DEAD
+  INJURED
+  MISSING
+  COMMUNICATION_SOURCES_AND_MEANS
+  CHALLENGES_AND_BARRIERS
+  KNOWLEDGE_AND_INFORMATION_GAPS_POPULATION
+  KNOWLEDGE_AND_INFORMATION_GAPS_HUMANITARIANS
+  INTRODUCTION_HUMANITARIAN_ACTORS_BARRIERS
+  INTRODUCTION_PEOPLE_AFFECTED_BARRIERS
+  POPULATION_TO_RELIEF
+  RELIEF_TO_POPULATION
+  PHYSICAL_AND_SECURITY_CONSTRAINTS
+  PEOPLE_FACING_HUMANITARIAN_ACCESS_CONSTRAINT_HUMANITARIAN_ACCESS_GAPS
+  QUESTIONNAIRE_CHARACTERISTICS
+  ENUMERATOR_CHARACTERISTICS
+  RESPONDENT_CHARACTERISTICS
+  AREA_CHARACTERISTICS
+  AFFECTED_GROUP_CHARACTERISTICS
+  FOOD
+  WASH
+  SHELTER_AND_DOMESTIC_ITEMS
+  DRIVERS
+  IMPACT_ON_PEOPLE
+  IMPACT_ON_SYSTEMS_SERVICES_AND_NETWORKS
+  NUMBER_OF_PEOPLE_AFFECTED
+  LIVING_STANDARDS
+  COPING_MECHANISMS
+  PHYSICAL_AND_MENTAL_WELL_BEING
+  NUMBER_OF_PEOPLE_IN_NEED
+  PEOPLE_AT_RISK
+  NUMBER_OF_PEOPLE_AT_RISK
+  PRIORITY_NEEDS
+  PRIORITY_INTERVENTIONS
+  GOVERNMENT_AND_LOCAL_AUTHORITIES
+  INTERNATIONAL_ORGANIZATIONS
+  NATIONAL_AND_LOCAL_ORGANIZATIONS
+  RED_CROSS_RED_CRESCENT
+  HUMANITARIAN_COORDINATION
+  PEOPLE_REACHED_AND_RESPONSE_GAPS
+}
+
+enum QuestionLeafGroupCategory3TypeEnum {
+  INTER_SECTOR
+  HEALTH
+  WASH
+  SHELTER
+  FOOD_SECURITY
+  LIVELIHOODS
+  NUTRITION
+  EDUCATION
+  PROTECTION
+  AGRICULTURE
+  LOGISTICS
+}
+
+enum QuestionLeafGroupCategory4TypeEnum {
+  INTRODUCTION
+  CROSS
+  HEALTH_CARE
+  HEALTH_STATUS
+  WATER_SUPPLY
+  SANITATION
+  SOLID_WASTE_MANAGEMENT
+  HYGIENE
+  WASH_IN_SCHOOLS
+  WASH_IN_HEALTH_CARE_FACILITIES
+  VECTOR_CONTROL
+  DWELLING_ENVELOPE
+  DOMESTIC_LIVING_SPACE
+  NON_FOOD_HOUSEHOLD_ITEMS
+  HOUSING_LAND_AND_PROPERTY
+  SETTLEMENT
+  FOOD_COMMODITIES
+  NON_FOOD_ITEMS
+  INCOME
+  CASH
+  NUTRITION_STATUS
+  NUTRITION_SERVICES
+  PROVISION
+  LEARNING_ENVIRONMENT
+  TEACHING_AND_LEARNING
+  TEACHERS_AND_OTHER_EDUCATION_PERSONNEL
+  EDUCATION_POLICY
+  DOCUMENTATION
+  HUMAN_CIVIL_AND_POLITICAL_RIGHTS
+  JUSTICE_AND_RULE_OF_LAW
+  PHYSICAL_SAFETY_AND_SECURITY
+  FREEDOM_OF_MOVEMENT
+  CHILD_PROTECTION
+  SEXUAL_AND_GENDER_BASED_VIOLENCE
+  MINES_UXOS_AND_IEDS
+  PRODUCTION
+  AGRICULTURAL_INPUTS
+  AGRICULTURAL_INFRASTRUCTURE
+  NATURAL_RESOURCE_MANAGEMENT
+  TRANSPORT
+  INFORMATION_AND_COMMUNICATION_TECHNOLOGIES
+  ENERGY
+}
+
+input QuestionLeafGroupOrderInputType {
+  id: ID!
+  order: Int!
+}
+
+type QuestionLeafGroupType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  name: String!
+  order: Int!
+  isHidden: Boolean!
+  relevant: String!
+  category1: QuestionLeafGroupCategory1TypeEnum!
+  category1Display: String!
+  category2: QuestionLeafGroupCategory2TypeEnum!
+  category2Display: String!
+  category3: QuestionLeafGroupCategory3TypeEnum
+  category3Display: String
+  category4: QuestionLeafGroupCategory4TypeEnum
+  category4Display: String
+  createdBy: UserType!
+  modifiedBy: UserType!
+  qbankLeafGroupId: ID
+  questionnaireId: ID!
+  totalQbankQuestions: Int
+  totalQuestions: QuestionCount!
+  type: QuestionLeafGroupTypeEnum!
+  typeDisplay: String!
+}
+
+type QuestionLeafGroupTypeBulkBasicMutationResponseType {
+  errors: [CustomErrorType!]
+  results: [QuestionLeafGroupType!]
+}
+
+enum QuestionLeafGroupTypeEnum {
+  MATRIX_1D
+  MATRIX_2D
+}
+
+input QuestionOrder {
+  id: Ordering
+  createdAt: Ordering
+  order: Ordering
+}
+
+input QuestionOrderInputType {
+  id: ID!
+  order: Int!
+}
+
+type QuestionType {
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  id: ID!
+  name: String!
+  label: String!
+  hint: String!
+  order: Int!
+  isHidden: Boolean!
+  default: String!
+  guidanceHint: String!
+  trigger: String!
+  readonly: String!
+  required: Boolean!
+  requiredMessage: String!
+  relevant: String!
+  constraint: String!
+  appearance: String!
+  calculation: String!
+  parameters: String!
+  choiceFilter: String!
+  image: String!
+  video: String!
+  isOrOther: Boolean!
+  requiredDuration: Float
+  choiceCollectionId: ID
+  createdBy: UserType!
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
+  dataCollectionMethodDisplay: String
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  enumeratorSkillDisplay: String
+  leafGroupId: ID
+  modifiedBy: UserType!
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  priorityLevelDisplay: String
+  questionnaireId: ID!
+  type: QberQuestionTypeEnum!
+  typeDisplay: String!
+}
+
+type QuestionTypeBulkBasicMutationResponseType {
+  errors: [CustomErrorType!]
+  results: [QuestionType!]
+}
+
+type QuestionTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionType!]!
+}
+
+type QuestionTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionType
+}
+
+input QuestionUpdateInput {
+  questionnaire: ID
+  leafGroup: ID
+  priorityLevel: QberMetaDataPriorityLevelTypeEnum
+  enumeratorSkill: QberEnumeratorSkillTypeEnum
+  dataCollectionMethod: QberDataCollectionMethodTypeEnum
+  requiredDuration: Float
+  type: QberQuestionTypeEnum
+  name: String
+  label: String
+  hint: String
+  choiceCollection: ID
+  default: String
+  guidanceHint: String
+  trigger: String
+  readonly: String
+  required: Boolean
+  requiredMessage: String
+  relevant: String
+  constraint: String
+  appearance: String
+  calculation: String
+  parameters: String
+  choiceFilter: String
+  image: String
+  video: String
+  isOrOther: Boolean
 }
 
 input QuestionnaireCreateInput {
   title: String!
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
+  requiredDuration: Float
+}
+
+input QuestionnaireExportCreateInput {
+  questionnaire: ID!
+}
+
+input QuestionnaireExportFilter {
+  id: IDFilterLookup
+  questionnaire: DjangoModelFilterInput
+  exportedAt: DatetimeFilterLookup
+  status: QuestionnaireExportStatusEnum
+}
+
+input QuestionnaireExportOrder {
+  id: Ordering
+  exportedAt: Ordering
+}
+
+enum QuestionnaireExportStatusEnum {
+  PENDING
+  STARTED
+  SUCCESS
+  FAILURE
+  CANCELED
+}
+
+type QuestionnaireExportType {
+  id: ID!
+  exportedAt: DateTime!
+  startedAt: DateTime
+  endedAt: DateTime
+  enketoPreviewUrl: String
+  exportedBy: UserType!
+  questionnaireId: ID!
+  status: QuestionnaireExportStatusEnum!
+  statusDisplay: String!
+  xlsxFile: FileFieldType
+  xmlFile: FileFieldType
+}
+
+type QuestionnaireExportTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [QuestionnaireExportType!]!
+}
+
+type QuestionnaireExportTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: QuestionnaireExportType
 }
 
 input QuestionnaireFilter {
   id: IDFilterLookup
   project: DjangoModelFilterInput
-  search: String
+  title: StrFilterLookup
+}
+
+input QuestionnaireOrder {
+  id: Ordering
+  createdAt: Ordering
 }
 
 type QuestionnaireType {
-  id: ID!
-  title: String!
   createdAt: DateTime!
   modifiedAt: DateTime!
-  createdBy: DjangoModelType!
-  modifiedBy: DjangoModelType!
+  id: ID!
+  title: String!
+  requiredDuration: Float
+  choiceCollections: [QuestionChoiceCollectionType!]!
+  createdBy: UserType!
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]!
+  dataCollectionMethodsDisplay: [String!]!
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]!
+  enumeratorSkillsDisplay: [String!]!
+  leafGroups: [QuestionLeafGroupType!]!
+  modifiedBy: UserType!
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]!
+  priorityLevelsDisplay: [String!]!
   projectId: ID!
+  qbank: QuestionBankType!
+  totalQbankQuestions: Int!
+  totalQuestions: QuestionCount!
+  totalRequiredDuration: Float!
 }
 
 type QuestionnaireTypeCountList {
@@ -243,12 +1113,6 @@ type QuestionnaireTypeCountList {
   offset: Int!
   count: Int!
   items: [QuestionnaireType!]!
-}
-
-type QuestionnaireTypeListMutationResponseType {
-  ok: Boolean!
-  errors: CustomErrorType
-  result: [QuestionnaireType!]
 }
 
 type QuestionnaireTypeMutationResponseType {
@@ -259,6 +1123,10 @@ type QuestionnaireTypeMutationResponseType {
 
 input QuestionnaireUpdateInput {
   title: String
+  priorityLevels: [QberMetaDataPriorityLevelTypeEnum!]
+  enumeratorSkills: [QberEnumeratorSkillTypeEnum!]
+  dataCollectionMethods: [QberDataCollectionMethodTypeEnum!]
+  requiredDuration: Float
 }
 
 input RegisterInput {
@@ -267,6 +1135,28 @@ input RegisterInput {
   firstName: String
   lastName: String
 }
+
+input StrFilterLookup {
+  exact: String
+  iExact: String
+  contains: String
+  iContains: String
+  inList: [String!]
+  gt: String
+  gte: String
+  lt: String
+  lte: String
+  startsWith: String
+  iStartsWith: String
+  endsWith: String
+  iEndsWith: String
+  range: [String!]
+  isNull: Boolean
+  regex: String
+  iRegex: String
+}
+
+scalar Upload
 
 input UserFilter {
   id: IDFilterLookup
@@ -288,6 +1178,8 @@ type UserMeType {
   displayName: String!
   email: String!
   emailOptOuts: [OptEmailNotificationTypeEnum!]!
+  emailOptOutsDisplay: [String!]!
+  globalPermissions: [GlobalPermissionTypeEnum!]!
 }
 
 type UserMeTypeMutationResponseType {
@@ -312,4 +1204,9 @@ type UserTypeCountList {
   offset: Int!
   count: Int!
   items: [UserType!]!
+}
+
+enum VisibilityActionEnum {
+  SHOW
+  HIDE
 }
