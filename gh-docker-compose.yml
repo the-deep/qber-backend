@@ -2,11 +2,19 @@ version: '3.2'
 
 services:
   db:
-    image: postgres:15-alpine
+    image: postgis/postgis:15-master
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: qb
+
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     image: $DOCKER_IMAGE_BACKEND
@@ -25,16 +33,24 @@ services:
       SESSION_COOKIE_DOMAIN: localhost
       CSRF_COOKIE_DOMAIN: localhost
       DJANGO_ALLOWED_HOST: '*'
+      # Database
       DJANGO_DB_NAME: qb
       DJANGO_DB_USER: postgres
       DJANGO_DB_PASSWORD: postgres
       DJANGO_DB_PORT: 5432
       DJANGO_DB_HOST: db
       DJANGO_CORS_ORIGIN_REGEX_WHITELIST: localhost
+      # Redis
+      CELERY_REDIS_URL: redis://redis:6379/1
+      DJANGO_CACHE_REDIS_URL: redis://redis:6379/2
+      TEST_DJANGO_CACHE_REDIS_URL: redis://redis:6379/12
       # EMAIL
       EMAIL_FROM: dev@example.com
+      # Enketo
+      ENKETO_DOMAIN: http://localhost:8005
     volumes:
       - ./coverage/:/code/coverage/
       - ./ci-share/:/ci-share/
     depends_on:
       - db
+      - redis

@@ -4,7 +4,7 @@ from strawberry.types import Info
 from asgiref.sync import sync_to_async
 from django.contrib.auth import login, logout, update_session_auth_hash
 
-from utils.strawberry.transformers import generate_type_for_serializer
+from utils.strawberry.transformers import convert_serializer_to_type
 from utils.strawberry.mutations import (
     process_input_data,
     mutation_is_not_valid,
@@ -23,12 +23,12 @@ from .serializers import (
 from .queries import UserMeType
 
 
-LoginInput = generate_type_for_serializer('LoginInput', LoginSerializer)
-RegisterInput = generate_type_for_serializer('RegisterInput', RegisterSerializer)
-PasswordResetTriggerInput = generate_type_for_serializer('PasswordResetTriggerInput', PasswordResetTriggerSerializer)
-PasswordResetConfirmInput = generate_type_for_serializer('PasswordResetConfirmInput', PasswordResetConfirmSerializer)
-PasswordChangeInput = generate_type_for_serializer('PasswordChangeInput', PasswordChangeSerializer)
-UserMeInput = generate_type_for_serializer('UserMeInput', UserMeSerializer, partial=True)
+LoginInput = convert_serializer_to_type(LoginSerializer, name='LoginInput')
+RegisterInput = convert_serializer_to_type(RegisterSerializer, name='RegisterInput')
+PasswordResetTriggerInput = convert_serializer_to_type(PasswordResetTriggerSerializer, name='PasswordResetTriggerInput')
+PasswordResetConfirmInput = convert_serializer_to_type(PasswordResetConfirmSerializer, name='PasswordResetConfirmInput')
+PasswordChangeInput = convert_serializer_to_type(PasswordChangeSerializer, name='PasswordChangeInput')
+UserMeInput = convert_serializer_to_type(UserMeSerializer, partial=True, name='UserMeInput')
 
 
 @strawberry.type

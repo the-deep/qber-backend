@@ -2,6 +2,7 @@ from django.utils.functional import cached_property
 from rest_framework import serializers
 
 from main.caches import local_cache, CacheKey
+from utils.strawberry.serializers import StringIDField
 
 
 class ProjectScopeSerializerMixin(serializers.Serializer):
@@ -11,8 +12,8 @@ class ProjectScopeSerializerMixin(serializers.Serializer):
         # XXX: For entities without project
         project = self.context['active_project'].project
         # This is a rare case, just to make sure this is validated
-        if self.instance:
-            model_with_project = self.instance
+        model_with_project = self.instance
+        if model_with_project and hasattr(model_with_project, 'project'):
             if model_with_project is None or model_with_project.project != project:
                 raise serializers.ValidationError('Invalid access. Different project')
         return project
@@ -28,7 +29,7 @@ class UserResourceSerializer(ProjectScopeSerializerMixin, serializers.ModelSeria
         source='modified_by.profile.get_display_name',
         read_only=True)
 
-    client_id = serializers.CharField(required=False)
+    client_id = StringIDField(required=False)
     version_id = serializers.SerializerMethodField()
 
     def create(self, validated_data):
@@ -52,7 +53,7 @@ class TempClientIdMixin(serializers.ModelSerializer):
     """
     ClientId for serializer level only, storing to database is optional (if field exists).
     """
-    client_id = serializers.CharField(required=False)
+    client_id = StringIDField(required=False)
 
     @staticmethod
     def get_cache_key(instance, request):

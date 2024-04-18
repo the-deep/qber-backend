@@ -88,15 +88,15 @@ class TestProjectQuery(TestCase):
             count=5,
             items=[
                 dict(
-                    id=str(project.id),
+                    id=self.gID(project.id),
                     title=project.title,
                     currentUserRole=self.genum(role),
                     createdBy=dict(
-                        id=str(user.id),
+                        id=self.gID(user.id),
                         displayName=user.get_full_name(),
                     ),
                     modifiedBy=dict(
-                        id=str(user.id),
+                        id=self.gID(user.id),
                         displayName=user.get_full_name(),
                     ),
                 )
@@ -120,7 +120,7 @@ class TestProjectQuery(TestCase):
             return self.query_check(
                 self.Query.Project,
                 variables=dict(
-                    projectId=str(project.id),
+                    projectId=self.gID(project.id),
                 ),
                 **kwargs,
             )
@@ -136,25 +136,25 @@ class TestProjectQuery(TestCase):
 
         content = _query_check(project)
         assert content['data']['private']['projectScope'] == dict(
-            id=str(project.id),
+            id=self.gID(project.id),
             project=dict(
-                id=str(project.id),
+                id=self.gID(project.id),
                 title=project.title,
                 currentUserRole=self.genum(ProjectMembership.Role.MEMBER),
                 createdBy=dict(
-                    id=str(user.id),
+                    id=self.gID(user.id),
                     displayName=user.get_full_name(),
                 ),
                 modifiedBy=dict(
-                    id=str(user.id),
+                    id=self.gID(user.id),
                     displayName=user.get_full_name(),
                 ),
                 members=dict(
                     count=3,
                     items=[
                         dict(
-                            id=str(membership.id),
-                            memberId=str(membership.member_id),
+                            id=self.gID(membership.id),
+                            memberId=self.gID(membership.member_id),
                             role=self.genum(ProjectMembership.Role(membership.role)),
                         )
                         for membership in ProjectMembership.objects.filter(project=project).order_by('id')

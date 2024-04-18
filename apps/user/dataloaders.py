@@ -9,7 +9,7 @@ from .types import UserType
 def load_users(keys: list[str]) -> list[list[UserType]]:
     users_qs = User.objects.filter(id__in=keys)
     _map = {
-        user.id: user
+        user.pk: user
         for user in users_qs
     }
     return [_map[key] for key in keys]

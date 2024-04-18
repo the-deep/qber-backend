@@ -1,4 +1,5 @@
 from django.contrib import admin
+from admin_auto_filters.filters import AutocompleteFilterFactory
 
 from .models import Project, ProjectMembership
 
@@ -17,3 +18,6 @@ class ProjectAdmin(admin.ModelAdmin):
         'created_at',
     )
     inlines = (ProjectMembershipInline,)
+    list_filter = (
+        AutocompleteFilterFactory('Creator', 'created_by'),
+    )

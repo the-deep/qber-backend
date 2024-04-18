@@ -35,9 +35,7 @@ class UserFilter:
     def filter_members_exclude_project(self, queryset):
         value = self.members_exclude_project
         if value:
-            queryset = queryset.filter(
-                ~models.Q(projectmembership__project_id=value)
-            ).distinct()
+            queryset = queryset.exclude(projectmembership__project_id=value).distinct()
         return queryset
 
     def filter_exclude_me(self, queryset, info: Info):

@@ -43,7 +43,7 @@ class TestUserMutation(TestCase):
         variables['data'] = dict(email=user.email, password=user.password_text)
         content = self.query_check(self.login_mutation, variables=variables)
         assert content['data']['public']['login']['ok'] is True
-        self.assertEqual(content['data']['public']['login']['result']['id'], str(user.id), content)
+        self.assertEqual(content['data']['public']['login']['result']['id'], self.gID(user.id), content)
         self.assertEqual(content['data']['public']['login']['result']['email'], user.email, content)
 
     @mock.patch('utils.hcaptcha.requests')
@@ -131,7 +131,7 @@ class TestUserMutation(TestCase):
 
         # Query Me (Success)
         content = self.query_check(query)
-        self.assertEqual(content['data']['public']['me']['id'], str(user.id), content)
+        self.assertEqual(content['data']['public']['me']['id'], self.gID(user.id), content)
         self.assertEqual(content['data']['public']['me']['email'], user.email, content)
         # # Logout
         content = self.query_check(logout_mutation)

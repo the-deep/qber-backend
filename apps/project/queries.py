@@ -5,6 +5,7 @@ from strawberry.types import Info
 from utils.strawberry.paginations import CountList, pagination_field
 
 from apps.questionnaire import queries as questionnaire_queries
+from apps.export import queries as export_queries
 
 from .models import Project
 from .types import ProjectType, ProjectOrder
@@ -15,6 +16,7 @@ from .filters import ProjectFilter
 @strawberry.type
 class ProjectScopeType(
     questionnaire_queries.PrivateProjectQuery,
+    export_queries.PrivateProjectQuery,
 ):
     id: strawberry.ID
 

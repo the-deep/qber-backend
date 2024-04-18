@@ -1,6 +1,7 @@
 import typing
 import strawberry
 import logging
+from dataclasses import is_dataclass
 from strawberry.utils.str_converters import to_camel_case
 from strawberry.types import Info
 from asgiref.sync import sync_to_async
@@ -8,7 +9,7 @@ from rest_framework import serializers
 from django.db import transaction, models
 
 from utils.common import to_snake_case
-from utils.strawberry.transformers import generate_type_for_serializer
+from utils.strawberry.transformers import convert_serializer_to_type
 from apps.project.models import Project
 
 
@@ -28,15 +29,34 @@ CustomErrorType = strawberry.scalar(
 )
 
 
-def process_input_data(data) -> dict:
+def process_input_data(data) -> dict | list:
     """
     Return dict from Strawberry Input Object
     """
-    return {
-        key: value
-        for key, value in data.__dict__.items()
-        if value != strawberry.UNSET
-    }
+    # TODO: Write test
+    if type(data) in [tuple, list]:
+        return [
+            process_input_data(datum)
+            for datum in data
+        ]
+    native_dict = {}
+    for key, value in data.__dict__.items():
+        if value == strawberry.UNSET:
+            continue
+        if isinstance(value, list):
+            _list_value = []
+            for _value in value:
+                if is_dataclass(_value):
+                    _list_value.append(process_input_data(_value))
+                else:
+                    _list_value.append(_value)
+            native_dict[key] = _list_value
+            continue
+        if is_dataclass(value):
+            native_dict[key] = process_input_data(value)
+        else:
+            native_dict[key] = value
+    return native_dict
 
 
 @strawberry.type
@@ -178,6 +198,12 @@ class MutationResponseType(typing.Generic[ResultTypeVar]):
 
 
 @strawberry.type
+class BulkBasicMutationResponseType(typing.Generic[ResultTypeVar]):
+    errors: typing.Optional[list[CustomErrorType]] = None
+    results: typing.Optional[list[ResultTypeVar]] = None
+
+
+@strawberry.type
 class BulkMutationResponseType(typing.Generic[ResultTypeVar]):
     errors: typing.Optional[list[CustomErrorType]] = None
     results: typing.Optional[list[ResultTypeVar]] = None
@@ -209,17 +235,18 @@ class ModelMutation:
     ):
         self.serializer_class = serializer_class
         # Generated types
-        self.InputType = generate_type_for_serializer(
-            name + 'CreateInput',
+        self.InputType = convert_serializer_to_type(
             self.serializer_class,
+            name=name + 'CreateInput',
         )
-        self.PartialInputType = generate_type_for_serializer(
-            name + 'UpdateInput',
+        self.PartialInputType = convert_serializer_to_type(
             self.serializer_class,
+            name=name + 'UpdateInput',
             partial=True,
         )
 
-    def check_permissions(self, info, permission) -> CustomErrorType | None:
+    @staticmethod
+    def check_permissions(info, permission) -> CustomErrorType | None:
         if permission and not info.context.has_perm(permission):
             errors = CustomErrorType([
                 dict(
@@ -327,7 +354,7 @@ class ModelMutation:
 
         # Delete - First
         deleted_instances = []
-        delete_qs = base_queryset.filter(id__in=delete_ids)
+        delete_qs = base_queryset.filter(id__in=delete_ids).order_by('id')
         async for item in delete_qs.all():
             _errors, _saved_instance = await self.handle_delete(item)
             if _errors:
@@ -364,3 +391,7 @@ class ModelMutation:
             results=results,
             deleted=deleted_instances,
         )
+
+
+def generate_error_message(message: str = _CustomErrorType.DEFAULT_ERROR_MESSAGE) -> CustomErrorType:
+    return _CustomErrorType.generate_message(message)
