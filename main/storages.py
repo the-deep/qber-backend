@@ -4,7 +4,7 @@ from storages.utils import setting
 
 class S3StaticStorage(S3Boto3Storage):
     location = 'static'
-    default_acl = 'public-read'
+    # NOTE: We need to set 'public-read' in s3 policy
     querystring_auth = False
 
     def get_default_settings(self):
