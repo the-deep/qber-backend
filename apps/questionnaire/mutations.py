@@ -134,6 +134,7 @@ class ProjectScopeMutation():
         _data = {
             int(d['id']): d['order']
             for d in process_input_data(data)
+            if d['id']
         }
         queryset = QuestionLeafGroupType.get_queryset(None, None, info).filter(
             questionnaire=questionnaire_id,
