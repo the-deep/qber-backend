@@ -34,6 +34,7 @@ openpyxl = "*"
 celery-types = "*"
 django-prettyjson = "*"
 uwsgi = "*"
+aws-sns-message-validator = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
