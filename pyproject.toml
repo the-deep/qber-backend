@@ -5,6 +5,7 @@ description = ""
 authors = ["deep-dev <dev@thedeep.io>"]
 license = "GNU Affero General Public License v3.0"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11.3"
@@ -32,6 +33,8 @@ pyxform = "^1.12.1"
 openpyxl = "*"
 celery-types = "*"
 django-prettyjson = "*"
+uwsgi = "*"
+aws-sns-message-validator = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

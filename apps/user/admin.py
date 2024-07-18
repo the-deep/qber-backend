@@ -41,6 +41,7 @@ class CustomUserAdmin(UserAdmin):
         (_('Misc'), {
             'fields': (
                 'email_opt_outs',
+                'invalid_email',
             )
         }),
     )
